@@ -40,6 +40,10 @@ Exact evidence and capability limits are recorded in [COMPATIBILITY.md](COMPATIB
 
 Themes use the declarative `.cctheme` format. A theme may contain allowlisted JSON and bounded local media, but never JavaScript, CSS, HTML, shaders, selectors, commands, remote URLs, absolute paths, or traversal paths.
 
+Current preset packages and their first-frame preview images are available from
+[CC Theme Preset Themes v1.0.0](https://github.com/quanzhankeji/cc-theme/releases/tag/themes-v1.0.0).
+They are published as GitHub Release assets and remain outside the Git source tree.
+
 A `.cctheme` file is a ZIP-compatible container with exactly `family.json`,
 `unified-theme.json`, and `assets/` at its root. `family.json` owns localized
 Chinese/English display metadata, licensing, asset roles, byte sizes, and
