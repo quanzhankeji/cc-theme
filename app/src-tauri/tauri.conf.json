@@ -27,7 +27,13 @@
   },
   "bundle": {
     "active": true,
-    "icon": ["icons/icon.icns"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
     "category": "Utility",
     "copyright": "Copyright © 2026 CC Theme contributors",
     "shortDescription": "Manage themes for Codex and WorkBuddy",
