@@ -1,0 +1,31 @@
+{
+  "kind": "cc-theme.settings-native-parity",
+  "schemaVersion": 1,
+  "adapterId": "win-workbuddy-skin",
+  "verificationStatus": "unverified",
+  "navigationItem": {
+    "label": "CC Theme",
+    "source": "clone-contract-from-adjacent-native-item-at-runtime",
+    "mustMatch": ["element-type", "parent", "order", "role", "tabIndex", "aria", "height", "padding", "gap", "font", "icon-box", "radius", "focus-ring", "transition", "disabled-semantics"],
+    "states": ["rest", "hover", "pressed", "selected", "selected-hover", "focus-visible", "disabled"],
+    "themes": ["light", "dark", "system"],
+    "scalesPercent": [100, 125, 150],
+    "motion": ["normal", "reduced"],
+    "keyboard": ["Tab", "Shift+Tab", "ArrowUp", "ArrowDown", "Enter", "Space", "Escape"]
+  },
+  "panel": {
+    "route": "settings/cc-theme",
+    "saveButton": false,
+    "immediatePreview": true,
+    "autoSave": true,
+    "debounceMs": 180,
+    "revision": "strictly-monotonic",
+    "concurrency": "latest-write-wins",
+    "failure": "rollback-controls-renderer-and-persisted-state"
+  },
+  "acceptance": {
+    "comparison": "side-by-side-with-actual-adjacent-native-item",
+    "evidence": ["cropped-state-screenshots", "computed-layout-metrics", "uia-role-and-focus-trace", "reduced-motion-trace"],
+    "independentOwnerRequired": true
+  }
+}

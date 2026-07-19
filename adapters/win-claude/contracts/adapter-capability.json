@@ -1,0 +1,107 @@
+{
+  "kind": "cc-theme.adapter-capability",
+  "schemaVersion": 1,
+  "adapterId": "win-claude",
+  "platform": "windows",
+  "capabilityVersion": "0.1.0",
+  "targetThemeKind": "skin.theme",
+  "targetThemeSchemaVersion": 1,
+  "themeStyleCatalogId": "win-claude-theme",
+  "themeStyleCatalogVersion": 1,
+  "uiSurfaceCatalogVersion": 1,
+  "compileAvailable": false,
+  "runtimeApplyAvailable": false,
+  "availability": {
+    "status": "unavailable",
+    "projectionAvailable": false,
+    "validationAvailable": false,
+    "deepSettingsAvailable": false,
+    "reasonCode": "production-runtime-seam-unverified",
+    "reason": "Claude Desktop 1.22209.0 requires official authenticated CDP for remote debugging, and Win-Claude has no verified Surface Catalog, serialized transaction, live verification, rollback, or production transport. The official DevTools detach path is proof-only."
+  },
+  "compatibility": {
+    "policy": "exact-trusted-package-plus-live-landmarks-and-reversible-seam",
+    "verifiedBuild": "1.22209.0",
+    "verifiedPackageForm": "msix",
+    "verifiedArchitecture": "arm64",
+    "verifiedPublisherStatus": "anthropic-signature-valid",
+    "identityAllowlistReady": false,
+    "missingIdentityAnchors": ["package-full-name", "package-family-name", "signer-subject", "binary-sha256"],
+    "applyGate": "compileAvailable-and-runtimeApplyAvailable-and-runtime-probe",
+    "versionFactsOwner": "win-claude-compile-context",
+    "themeCarriesVersionFacts": false
+  },
+  "interfaces": {
+    "targetProfile": "contracts/windows-claude-target-profile.schema.json",
+    "styleCatalog": "contracts/theme-style-catalog.json",
+    "surfaceCatalog": "contracts/ui-surface-catalog.schema.json",
+    "runtimeOverrides": "contracts/runtime-overrides-interface.json",
+    "transaction": "contracts/adapter-transaction.json",
+    "lifecycle": "contracts/theme-lifecycle-interface.json",
+    "operationResult": "contracts/operation-result.schema.json"
+    ,
+    "hostEvidence": "compatibility/claude-windows/1.22209.0/host-evidence.json"
+    ,
+    "runtimeSeamCandidates": "contracts/runtime-seam-candidates.json"
+  },
+  "sharedCoreDecisions": [
+    {
+      "path": "sharedCore.tokens",
+      "requirement": "required",
+      "decision": "unsupported",
+      "targetPath": null,
+      "diagnosticCode": "projection-not-implemented"
+    },
+    {
+      "path": "sharedCore.background",
+      "requirement": "required",
+      "decision": "unsupported",
+      "targetPath": null,
+      "diagnosticCode": "projection-not-implemented"
+    },
+    {
+      "path": "sharedCore.accessibility",
+      "requirement": "required",
+      "decision": "unsupported",
+      "targetPath": null,
+      "diagnosticCode": "projection-not-implemented"
+    }
+  ],
+  "targetProfile": {
+    "namespace": "win-claude",
+    "additionalProperties": false,
+    "fields": [],
+    "decisions": []
+  },
+  "localRuntimeOverrides": {
+    "stableTokenIds": [
+      "foundation.surfaceBase",
+      "text.primary",
+      "action.background",
+      "font.ui"
+    ],
+    "baseHashAvailable": false,
+    "serialTransactionSeamAvailable": false,
+    "incompatiblePolicy": "quarantine-with-visible-diagnostic",
+    "wysiwyg": true,
+    "saveButton": false
+  },
+  "identityResponsibilities": {
+    "runtimeOrdering": {
+      "scope": "renderer-session",
+      "fields": ["sessionNonce", "generation", "revision"],
+      "crossProcessComparable": false,
+      "releaseDigest": false
+    },
+    "artifactProvenance": {
+      "fields": ["fileSha256", "manifestSha256", "archiveSha256"],
+      "algorithm": "sha256",
+      "sessionScoped": false,
+      "deterministicReleaseIdentity": true
+    }
+  },
+  "gate": {
+    "policy": "fail-closed",
+    "reasonCode": "production-runtime-seam-unverified"
+  }
+}

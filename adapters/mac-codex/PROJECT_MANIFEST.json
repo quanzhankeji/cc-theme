@@ -1,0 +1,91 @@
+{
+  "kind": "mac-codex.repository",
+  "schemaVersion": "1.0.0",
+  "adapterId": "mac-codex",
+  "adapterVersion": "26.715.31925",
+  "adapterReleaseRevision": 1,
+  "productVersion": "26.715.31925",
+  "platform": "macOS",
+  "releaseTarget": {
+    "os": "macos",
+    "arch": "arm64",
+    "assetIdentity": "mac-codex-26.715.31925-r1-macos-arm64",
+    "sourceArtifact": "mac-codex-26.715.31925-r1-macos-arm64.zip",
+    "clientArtifact": "cc-theme-mac-codex-26.715.31925-r1-macos-arm64.zip"
+  },
+  "client": {
+    "bundleId": "com.openai.codex",
+    "supportedShortVersion": "26.715.31925",
+    "versionPolicy": "always-latest",
+    "transport": "loopback-cdp",
+    "defaultPort": 9341
+  },
+  "entrypoints": {
+    "test": "tests/run-tests.sh",
+    "install": "scripts/install-skin-macos.sh",
+    "start": "scripts/start-skin-macos.sh",
+    "launcherApp": "scripts/launcher-app-macos.sh",
+    "applyManagerTheme": "scripts/switch-theme-macos.sh",
+    "adapterCapability": "scripts/adapter-capability.mjs",
+    "adapterRelease": "scripts/adapter-release.mjs",
+    "surfaceAdmission": "scripts/surface-admission.mjs",
+    "runtimeOverrideTransaction": "scripts/runtime-override-transaction.mjs",
+    "themeLifecycle": "scripts/theme-lifecycle.mjs",
+    "applyCCTheme": "scripts/apply-cc-theme-macos.sh",
+    "verify": "scripts/verify-skin-macos.sh",
+    "pause": "scripts/pause-skin-macos.sh",
+    "restore": "scripts/restore-skin-macos.sh",
+    "doctor": "scripts/doctor-macos.sh",
+    "build": "scripts/build-release.sh"
+  },
+  "runtimeState": {
+    "activeSnapshotRoot": "Application Support/CCTheme/theme",
+    "localOverridesRoot": "Application Support/CCTheme/style-overrides/<theme-id>.json",
+    "externalPackageInputOnly": true,
+    "repositoryOwnsThemeAssets": false
+  },
+  "contracts": {
+    "package": "contracts/cc-theme-package.json",
+    "theme": "contracts/skin-theme.schema.json",
+    "styleCatalog": "contracts/theme-style-catalog.json",
+    "adapterCapability": "contracts/adapter-capability.json",
+    "adapterProjection": "contracts/adapter-projection.json",
+    "adapterReleaseManifest": "contracts/adapter-release-manifest.json",
+    "targetProfile": "contracts/target-profile.schema.json",
+    "runtimeOverrideTransaction": "contracts/runtime-override-transaction.json",
+    "editorLocales": "contracts/theme-editor-locales.json",
+    "lifecycleInterface": "contracts/theme-lifecycle-result.json",
+    "liveSurfaceEvidence": "contracts/live-surface-evidence.json",
+    "validator": "scripts/skin-theme.mjs",
+    "styleCatalogValidator": "scripts/theme-style-catalog.mjs",
+    "editorLocalesValidator": "scripts/theme-editor-locales.mjs",
+    "liveSurfaceEvidenceImplementation": "scripts/live-surface-evidence.mjs",
+    "uiEvidenceCatalog": "compatibility/chatgpt-macos/26.715.31925/ui-surface-catalog.json",
+    "semanticRoleVisualReport": "compatibility/chatgpt-macos/26.715.31925/semantic-role-visual-report.json",
+    "surfaceAdmissionImplementation": "scripts/surface-admission.mjs"
+  },
+  "securityBoundary": {
+    "modifiesOfficialApplication": false,
+    "modifiesAppAsar": false,
+    "modifiesCodeSignature": false,
+    "allowsRemoteThemeCode": false,
+    "allowsRawThemeCss": false,
+    "allowsUserMediaInRepositoryByDefault": false,
+    "bundlesProductionThemes": false,
+    "fallbackRestoresNativeHost": true,
+    "verifiesOfficialAppSignature": true,
+    "blocksByClientVersion": false,
+    "requiresCurrentSurfaceEvidence": true,
+    "automaticRollbackOnThemeLoadFailure": true
+  },
+  "excluded": [
+    "legacy Git history",
+    "runtime state and installed copies",
+    "generated release archives",
+    "private images and videos",
+    "debug screenshots, reports, logs and backups",
+    "Windows implementation",
+    "menu-bar and tray theme switching",
+    "document build artifacts"
+  ]
+}

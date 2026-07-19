@@ -1,0 +1,10 @@
+{
+  "name": "@cc-theme/adapter-sdk",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./adapter-registry.mjs",
+    "./workspace-root": "./workspace-root.mjs"
+  }
+}

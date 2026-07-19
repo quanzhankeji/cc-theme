@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/quanzhankeji/cc-theme/main/adapters/mac-codex/contracts/target-profile.schema.json",
+  "title": "Mac Codex Target Profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "adapterId", "revision"],
+  "properties": {
+    "kind": { "const": "cc-theme.target-profile" },
+    "adapterId": { "const": "mac-codex" },
+    "revision": { "const": 1 },
+    "copy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "brandSubtitle": { "type": "string", "maxLength": 80 },
+        "tagline": { "type": "string", "maxLength": 160 },
+        "projectPrefix": { "type": "string", "maxLength": 80 },
+        "projectLabel": { "type": "string", "maxLength": 80 },
+        "statusText": { "type": "string", "maxLength": 80 },
+        "quote": { "type": "string", "maxLength": 80 }
+      }
+    },
+    "art": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "analysis": { "enum": ["auto", "off"] },
+        "focusX": { "type": "number", "minimum": 0, "maximum": 1 },
+        "focusY": { "type": "number", "minimum": 0, "maximum": 1 },
+        "safeArea": { "enum": ["auto", "left", "right", "center", "none"] },
+        "taskMode": { "enum": ["auto", "ambient", "banner", "off"] },
+        "paletteMode": { "enum": ["system", "media"] },
+        "adaptivePalette": { "type": "boolean" }
+      }
+    },
+    "appearance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "newTaskLayout": { "enum": ["cards", "banner"] },
+        "videoPosterMode": { "enum": ["none", "image"] },
+        "videoPosition": { "$ref": "#/$defs/position" },
+        "homeHeroPosition": { "$ref": "#/$defs/position" },
+        "backdropBlurPx": { "type": "number", "minimum": 0, "maximum": 48 },
+        "backdropSaturation": { "type": "number", "minimum": 0.5, "maximum": 1.5 },
+        "radiusScale": { "type": "number", "minimum": 0.75, "maximum": 1.5 },
+        "reduceParticles": { "type": "boolean" }
+      }
+    },
+    "homeHeroAsset": { "$ref": "#/$defs/assetId" }
+  },
+  "$defs": {
+    "assetId": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$" },
+    "position": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["xPercent", "yPercent"],
+      "properties": {
+        "xPercent": { "type": "number", "minimum": 0, "maximum": 100 },
+        "yPercent": { "type": "number", "minimum": 0, "maximum": 100 }
+      }
+    }
+  }
+}

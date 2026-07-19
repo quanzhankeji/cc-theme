@@ -1,0 +1,129 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/.vinext/
+/out/
+
+# misc
+.DS_Store
+._*
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+next-env.d.ts
+*.tsbuildinfo
+/dist/
+/.wrangler/
+/outputs/
+/work/
+
+# monorepo project outputs
+**/node_modules/
+**/.next/
+**/.vinext/
+**/dist/
+**/target/
+**/.wrangler/
+**/coverage/
+**/*.tsbuildinfo
+**/release/
+
+# Adapter/Manager build, packaging, staging, installation, and cache outputs.
+# Git stores reproducible source inputs only; immutable Adapter packages may be
+# created from an exact tag by controlled CI and uploaded to GitHub Releases.
+**/.runtime-resources*/
+**/.runtime-cache*/
+**/.adapter-dist*/
+**/staging/
+**/*-staging/
+**/--check/
+**/payload/
+**/installed/
+**/installation/
+**/.cache/
+**/cache/
+**/*.ccadapter
+**/*.zip
+**/*.tar
+**/*.tar.gz
+**/*.tgz
+**/*.7z
+**/*.dmg
+**/*.pkg
+**/*.app/
+**/*.exe
+**/*.dll
+**/*.dylib
+**/*.so
+**/*.a
+**/*.o
+**/*.rlib
+**/*.rmeta
+**/*.ccadapter.manifest.json
+**/*.sha256
+**/*.sha256sum
+**/SHA256SUMS*
+**/artifact-manifest.json
+**/archive-summary.*
+**/release-summary.*
+
+# The website is maintained as a separate local project and is not published
+# from this repository.
+/web/
+
+# Production themes and download catalog metadata are local/release inputs,
+# never source-tree content.
+**/presets/
+**/themes/
+**/theme-sources/
+**/*.cctheme
+/catalog/
+
+# Publish only the neutral theme-authoring scaffold. Real theme sources, media,
+# working directories, generated archives, and release staging stay local.
+!/themes/
+/themes/*
+!/themes/README.md
+!/themes/example/
+!/themes/example/**
+!/themes/tools/
+!/themes/tools/**
+!/themes/tests/
+!/themes/tests/**
+
+# local reports and private theme material
+/.codex/
+/.local-docs/
+**/reports/
+**/screenshots/
+**/themes/private/
+**/*.user.json
+*.log
+*.pid
+*.tmp

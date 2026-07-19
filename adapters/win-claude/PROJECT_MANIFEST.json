@@ -1,0 +1,11 @@
+{
+  "kind": "cc-theme.adapter-project",
+  "schemaVersion": 1,
+  "id": "win-claude",
+  "application": "claude",
+  "platform": "windows",
+  "minimumOperatingSystem": "Windows 11",
+  "status": "paused-by-user",
+  "runtimeApplyAvailable": false,
+  "evidencePolicy": "fail-closed"
+}

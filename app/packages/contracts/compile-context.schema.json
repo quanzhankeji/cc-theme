@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cc-theme.local/contracts/compile-context.schema.json",
+  "title": "CC Theme Adapter compile context",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "schemaVersion", "adapters"],
+  "properties": {
+    "kind": { "const": "cc-theme.compile-context" },
+    "schemaVersion": { "const": 1 },
+    "adapters": {
+      "type": "object",
+      "propertyNames": { "enum": ["mac-codex", "mac-workbuddy"] },
+      "additionalProperties": { "$ref": "#/$defs/adapterContext" }
+    }
+  },
+  "$defs": {
+    "hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "adapterContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["compileAllowed", "applyAllowed", "probeStatus", "localRuntimeOverrides"],
+      "properties": {
+        "detectedClientVersion": { "type": ["string", "null"], "maxLength": 80 },
+        "detectedClientBuild": { "type": ["string", "null"], "maxLength": 80 },
+        "surfaceCatalogId": { "type": ["string", "null"], "maxLength": 160 },
+        "surfaceCatalogVersion": { "type": ["integer", "string", "null"] },
+        "probeStatus": { "enum": ["passed", "failed", "not-run", "unavailable"] },
+        "compileAllowed": { "type": "boolean" },
+        "applyAllowed": { "type": "boolean" },
+        "reasonCode": { "type": ["string", "null"], "maxLength": 120 },
+        "localRuntimeOverrides": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["baseThemeHash", "entries"],
+          "properties": {
+            "baseThemeHash": { "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$" },
+            "entries": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["tokenId", "baseHash", "value"],
+                "properties": {
+                  "tokenId": { "type": "string", "pattern": "^[a-z][A-Za-z0-9.-]{0,119}$" },
+                  "baseHash": { "$ref": "#/$defs/hash" },
+                  "value": {}
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

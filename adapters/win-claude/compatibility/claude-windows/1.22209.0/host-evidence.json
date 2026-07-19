@@ -1,0 +1,76 @@
+{
+  "kind": "cc-theme.windows-claude-host-evidence",
+  "schemaVersion": 1,
+  "adapterId": "win-claude",
+  "evidenceClass": "vm-verified",
+  "capturedDate": "2026-07-18",
+  "provenance": {
+    "verifierRole": "win-lead",
+    "methods": [
+      "Windows MSIX package metadata and signature inspection",
+      "Windows app.asar static inspection"
+    ]
+  },
+  "client": {
+    "version": "1.22209.0",
+    "packageForm": "msix",
+    "distribution": "microsoft-store",
+    "architecture": "arm64",
+    "publisher": "Anthropic",
+    "signatureStatus": "valid",
+    "packageMain": ".vite/build/index.pre.js"
+  },
+  "identityAnchors": {
+    "packageFullName": null,
+    "packageFamilyName": null,
+    "signerSubject": null,
+    "binarySha256": null,
+    "futureAllowlistReady": false,
+    "missing": [
+      "package-full-name",
+      "package-family-name",
+      "signer-subject",
+      "binary-sha256"
+    ]
+  },
+  "remoteDebuggingGate": {
+    "portBlockedWithoutOfficialAuth": true,
+    "pipeBlockedWithoutOfficialAuth": true,
+    "requiredEnvironmentNames": ["CLAUDE_CDP_AUTH", "CLAUDE_USER_DATA_DIR"],
+    "tokenSegments": 3,
+    "boundToUserDataDirectory": true,
+    "freshnessSeconds": 300,
+    "signatureAlgorithm": "ed25519",
+    "verificationKeyOwner": "Anthropic",
+    "adapterBypassPolicy": "forbidden"
+  },
+  "officialDeveloperTools": {
+    "environmentName": "CLAUDE_DEV_TOOLS",
+    "value": "detach",
+    "codePathObserved": true,
+    "platformRestrictionObserved": false,
+    "allowedUse": "manual-disposable-proof-only",
+    "productionTransport": false
+  },
+  "privacy": {
+    "authenticationTokenStored": false,
+    "commandLineStored": false,
+    "environmentDumpStored": false,
+    "fullUserPathStored": false,
+    "rawAsarStored": false
+  },
+  "conclusion": {
+    "clientIdentityVerified": true,
+    "productionRuntimeSeamVerified": false,
+    "runtimeApplyAvailable": false,
+    "reasonCode": "production-runtime-seam-unverified",
+    "blockers": [
+      "official-cdp-auth-required",
+      "surface-catalog-unverified",
+      "transaction-seam-unverified",
+      "live-verification-unverified",
+      "rollback-unverified",
+      "identity-allowlist-incomplete"
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "kind": "cc-theme.adapter-transaction-interface",
+  "schemaVersion": 1,
+  "adapterId": "mac-claude",
+  "operations": ["project", "install-adapter", "activate-external-package", "save-local-overrides", "rebase-local-overrides", "apply", "pause", "restore"],
+  "serialization": "single-adapter-lock",
+  "lockRoot": "Application Support/CCTheme/claude/transactions",
+  "atomicWrite": "fsync-temporary-then-rename",
+  "crossProcessNakedLastWriteWins": false,
+  "externalPackageReplacement": "flush-pending-overrides-then-atomically-replace-active-snapshot-and-rebase",
+  "failure": "rollback-last-valid-state"
+}

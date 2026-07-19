@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cc-theme.local/contracts/mac-workbuddy-theme-runtime-settings.schema.json",
+  "title": "Mac WorkBuddy local runtime overrides",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "schemaVersion", "themeId", "baseThemeSha256", "tokenFingerprints", "state", "quarantine", "updatedAt"],
+  "properties": {
+    "kind": { "const": "theme.runtime-settings" },
+    "schemaVersion": { "const": 2 },
+    "themeId": { "type": "string", "pattern": "^[A-Za-z0-9_-]{1,80}$" },
+    "baseThemeSha256": { "$ref": "#/$defs/sha256" },
+    "tokenFingerprints": {
+      "type": "object",
+      "propertyNames": { "pattern": "^[a-z][A-Za-z0-9.-]{0,79}$" },
+      "additionalProperties": { "$ref": "#/$defs/sha256" }
+    },
+    "state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["themeId", "paletteStrategy", "backgroundPresentation", "values"],
+      "properties": {
+        "themeId": { "type": "string", "pattern": "^[A-Za-z0-9_-]{1,80}$" },
+        "paletteStrategy": { "enum": ["system", "adaptive", "custom"] },
+        "backgroundPresentation": { "enum": ["enabled", "paused", "disabled"] },
+        "values": {
+          "type": "object",
+          "propertyNames": { "pattern": "^[a-z][A-Za-z0-9.-]{0,79}$" },
+          "additionalProperties": {
+            "oneOf": [
+              { "type": "string", "maxLength": 96 },
+              { "type": "number" },
+              {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 8,
+                "items": { "type": "string", "minLength": 1, "maxLength": 64 }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["xPercent", "yPercent"],
+                "properties": {
+                  "xPercent": { "type": "number", "minimum": 0, "maximum": 100 },
+                  "yPercent": { "type": "number", "minimum": 0, "maximum": 100 }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "quarantine": {
+      "type": "array",
+      "maxItems": 128,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["tokenId", "code", "valueSha256"],
+        "properties": {
+          "tokenId": { "type": "string", "pattern": "^[a-z][A-Za-z0-9.-]{0,79}$" },
+          "code": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,79}$" },
+          "valueSha256": { "$ref": "#/$defs/sha256" }
+        }
+      }
+    },
+    "updatedAt": { "type": "string", "format": "date-time", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$" }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

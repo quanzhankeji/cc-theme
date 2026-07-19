@@ -1,0 +1,14 @@
+{
+  "kind": "cc-theme.projection-map",
+  "schemaVersion": 3,
+  "sourceKind": "cc-theme.unified-theme",
+  "outputKind": "skin.theme",
+  "capabilityRegistry": "adapter-capabilities/registry.json",
+  "targetDiscovery": "registry",
+  "projectionOwner": "adapter",
+  "compileContext": "compile-context.schema.json",
+  "requiredUnsupportedPolicy": "fail-with-visible-diagnostic",
+  "optionalUnsupportedPolicy": "omit-with-visible-diagnostic",
+  "approximatedPolicy": "project-with-visible-diagnostic",
+  "outputValidation": "adapter-owned-projector-plus-target-skin-theme-normalizer"
+}

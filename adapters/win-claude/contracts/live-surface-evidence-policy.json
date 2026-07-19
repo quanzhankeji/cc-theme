@@ -1,0 +1,36 @@
+{
+  "kind": "cc-theme.live-surface-evidence-policy",
+  "schemaVersion": 1,
+  "adapterId": "win-claude",
+  "maximumNodesPerCapture": 64,
+  "allowedData": [
+    "element-type",
+    "semantic-role",
+    "stable-classification",
+    "parent-child-structure",
+    "aggregate-count",
+    "geometry",
+    "boolean-state",
+    "allowlisted-computed-style",
+    "uia-control-type",
+    "uia-pattern-availability"
+  ],
+  "forbiddenData": [
+    "conversation-text",
+    "rendered-copy",
+    "input-value",
+    "accessible-name",
+    "url",
+    "query",
+    "hash-fragment",
+    "link-target",
+    "media-source",
+    "token",
+    "environment-variable",
+    "process-command-line",
+    "full-user-path",
+    "raw-screenshot"
+  ],
+  "rawArtifactsCommitted": false,
+  "admissionPolicy": "exact-build-structure-evidence-plus-live-probe"
+}

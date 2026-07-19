@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Mac-Claude Projection Request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "schemaVersion", "adapterId", "sharedCore"],
+  "properties": {
+    "kind": { "const": "cc-theme.adapter-projection-request" },
+    "schemaVersion": { "const": 1 },
+    "adapterId": { "const": "mac-claude" },
+    "capabilityVersion": { "const": "1.0.0" },
+    "sharedCore": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity", "background"],
+      "properties": {
+        "identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "name"],
+          "properties": {
+            "id": { "type": "string", "pattern": "^[A-Za-z0-9_-]{1,80}$" },
+            "name": { "type": "string", "minLength": 1, "maxLength": 80 }
+          }
+        },
+        "colors": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "background": { "$ref": "#/$defs/color" },
+            "panel": { "$ref": "#/$defs/color" },
+            "panelAlt": { "$ref": "#/$defs/color" },
+            "accent": { "$ref": "#/$defs/color" },
+            "accentAlt": { "$ref": "#/$defs/color" },
+            "secondary": { "$ref": "#/$defs/color" },
+            "highlight": { "$ref": "#/$defs/color" },
+            "text": { "$ref": "#/$defs/color" },
+            "muted": { "$ref": "#/$defs/color" },
+            "line": { "$ref": "#/$defs/color" }
+          }
+        },
+        "semanticColors": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "surfaceBase": { "$ref": "#/$defs/color" },
+            "surfaceRaised": { "$ref": "#/$defs/color" },
+            "surfaceElevated": { "$ref": "#/$defs/color" },
+            "surfaceCode": { "$ref": "#/$defs/color" },
+            "textStrong": { "$ref": "#/$defs/color" },
+            "placeholder": { "$ref": "#/$defs/color" },
+            "borderSubtle": { "$ref": "#/$defs/color" },
+            "borderDefault": { "$ref": "#/$defs/color" },
+            "borderStrong": { "$ref": "#/$defs/color" },
+            "action": { "$ref": "#/$defs/color" },
+            "actionHover": { "$ref": "#/$defs/color" },
+            "actionPressed": { "$ref": "#/$defs/color" },
+            "actionForeground": { "$ref": "#/$defs/color" },
+            "hoverSurface": { "$ref": "#/$defs/color" },
+            "pressedSurface": { "$ref": "#/$defs/color" },
+            "selectedSurface": { "$ref": "#/$defs/color" },
+            "selectedHoverSurface": { "$ref": "#/$defs/color" },
+            "focusRing": { "$ref": "#/$defs/color" },
+            "link": { "$ref": "#/$defs/color" },
+            "danger": { "$ref": "#/$defs/color" },
+            "success": { "$ref": "#/$defs/color" },
+            "warning": { "$ref": "#/$defs/color" },
+            "sidebarSurface": { "$ref": "#/$defs/color" },
+            "headerSurface": { "$ref": "#/$defs/color" },
+            "mainScrimStart": { "$ref": "#/$defs/color" },
+            "mainScrimMid": { "$ref": "#/$defs/color" },
+            "mainScrimEnd": { "$ref": "#/$defs/color" },
+            "composerSurface": { "$ref": "#/$defs/color" }
+          }
+        },
+        "fonts": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ui": { "$ref": "#/$defs/fontList" },
+            "display": { "$ref": "#/$defs/fontList" },
+            "code": { "$ref": "#/$defs/fontList" }
+          }
+        },
+        "appearance": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "shellMode": { "enum": ["auto", "light", "dark"] },
+            "backdropBlurPx": { "type": "number", "minimum": 0, "maximum": 48 },
+            "backdropSaturation": { "type": "number", "minimum": 0.5, "maximum": 1.5 },
+            "radiusScale": { "type": "number", "minimum": 0.75, "maximum": 1.5 }
+          }
+        },
+        "background": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["image"],
+          "properties": {
+            "mode": { "enum": ["media", "ripple", "directional"] },
+            "image": { "type": "string", "pattern": "^[A-Za-z0-9_.-]+\\.(png|jpe?g|webp)$" },
+            "video": { "type": "string", "pattern": "^[A-Za-z0-9_.-]+\\.mp4$" },
+            "heroImage": { "type": "string", "pattern": "^[A-Za-z0-9_.-]+\\.(png|jpe?g|webp)$" }
+          }
+        },
+        "accessibility": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "reducedMotion": { "const": "system" },
+            "increasedContrast": { "type": "boolean" },
+            "forceMotion": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "targetProfiles": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mac-claude": { "$ref": "claude-target-profile.schema.json" }
+      }
+    }
+  },
+  "$defs": {
+    "color": {
+      "type": "string",
+      "pattern": "^(#[0-9A-Fa-f]{6}|rgba?\\([0-9., %]+\\))$"
+    },
+    "fontList": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80,
+        "pattern": "^[^;{}<>/\\\\]+$"
+      }
+    }
+  }
+}

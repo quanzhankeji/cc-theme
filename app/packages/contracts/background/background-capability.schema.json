@@ -1,0 +1,273 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/quanzhankeji/cc-theme/main/contracts/background-capability.schema.json",
+  "title": "CC Theme shared background capability",
+  "description": "Platform-neutral background fragment extracted from a skin.theme document. Runtime code is never part of this contract.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "image"
+  ],
+  "properties": {
+    "image": {
+      "$ref": "#/$defs/localImageFile"
+    },
+    "backgroundVideo": {
+      "$ref": "#/$defs/localMp4File"
+    },
+    "interactiveBackground": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ripple"
+        },
+        {
+          "$ref": "#/$defs/directional"
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "not": {
+        "properties": {
+          "backgroundVideo": true,
+          "interactiveBackground": true
+        },
+        "required": [
+          "backgroundVideo",
+          "interactiveBackground"
+        ]
+      }
+    }
+  ],
+  "$defs": {
+    "localImageFile": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 255,
+      "pattern": "^(?!.*[:/\\\\])[^\\u0000-\\u001F]+\\.(png|jpe?g|webp)$"
+    },
+    "localMp4File": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 255,
+      "pattern": "^(?!.*[:/\\\\])[^\\u0000-\\u001F]+\\.mp4$"
+    },
+    "staticWebpFile": {
+      "type": "string",
+      "minLength": 6,
+      "maxLength": 255,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*\\.webp$"
+    },
+    "position": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "xPercent",
+        "yPercent"
+      ],
+      "properties": {
+        "xPercent": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "yPercent": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        }
+      }
+    },
+    "ripple": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "const": "ripple"
+        },
+        "intensity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.35
+        },
+        "radiusPx": {
+          "type": "number",
+          "minimum": 8,
+          "maximum": 96,
+          "default": 24
+        },
+        "quality": {
+          "enum": [
+            "auto",
+            "low",
+            "high"
+          ],
+          "default": "auto"
+        },
+        "scrimOpacity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.8,
+          "default": 0.16
+        }
+      }
+    },
+    "directional": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "atlas",
+        "directions",
+        "columns",
+        "rows"
+      ],
+      "properties": {
+        "type": {
+          "const": "directional"
+        },
+        "atlas": {
+          "$ref": "#/$defs/staticWebpFile"
+        },
+        "directions": {
+          "enum": [
+            8,
+            16,
+            32
+          ]
+        },
+        "columns": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8
+        },
+        "rows": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8
+        },
+        "firstDirectionDegrees": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180,
+          "default": -90
+        },
+        "idleFrame": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 31,
+          "default": 0
+        },
+        "origin": {
+          "$ref": "#/$defs/position"
+        },
+        "scrimOpacity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.8,
+          "default": 0.16
+        }
+      },
+      "allOf": [
+        {
+          "oneOf": [
+            {
+              "properties": {
+                "directions": { "const": 8 },
+                "columns": { "const": 1 },
+                "rows": { "const": 8 }
+              }
+            },
+            {
+              "properties": {
+                "directions": { "const": 8 },
+                "columns": { "const": 2 },
+                "rows": { "const": 4 }
+              }
+            },
+            {
+              "properties": {
+                "directions": { "const": 8 },
+                "columns": { "const": 4 },
+                "rows": { "const": 2 }
+              }
+            },
+            {
+              "properties": {
+                "directions": { "const": 8 },
+                "columns": { "const": 8 },
+                "rows": { "const": 1 }
+              }
+            },
+            {
+              "properties": {
+                "directions": { "const": 16 },
+                "columns": { "const": 2 },
+                "rows": { "const": 8 }
+              }
+            },
+            {
+              "properties": {
+                "directions": { "const": 16 },
+                "columns": { "const": 4 },
+                "rows": { "const": 4 }
+              }
+            },
+            {
+              "properties": {
+                "directions": { "const": 16 },
+                "columns": { "const": 8 },
+                "rows": { "const": 2 }
+              }
+            },
+            {
+              "properties": {
+                "directions": { "const": 32 },
+                "columns": { "const": 4 },
+                "rows": { "const": 8 }
+              }
+            },
+            {
+              "properties": {
+                "directions": { "const": 32 },
+                "columns": { "const": 8 },
+                "rows": { "const": 4 }
+              }
+            }
+          ]
+        },
+        {
+          "if": {
+            "properties": {
+              "directions": { "const": 8 }
+            },
+            "required": ["directions"]
+          },
+          "then": {
+            "properties": {
+              "idleFrame": { "type": "integer", "maximum": 7 }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "directions": { "const": 16 }
+            },
+            "required": ["directions"]
+          },
+          "then": {
+            "properties": {
+              "idleFrame": { "type": "integer", "maximum": 15 }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

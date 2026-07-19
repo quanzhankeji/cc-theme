@@ -1,0 +1,2796 @@
+:root.cc-theme {
+  color-scheme: dark !important;
+  --skin-bg: #071116;
+  --skin-panel: #0b1a20;
+  --skin-panel-2: #10272c;
+  --skin-green: #7cff46;
+  --skin-lime: #b8ff3d;
+  --skin-cyan: #36d7e8;
+  --skin-purple: #642a8c;
+  --skin-text: #e9fff1;
+  --skin-muted: #9ebdb3;
+  --skin-line: rgba(124, 255, 70, .28);
+}
+
+html.cc-theme body {
+  background:
+    radial-gradient(circle at 84% 4%, rgba(100, 42, 140, .40), transparent 28%),
+    radial-gradient(circle at 18% 10%, rgba(54, 215, 232, .12), transparent 30%),
+    linear-gradient(145deg, #050a10 0%, #071116 52%, #0b151a 100%) !important;
+  color: var(--skin-text) !important;
+  font-family: "Microsoft YaHei UI", "Microsoft YaHei", "Segoe UI", system-ui, sans-serif !important;
+}
+
+html.cc-theme body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: .42;
+  background-image:
+    radial-gradient(circle, rgba(184, 255, 61, .72) 0 1px, transparent 1.8px),
+    radial-gradient(circle, rgba(54, 215, 232, .52) 0 1px, transparent 1.8px);
+  background-position: 0 0, 27px 33px;
+  background-size: 71px 71px, 89px 89px;
+}
+
+html.cc-theme .app-shell-left-panel {
+  background:
+    radial-gradient(circle at 12% 4%, rgba(54, 215, 232, .10), transparent 28%),
+    linear-gradient(180deg, rgba(7, 20, 25, .98), rgba(8, 29, 31, .96)) !important;
+  border: 1px solid rgba(54, 215, 232, .20) !important;
+  border-left: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: 12px 0 34px rgba(0, 0, 0, .30), inset -1px 0 rgba(124, 255, 70, .08) !important;
+  backdrop-filter: none !important;
+  color: var(--skin-text) !important;
+}
+
+html.cc-theme .app-shell-left-panel nav {
+  background: transparent !important;
+}
+
+html.cc-theme .app-shell-left-panel button {
+  color: #d9f7e3 !important;
+  transition: transform .16s ease, background .16s ease, box-shadow .16s ease !important;
+}
+
+html.cc-theme .app-shell-left-panel button:hover {
+  background: linear-gradient(90deg, rgba(124, 255, 70, .15), rgba(54, 215, 232, .10)) !important;
+  box-shadow: inset 0 0 0 1px rgba(124, 255, 70, .16) !important;
+  transform: translateX(1px);
+}
+
+html.cc-theme .app-shell-left-panel button[aria-label^="切换模式"] {
+  background: transparent !important;
+  border-color: transparent !important;
+  font-family: "Segoe UI", system-ui, sans-serif !important;
+  font-size: 19px !important;
+  font-weight: 800 !important;
+  color: var(--skin-green) !important;
+  text-shadow: 0 0 14px rgba(124, 255, 70, .34);
+}
+
+html.cc-theme .app-shell-left-panel button[aria-label^="切换模式"]::after {
+  content: " ◉";
+  color: var(--skin-cyan);
+}
+
+html.cc-theme .app-shell-left-panel [class~="bg-token-list-hover-background"],
+html.cc-theme .app-shell-left-panel [aria-current="page"] {
+  background: linear-gradient(90deg, rgba(124, 255, 70, .20), rgba(54, 215, 232, .12)) !important;
+  border: 1px solid rgba(124, 255, 70, .24) !important;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, .24), inset 3px 0 var(--skin-green) !important;
+}
+
+html.cc-theme:not([data-skin-theme-bridge]) main.main-surface {
+  background:
+    radial-gradient(circle at 88% 8%, rgba(100, 42, 140, .24), transparent 30%),
+    radial-gradient(circle at 18% 0%, rgba(54, 215, 232, .10), transparent 28%),
+    linear-gradient(180deg, #08151b 0%, #071116 100%) !important;
+  border: 1px solid rgba(54, 215, 232, .18) !important;
+  border-right: 0 !important;
+  border-bottom: 0 !important;
+  border-radius: 18px 0 0 0 !important;
+  box-shadow: inset 0 1px rgba(255, 255, 255, .04), -10px 0 34px rgba(0, 0, 0, .22) !important;
+  overflow: hidden !important;
+}
+
+/* Task pages borrow the reference's atmospheric wallpaper treatment while
+   keeping every Codex message, output and control as live native DOM. */
+html.cc-theme:not([data-skin-theme-bridge]) main.main-surface:not(.skin-home-shell) {
+  background:
+    linear-gradient(90deg, rgba(4, 10, 17, .95) 0%, rgba(6, 17, 24, .86) 47%, rgba(8, 18, 25, .64) 100%),
+    radial-gradient(circle at 70% 38%, rgba(124, 255, 70, .08), transparent 28%),
+    var(--skin-active-art, var(--skin-art)) 76% center / cover no-repeat !important;
+}
+
+html.cc-theme:not([data-skin-theme-bridge]) main.main-surface:not(.skin-home-shell) [role="main"] {
+  background: linear-gradient(90deg, rgba(5, 13, 19, .24), rgba(5, 13, 19, .04)) !important;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, .32);
+}
+
+html.cc-theme:not([data-skin-theme-bridge]) main.main-surface:not(.skin-home-shell) article {
+  border: 1px solid rgba(54, 215, 232, .10);
+  background: rgba(7, 20, 27, .34);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .12);
+  backdrop-filter: blur(8px) saturate(112%);
+}
+
+html.cc-theme:not([data-skin-theme-bridge]) main.main-surface > header.app-header-tint {
+  background: linear-gradient(90deg, rgba(8, 21, 27, .98), rgba(10, 35, 37, .94), rgba(31, 18, 46, .94)) !important;
+  border-bottom: 1px solid rgba(124, 255, 70, .14) !important;
+  backdrop-filter: none !important;
+}
+
+#cc-theme-chrome {
+  position: fixed;
+  z-index: 31;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: 18px 0 0 0;
+}
+
+#cc-theme-chrome[hidden] {
+  display: none !important;
+}
+
+#cc-theme-video-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  border-radius: 0;
+  background: var(--skin-bg, #050505);
+}
+
+#cc-theme-interactive-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  border-radius: 0;
+  background: transparent;
+}
+
+#cc-theme-interactive-layer canvas {
+  position: relative;
+  z-index: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  pointer-events: none;
+  user-select: none;
+}
+
+#cc-theme-interactive-layer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: var(--skin-video-scrim-color, #000000);
+  opacity: var(--skin-interactive-scrim-opacity, .16);
+  pointer-events: none;
+}
+
+#cc-theme-interactive-layer[hidden] {
+  display: none !important;
+}
+
+#cc-theme-video-layer video {
+  position: relative;
+  z-index: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  object-fit: cover;
+  object-position: var(--skin-video-position, var(--skin-art-position, 50% 50%));
+  pointer-events: none;
+  user-select: none;
+}
+
+/* System-aware readability scrim: light shells lift the media toward white;
+   dark shells lower it toward black. It stays below every application surface
+   and never receives input. */
+#cc-theme-video-layer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: var(--skin-video-scrim-color, #000000);
+  opacity: var(--skin-video-scrim-opacity, 0);
+  pointer-events: none;
+}
+
+#cc-theme-video-layer[hidden],
+html.cc-theme[data-skin-video="disabled"] #cc-theme-video-layer {
+  display: none !important;
+}
+
+/* Codex 26.715 still renders native dropdowns with the legacy
+   --color-token-dropdown-background token, while its current system palette
+   only supplies the opaque elevated-surface token. In the explicit media-
+   disabled state Skin's class and theme variables are gone; bridge only this
+   missing native alias so profile and other native menus do not become fully
+   transparent. The menu's own /90 opacity and blur remain app-controlled. */
+html[data-skin-video="disabled"] {
+  --color-token-dropdown-background: var(
+    --color-background-elevated-primary-opaque,
+    var(--color-token-main-surface-primary, Canvas)
+  ) !important;
+}
+
+html.cc-theme:is([data-skin-video="enabled"], [data-skin-background-mode]) .app-shell-left-panel,
+html.cc-theme:is([data-skin-video="enabled"], [data-skin-background-mode]) main.main-surface {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* The video layer is a direct body child. Raising only sidebar/main is not
+   sufficient when the React mount itself forms a stacking context: its
+   descendants cannot escape above a later body sibling. Raise the direct app
+   mount as one unit so the owned media always stays behind the entire UI. */
+html.cc-theme:is([data-skin-video="enabled"], [data-skin-background-mode]) body {
+  isolation: isolate;
+}
+
+html.cc-theme:is([data-skin-video="enabled"], [data-skin-background-mode]) body > [data-skin-app-mount] {
+  position: relative !important;
+  z-index: 1 !important;
+  isolation: isolate;
+}
+
+/* Electron mounts Browser guest views in a fixed direct-body portal instead
+   of inside the React app mount. Keep that native portal above the raised app
+   mount; otherwise a loaded webview remains interactive but paints behind the
+   conversation surface. */
+html.cc-theme[data-skin-theme-bridge]:is([data-skin-video="enabled"], [data-skin-background-mode])
+body > [data-browser-sidebar-webview-host-root] {
+  z-index: 2 !important;
+}
+
+#cc-theme-video-toggle-wrapper {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  pointer-events: auto;
+}
+
+#cc-theme-video-toggle-wrapper[data-skin-anchor-kind="header-trailing-actions"],
+#cc-theme-video-toggle-wrapper[data-skin-anchor-kind="header-content-actions"],
+#cc-theme-video-toggle-wrapper[data-skin-anchor-kind="summary-actions"] {
+  position: absolute;
+  right: calc(100% + 6px);
+  top: 50%;
+  z-index: 1;
+  transform: translateY(-50%);
+}
+
+[data-skin-video-control-anchor="header-trailing-actions"],
+[data-skin-video-control-anchor="header-content-actions"],
+[data-skin-video-control-anchor="summary-actions"] {
+  position: relative;
+}
+
+#cc-theme-video-toggle {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  flex: 0 0 28px;
+  display: inline-grid;
+  place-items: center;
+  margin: 0;
+  padding: 0;
+  pointer-events: auto;
+  cursor: pointer;
+  line-height: 1;
+}
+
+#cc-theme-video-toggle svg {
+  display: block;
+  width: 15px;
+  height: 15px;
+  color: currentColor;
+  pointer-events: none;
+}
+
+#cc-theme-video-toggle:disabled {
+  cursor: default;
+}
+
+/* The local editor is an Engine-owned control surface generated from
+   theme-style-catalog.json. Its dedicated Settings page participates only in
+   the Settings scroll flow and never resizes Chat, Work, Side Panel or Bottom Panel. */
+#cc-theme-style-editor {
+  position: fixed;
+  z-index: 2147483000;
+  top: 52px;
+  right: 16px;
+  width: min(390px, calc(100vw - 32px));
+  max-height: min(720px, calc(100vh - 68px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color-scheme: light dark;
+  color: var(--skin-text, CanvasText);
+  background: color-mix(in srgb, var(--skin-surface-elevated, Canvas) 96%, transparent);
+  border: 1px solid var(--skin-border-default, color-mix(in srgb, CanvasText 18%, transparent));
+  border-radius: 14px;
+  box-shadow: 0 20px 56px rgba(0, 0, 0, .28);
+  -webkit-backdrop-filter: blur(22px) saturate(1.08);
+  backdrop-filter: blur(22px) saturate(1.08);
+  font: 13px/1.4 system-ui, sans-serif;
+  pointer-events: auto;
+}
+
+#cc-theme-style-editor[hidden] {
+  display: none !important;
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] {
+  position: relative;
+  z-index: auto;
+  top: auto;
+  right: auto;
+  width: 100%;
+  max-height: none;
+  margin: 44px 0 64px;
+  overflow: visible;
+  color: CanvasText;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+[data-theme-page-native-hidden="true"] {
+  display: none !important;
+}
+
+#cc-theme-settings-page {
+  min-width: 0;
+  min-height: 0;
+}
+
+#cc-theme-settings-page #cc-theme-style-editor[data-theme-editor-placement="settings"] {
+  margin: 0 0 64px;
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] > header > button {
+  display: none;
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] .cc-theme-style-editor-body {
+  overflow: visible;
+}
+
+#cc-theme-style-editor > header,
+#cc-theme-style-editor > footer,
+#cc-theme-style-editor .cc-theme-style-editor-effect,
+#cc-theme-style-editor .cc-theme-style-editor-library {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+}
+
+#cc-theme-style-editor > header {
+  border-bottom: 1px solid var(--skin-border-subtle, color-mix(in srgb, CanvasText 12%, transparent));
+}
+
+#cc-theme-style-editor > header > div {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+
+#cc-theme-style-editor > header small,
+#cc-theme-style-editor .cc-theme-style-editor-effect > span:first-child,
+#cc-theme-style-editor .cc-theme-style-editor-library > span:first-child,
+#cc-theme-style-editor .cc-theme-style-editor-row > span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+#cc-theme-style-editor > header strong {
+  color: var(--skin-text-strong, CanvasText);
+  font-size: 14px;
+}
+
+#cc-theme-style-editor > header small,
+#cc-theme-style-editor-status {
+  color: var(--skin-muted, GrayText);
+  font-size: 11px;
+}
+
+#cc-theme-style-editor button,
+#cc-theme-style-editor input {
+  box-sizing: border-box;
+  color: inherit;
+  font: inherit;
+}
+
+#cc-theme-style-editor button {
+  min-height: 26px;
+  padding: 3px 9px;
+  background: var(--skin-surface-raised, ButtonFace);
+  border: 1px solid var(--skin-border-default, ButtonBorder);
+  border-radius: 7px;
+  cursor: pointer;
+  white-space: normal;
+}
+
+#cc-theme-style-editor > header > button {
+  width: 28px;
+  min-width: 28px;
+  padding: 0;
+  font-size: 20px;
+  line-height: 1;
+}
+
+#cc-theme-style-editor button:hover:not(:disabled) {
+  background: var(--skin-hover-surface, color-mix(in srgb, Highlight 12%, ButtonFace));
+}
+
+#cc-theme-style-editor button:focus-visible,
+#cc-theme-style-editor input:focus-visible,
+#cc-theme-style-editor summary:focus-visible {
+  outline: 2px solid var(--skin-focus-ring, Highlight);
+  outline-offset: 1px;
+}
+
+#cc-theme-style-editor button:disabled {
+  cursor: default;
+  opacity: .55;
+}
+
+#cc-theme-style-editor .cc-theme-style-editor-effect {
+  padding-block: 9px;
+  background: color-mix(in srgb, var(--skin-surface-raised, Canvas) 72%, transparent);
+  border-bottom: 1px solid var(--skin-border-subtle, color-mix(in srgb, CanvasText 12%, transparent));
+}
+
+#cc-theme-style-editor .cc-theme-style-editor-library {
+  align-items: flex-start;
+  background: color-mix(in srgb, var(--skin-surface-raised, Canvas) 72%, transparent);
+  border-bottom: 1px solid var(--skin-border-subtle, color-mix(in srgb, CanvasText 12%, transparent));
+}
+
+#cc-theme-style-editor .cc-theme-style-editor-library > span:first-child {
+  padding-top: 5px;
+  font-weight: 600;
+}
+
+#cc-theme-style-editor .cc-theme-style-editor-library-options {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+#cc-theme-style-editor .cc-theme-style-editor-library-options button[aria-current="true"] {
+  color: var(--skin-action-foreground, HighlightText);
+  background: var(--skin-action, Highlight);
+  border-color: transparent;
+  opacity: 1;
+}
+
+#cc-theme-style-editor .cc-theme-style-editor-body {
+  min-height: 0;
+  overflow: auto;
+  padding: 6px 10px 10px;
+}
+
+#cc-theme-style-editor .cc-theme-style-editor-group > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 9px 4px;
+  color: var(--skin-text-strong, CanvasText);
+  font-weight: 650;
+  font-size: 13px;
+  list-style: none;
+  cursor: pointer;
+}
+
+#cc-theme-style-editor .cc-theme-style-editor-group > summary::-webkit-details-marker {
+  display: none;
+}
+
+#cc-theme-style-editor .cc-theme-style-editor-group > summary::after {
+  content: "›";
+  margin-inline-start: 2px;
+  color: var(--skin-muted, GrayText);
+  font-size: 18px;
+  line-height: 1;
+  transform: rotate(0deg);
+  transition: transform 120ms ease;
+}
+
+#cc-theme-style-editor .cc-theme-style-editor-group[open] > summary::after {
+  transform: rotate(90deg);
+}
+
+#cc-theme-style-editor .cc-theme-style-editor-group-count {
+  min-width: 20px;
+  margin-inline-start: auto;
+  padding: 1px 6px;
+  color: var(--skin-muted, GrayText);
+  background: color-mix(in srgb, CanvasText 7%, transparent);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+  text-align: center;
+}
+
+#cc-theme-style-editor .cc-theme-style-editor-group-rows {
+  border-bottom: 1px solid var(--skin-border-subtle, color-mix(in srgb, CanvasText 12%, transparent));
+}
+
+#cc-theme-style-editor .cc-theme-style-editor-row {
+  display: grid;
+  grid-template-columns: minmax(96px, .8fr) minmax(170px, 1.2fr);
+  align-items: center;
+  gap: 10px;
+  padding: 5px 4px;
+}
+
+#cc-theme-style-editor .cc-theme-style-editor-row > span:last-child {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 5px;
+  align-items: center;
+}
+
+#cc-theme-style-editor input.cc-theme-style-editor-color-picker {
+  width: 22px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0;
+  overflow: hidden;
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  border: 1px solid color-mix(in srgb, CanvasText 22%, transparent);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+#cc-theme-style-editor input.cc-theme-style-editor-color-picker::-webkit-color-swatch-wrapper {
+  padding: 2px;
+}
+
+#cc-theme-style-editor input.cc-theme-style-editor-color-picker::-webkit-color-swatch {
+  border: 0;
+  border-radius: 50%;
+}
+
+#cc-theme-style-editor input {
+  width: 100%;
+  height: 28px;
+  min-width: 0;
+  padding: 3px 7px;
+  background: var(--skin-surface-base, Field);
+  border: 1px solid var(--skin-border-default, ButtonBorder);
+  border-radius: 6px;
+}
+
+#cc-theme-style-editor input[aria-invalid="true"] {
+  border-color: var(--skin-danger, Mark);
+}
+
+#cc-theme-style-editor .cc-theme-style-editor-row button {
+  padding-inline: 7px;
+  color: var(--skin-muted, GrayText);
+  font-size: 11px;
+}
+
+#cc-theme-style-editor > footer {
+  align-items: flex-end;
+  border-top: 1px solid var(--skin-border-subtle, color-mix(in srgb, CanvasText 12%, transparent));
+}
+
+#cc-theme-style-editor > footer > span:last-child {
+  display: flex;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+#cc-theme-style-editor-status[data-state="error"] { color: var(--skin-danger, Mark); }
+#cc-theme-style-editor-status[data-state="success"] { color: var(--skin-success, #248a3d); }
+#cc-theme-style-editor-status[data-state="dirty"] { color: var(--skin-warning, #a05a00); }
+
+#cc-theme-runtime-notice {
+  display: grid;
+  gap: 3px;
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--skin-danger, Mark) 38%, transparent);
+  border-radius: 10px;
+}
+
+#cc-theme-runtime-notice[hidden] { display: none !important; }
+
+#cc-theme-runtime-notice[data-state="error"] {
+  color: var(--skin-text-strong, CanvasText);
+  background: color-mix(in srgb, var(--skin-danger, Mark) 10%, var(--skin-surface-raised, Canvas));
+}
+
+#cc-theme-runtime-notice > span {
+  color: var(--skin-muted, GrayText);
+  font-size: 12px;
+}
+
+#cc-theme-style-editor .cc-theme-locale-notice {
+  margin: 0 0 10px;
+  padding: 9px 12px;
+  color: var(--skin-muted, GrayText);
+  background: color-mix(in srgb, CanvasText 5%, transparent);
+  border: 1px solid color-mix(in srgb, CanvasText 12%, transparent);
+  border-radius: 9px;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+#cc-theme-style-editor[dir="rtl"] .cc-theme-style-editor-group > summary::after {
+  content: "‹";
+}
+
+#cc-theme-style-editor[dir="rtl"] .cc-theme-style-editor-group[open] > summary::after {
+  transform: rotate(-90deg);
+}
+
+/* The dedicated CC Theme page follows the host Settings visual grammar: one
+   plain heading, a compact library, collapsed groups and native-sized controls.
+   Appearance and all of its native controls remain untouched. */
+#cc-theme-style-editor[data-theme-editor-placement="settings"] {
+  --cc-theme-editor-surface: color-mix(in srgb, var(--skin-native-canvas, Canvas) 94%, transparent);
+  --cc-theme-editor-surface-hover: color-mix(in srgb, CanvasText 5%, var(--cc-theme-editor-surface));
+  --cc-theme-editor-line: color-mix(in srgb, CanvasText 12%, transparent);
+  --cc-theme-editor-muted: color-mix(in srgb, CanvasText 58%, transparent);
+  display: block;
+  color-scheme: light dark;
+  font: 13px/1.45 system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] > header {
+  align-items: flex-start;
+  padding: 0 0 22px;
+  border: 0;
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] > header > div {
+  gap: 5px;
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] > header h2 {
+  margin: 0;
+  color: CanvasText;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -.01em;
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] > header small,
+#cc-theme-style-editor[data-theme-editor-placement="settings"] #cc-theme-style-editor-status {
+  color: var(--cc-theme-editor-muted);
+  font-size: 12px;
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] .cc-theme-style-editor-effect,
+#cc-theme-style-editor[data-theme-editor-placement="settings"] .cc-theme-style-editor-library,
+#cc-theme-style-editor[data-theme-editor-placement="settings"] .cc-theme-style-editor-group-rows {
+  overflow: hidden;
+  background: var(--cc-theme-editor-surface);
+  border: 1px solid var(--cc-theme-editor-line);
+  border-radius: 12px;
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] .cc-theme-style-editor-effect {
+  min-height: 52px;
+  padding: 10px 14px;
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] .cc-theme-style-editor-library {
+  min-height: 52px;
+  margin-bottom: 10px;
+  padding: 10px 14px;
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] .cc-theme-style-editor-library-options {
+  max-width: 70%;
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] .cc-theme-style-editor-body {
+  display: block;
+  overflow: hidden;
+  margin-top: 20px;
+  padding: 0;
+  background: var(--cc-theme-editor-surface);
+  border: 1px solid var(--cc-theme-editor-line);
+  border-radius: 12px;
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] .cc-theme-style-editor-group {
+  display: block;
+  overflow: hidden;
+  margin: 0;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--cc-theme-editor-line);
+  border-radius: 0;
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] .cc-theme-style-editor-group:last-child {
+  border-bottom: 0;
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] .cc-theme-style-editor-group > summary {
+  min-height: 44px;
+  margin: 0;
+  padding: 8px 14px;
+  color: CanvasText;
+  font-size: 14px;
+  font-weight: 550;
+  line-height: 1.4;
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] .cc-theme-style-editor-group > summary:hover {
+  background: var(--cc-theme-editor-surface-hover);
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] .cc-theme-style-editor-group > summary:focus-visible {
+  outline-offset: -2px;
+  border-radius: 8px;
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] .cc-theme-style-editor-group[open] > summary {
+  background: color-mix(in srgb, CanvasText 3%, var(--cc-theme-editor-surface));
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] .cc-theme-style-editor-group-rows {
+  background: color-mix(in srgb, CanvasText 2%, var(--cc-theme-editor-surface));
+  border: 0;
+  border-top: 1px solid var(--cc-theme-editor-line);
+  border-radius: 0;
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] .cc-theme-style-editor-row {
+  min-height: 52px;
+  grid-template-columns: minmax(150px, 1fr) minmax(260px, .95fr);
+  gap: 18px;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--cc-theme-editor-line);
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] .cc-theme-style-editor-row:last-child {
+  border-bottom: 0;
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] .cc-theme-style-editor-row > span:first-child {
+  color: CanvasText;
+  font-weight: 450;
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] .cc-theme-style-editor-row > span:last-child {
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] .cc-theme-style-editor-row > span:last-child:not(:has(.cc-theme-style-editor-color-picker)) {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] input.cc-theme-style-editor-color-picker {
+  width: 24px;
+  min-width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: 50%;
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] input {
+  height: 32px;
+  padding: 5px 9px;
+  color: CanvasText;
+  background: color-mix(in srgb, var(--skin-native-canvas, Field) 96%, transparent);
+  border-color: color-mix(in srgb, CanvasText 18%, transparent);
+  border-radius: 7px;
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] button {
+  min-height: 30px;
+  color: CanvasText;
+  background: color-mix(in srgb, CanvasText 5%, var(--skin-native-canvas, ButtonFace));
+  border-color: color-mix(in srgb, CanvasText 14%, transparent);
+  border-radius: 7px;
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] button:hover:not(:disabled) {
+  background: var(--cc-theme-editor-surface-hover);
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"]
+  .cc-theme-style-editor-library-options button[aria-current="true"]:disabled {
+  color: var(--skin-action-foreground, #fff) !important;
+  background: var(--skin-action, #007aff) !important;
+  border-color: transparent !important;
+  opacity: 1 !important;
+  filter: none !important;
+  cursor: default !important;
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] .cc-theme-style-editor-row button {
+  color: var(--cc-theme-editor-muted);
+  font-size: 12px;
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] > footer {
+  align-items: center;
+  margin-top: 30px;
+  padding: 14px 0 0;
+  border-top: 1px solid var(--cc-theme-editor-line);
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] #cc-theme-style-editor-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 5px 9px;
+  color: CanvasText !important;
+  background: var(--cc-theme-editor-surface);
+  border: 1px solid var(--cc-theme-editor-line);
+  border-radius: 7px;
+  line-height: 1.25;
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] #cc-theme-style-editor-status[data-state="dirty"] {
+  border-color: color-mix(in srgb, var(--skin-warning, #a05a00) 42%, var(--cc-theme-editor-line));
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] #cc-theme-style-editor-status[data-state="success"] {
+  border-color: color-mix(in srgb, var(--skin-success, #248a3d) 42%, var(--cc-theme-editor-line));
+}
+
+#cc-theme-style-editor[data-theme-editor-placement="settings"] #cc-theme-style-editor-status[data-state="error"] {
+  border-color: color-mix(in srgb, var(--skin-danger, #d70015) 48%, var(--cc-theme-editor-line));
+}
+
+@media (max-width: 760px) {
+  #cc-theme-style-editor[data-theme-editor-placement="settings"] .cc-theme-style-editor-library {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  #cc-theme-style-editor[data-theme-editor-placement="settings"] .cc-theme-style-editor-library-options {
+    max-width: none;
+    justify-content: flex-start;
+  }
+
+  #cc-theme-style-editor[data-theme-editor-placement="settings"] .cc-theme-style-editor-row {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  #cc-theme-style-editor[data-theme-editor-placement="settings"] > footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+.skin-brand {
+  position: absolute;
+  left: 23px;
+  top: 3px;
+  height: 40px;
+  display: none;
+  align-items: center;
+  gap: 10px;
+  color: var(--skin-text);
+}
+
+#cc-theme-chrome.skin-home-shell .skin-brand { display: flex; }
+.skin-portal-mark {
+  width: 29px;
+  height: 29px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(184, 255, 61, .66);
+  border-radius: 50%;
+  color: var(--skin-lime);
+  font-size: 21px;
+  box-shadow: 0 0 16px rgba(124, 255, 70, .38), inset 0 0 10px rgba(54, 215, 232, .22);
+}
+.skin-brand b { display: block; color: var(--skin-green); font-size: 14px; letter-spacing: .04em; }
+.skin-brand small { display: block; margin-top: 1px; color: var(--skin-cyan); font-size: 9px; letter-spacing: .16em; text-transform: uppercase; }
+
+.skin-status {
+  position: absolute;
+  right: 86px;
+  top: 12px;
+  display: none;
+  align-items: center;
+  gap: 7px;
+  color: var(--skin-muted);
+  font: 700 10px/1 "Cascadia Code", Consolas, monospace;
+  letter-spacing: .14em;
+}
+.skin-status i { width: 7px; height: 7px; border-radius: 50%; background: var(--skin-green); box-shadow: 0 0 10px var(--skin-green); }
+#cc-theme-chrome.skin-home-shell .skin-status { display: flex; }
+
+.skin-quote {
+  position: absolute;
+  right: 28px;
+  bottom: 72px;
+  display: none;
+  color: rgba(184, 255, 61, .72);
+  font: italic 14px/1.2 "Segoe Print", "Comic Sans MS", cursive;
+  letter-spacing: .03em;
+  text-shadow: 0 0 13px rgba(124, 255, 70, .30);
+  transform: rotate(-3deg);
+}
+#cc-theme-chrome.skin-home-shell .skin-quote { display: block; }
+
+/* The original decorative chrome duplicated the theme name/status across the
+   New Task header and left a quote watermark in the lower-right corner. The
+   native page already carries all necessary context, so keep these owned
+   labels permanently hidden. */
+#cc-theme-chrome .skin-brand,
+#cc-theme-chrome .skin-status,
+#cc-theme-chrome .skin-quote {
+  display: none !important;
+}
+
+.skin-particles { position: absolute; inset: 48px 0 0; opacity: .62; }
+.skin-particles i {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--skin-green);
+  box-shadow: 0 0 11px 3px rgba(124, 255, 70, .36);
+  animation: ds-float 4.6s ease-in-out infinite;
+}
+.skin-particles i:nth-child(1) { left: 6%; top: 13%; }
+.skin-particles i:nth-child(2) { left: 29%; top: 7%; animation-delay: -.8s; background: var(--skin-cyan); }
+.skin-particles i:nth-child(3) { left: 51%; top: 18%; animation-delay: -1.6s; }
+.skin-particles i:nth-child(4) { left: 75%; top: 9%; animation-delay: -2.4s; background: var(--skin-cyan); }
+.skin-particles i:nth-child(5) { left: 91%; top: 28%; animation-delay: -3.2s; }
+.skin-particles i:nth-child(6) { left: 64%; top: 63%; animation-delay: -1.1s; background: var(--skin-cyan); }
+.skin-particles i:nth-child(7) { left: 22%; top: 72%; animation-delay: -2.1s; }
+.skin-particles i:nth-child(8) { left: 86%; top: 78%; animation-delay: -3.7s; }
+
+.skin-orbit {
+  position: absolute;
+  right: 52px;
+  bottom: 96px;
+  width: 74px;
+  height: 22px;
+  display: none;
+  border: 1px solid rgba(54, 215, 232, .20);
+  border-radius: 50%;
+  transform: rotate(-12deg);
+}
+#cc-theme-chrome.skin-home-shell .skin-orbit { display: block; }
+
+html.cc-theme [role="main"] {
+  background: transparent !important;
+  scrollbar-color: rgba(124, 255, 70, .40) transparent;
+}
+
+html.cc-theme .skin-home {
+  --thread-content-max-width: min(950px, calc(100cqw - 44px)) !important;
+  overflow-x: hidden !important;
+}
+
+.skin-home > div:first-child {
+  padding-top: 15px !important;
+  min-height: 100% !important;
+}
+
+.skin-home > div:first-child > div:first-child {
+  flex: 0 0 430px !important;
+  min-height: 430px !important;
+  align-items: flex-start !important;
+  padding-bottom: 0 !important;
+}
+
+.skin-home [data-skin-role="home-hero"],
+.skin-home > div:first-child > div:first-child > div:first-child {
+  position: relative !important;
+  isolation: isolate;
+  width: calc(100% - 44px) !important;
+  max-width: none !important;
+  height: 252px !important;
+  min-height: 252px !important;
+  flex: 0 1 auto !important;
+  padding: 0 !important;
+  border: 1px solid rgba(124, 255, 70, .62) !important;
+  border-radius: 24px !important;
+  overflow: visible !important;
+  background-color: #08101c !important;
+  background-image:
+    linear-gradient(90deg, rgba(4, 8, 17, .30), rgba(4, 8, 17, .03)),
+    var(--skin-hero-art, var(--skin-active-art, var(--skin-art))) !important;
+  background-repeat: no-repeat !important;
+  background-size: 100% 100%, cover !important;
+  background-position: center, right center !important;
+  box-shadow: 0 16px 38px rgba(0, 0, 0, .38), 0 0 22px rgba(124, 255, 70, .10), inset 0 0 0 3px rgba(54, 215, 232, .06) !important;
+}
+
+.skin-home [data-skin-role="home-hero"]::before,
+.skin-home > div:first-child > div:first-child > div:first-child::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 0 auto 0 0;
+  width: 61%;
+  border-radius: 23px 0 0 23px;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(5, 9, 20, .98) 0%, rgba(8, 13, 30, .93) 55%, rgba(21, 19, 51, .62) 78%, transparent 100%);
+}
+
+.skin-home > div:first-child > div:first-child > div:first-child > div:first-child {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  padding-left: 36px;
+}
+
+.skin-home > div:first-child > div:first-child > div:first-child > div:first-child > div:first-child {
+  width: 55% !important;
+  align-items: flex-start !important;
+  gap: 0 !important;
+}
+
+.skin-home [data-testid="home-icon"] { display: none !important; }
+
+.skin-home [data-feature="game-source"] {
+  display: block !important;
+  max-width: 100% !important;
+  color: var(--skin-text) !important;
+  font-size: clamp(19px, 1.85vw, 27px) !important;
+  line-height: 1.28 !important;
+  font-weight: 760 !important;
+  text-align: left !important;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, .72);
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+.skin-home [data-feature="game-source"] button {
+  margin: 0 5px;
+  padding: 2px 9px 3px;
+  border: 1px solid rgba(124, 255, 70, .48);
+  border-radius: 999px;
+  background: rgba(124, 255, 70, .10);
+  color: var(--skin-lime) !important;
+  text-decoration-color: rgba(184, 255, 61, .70) !important;
+  text-underline-offset: 5px;
+  box-shadow: inset 0 0 14px rgba(54, 215, 232, .06);
+}
+
+.skin-home [data-feature="game-source"] button::before {
+  content: var(--skin-project-prefix, "选择项目 · ");
+  font-size: .46em;
+  font-weight: 700;
+  vertical-align: middle;
+  opacity: .88;
+}
+
+.skin-home > div:first-child > div:first-child > div:first-child > div:nth-child(2) {
+  left: 14px !important;
+  right: 14px !important;
+  top: 100% !important;
+  margin-top: 13px !important;
+}
+
+.skin-home .group\/home-suggestions { overflow: visible !important; }
+
+.skin-home .group\/home-suggestions button {
+  position: relative !important;
+  min-height: 126px !important;
+  padding: 14px 13px 12px !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  text-align: center !important;
+  border: 1px solid rgba(54, 215, 232, .26) !important;
+  border-radius: 21px !important;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(54, 215, 232, .10), transparent 36%),
+    linear-gradient(145deg, rgba(13, 34, 38, .98), rgba(9, 23, 30, .98)) !important;
+  color: #dff8e7 !important;
+  font-weight: 600 !important;
+  line-height: 1.45 !important;
+  box-shadow: 0 9px 22px rgba(0, 0, 0, .28), inset 0 0 0 2px rgba(124, 255, 70, .04) !important;
+  transform: translateY(0);
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease !important;
+}
+
+.skin-home .group\/home-suggestions button:hover {
+  transform: translateY(-4px) !important;
+  border-color: rgba(124, 255, 70, .52) !important;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, .34), 0 0 0 2px rgba(124, 255, 70, .08) !important;
+}
+
+.skin-home .group\/home-suggestions button > span:first-child > span:first-child {
+  width: 38px;
+  height: 38px;
+  display: grid !important;
+  place-items: center;
+  margin: 0 auto;
+  border-radius: 50%;
+  color: #061014 !important;
+  background: linear-gradient(145deg, var(--skin-lime), var(--skin-cyan));
+  box-shadow: 0 0 0 7px rgba(124, 255, 70, .08), 0 5px 14px rgba(0, 0, 0, .28);
+}
+.skin-home .group\/home-suggestions button svg { width: 21px !important; height: 21px !important; color: #061014 !important; }
+.skin-home .group\/home-suggestions button > span:first-child { justify-content: center !important; }
+.skin-home .group\/home-suggestions button > span:last-child { align-items: center !important; text-align: center !important; }
+
+html.cc-theme:not([data-skin-theme-bridge]) .composer-surface-chrome {
+  border: 1px solid rgba(124, 255, 70, .32) !important;
+  border-radius: 23px !important;
+  background:
+    radial-gradient(circle at 88% 20%, rgba(100, 42, 140, .16), transparent 26%),
+    linear-gradient(145deg, rgba(11, 29, 34, .91), rgba(7, 20, 27, .88)) !important;
+  box-shadow: 0 11px 28px rgba(0, 0, 0, .34), inset 0 0 0 3px rgba(54, 215, 232, .04) !important;
+  backdrop-filter: blur(18px) saturate(118%) !important;
+  overflow: visible !important;
+}
+
+html.cc-theme:not([data-skin-theme-bridge]) .composer-surface-chrome::before {
+  content: "◉";
+  position: absolute;
+  left: -13px;
+  top: -13px;
+  z-index: 20;
+  width: 27px;
+  height: 27px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(184, 255, 61, .50);
+  border-radius: 50%;
+  color: #071116;
+  background: linear-gradient(145deg, var(--skin-lime), var(--skin-green));
+  box-shadow: 0 0 14px rgba(124, 255, 70, .30);
+}
+
+.skin-home div:has(> .horizontal-scroll-fade-mask .group\/project-selector) {
+  position: relative;
+  padding-top: 28px !important;
+  border: 1px solid rgba(54, 215, 232, .18);
+  border-bottom: 0;
+  background: linear-gradient(180deg, rgba(10, 27, 33, .97), rgba(8, 21, 28, .92)) !important;
+}
+
+.skin-home div:has(> .horizontal-scroll-fade-mask .group\/project-selector)::before {
+  content: var(--skin-project-label, "◉  选择项目");
+  position: absolute;
+  left: 13px;
+  top: 6px;
+  z-index: 2;
+  color: var(--skin-green);
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: .08em;
+  white-space: nowrap;
+}
+
+.skin-home .group\/project-selector > button {
+  border-color: rgba(124, 255, 70, .30) !important;
+  background: linear-gradient(135deg, rgba(16, 45, 43, .94), rgba(22, 23, 49, .90)) !important;
+  color: var(--skin-text) !important;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, .22) !important;
+}
+
+html.cc-theme .ProseMirror { color: var(--skin-text) !important; caret-color: var(--skin-green) !important; }
+
+html.cc-theme button[class~="bg-token-foreground"] {
+  background: linear-gradient(145deg, var(--skin-lime), var(--skin-green)) !important;
+  color: #071116 !important;
+  box-shadow: 0 5px 14px rgba(124, 255, 70, .20) !important;
+}
+
+html.cc-theme article,
+html.cc-theme [data-message-author-role] { border-radius: 18px; }
+
+@keyframes ds-float {
+  0%, 100% { transform: translate3d(0, 0, 0); opacity: .48; }
+  50% { transform: translate3d(4px, -8px, 0); opacity: 1; }
+}
+
+@media (max-width: 1120px) {
+  .skin-quote, .skin-orbit { display: none !important; }
+  .skin-home { --thread-content-max-width: min(860px, calc(100cqw - 30px)) !important; }
+  .skin-home > div:first-child > div:first-child > div:first-child { width: calc(100% - 28px) !important; }
+}
+
+@media (max-width: 900px) {
+  .skin-status { display: none !important; }
+  .skin-brand { left: 15px; }
+  .skin-brand b { font-size: 12px; }
+  .skin-home > div:first-child > div:first-child { flex-basis: 396px !important; min-height: 396px !important; }
+  .skin-home > div:first-child > div:first-child > div:first-child { height: 224px !important; min-height: 224px !important; }
+  .skin-home > div:first-child > div:first-child > div:first-child > div:first-child { padding-left: 25px; }
+  .skin-home > div:first-child > div:first-child > div:first-child > div:first-child > div:first-child { width: 65% !important; }
+  .skin-home [data-feature="game-source"] { font-size: 18px !important; }
+  .skin-home [data-feature="game-source"]::before { font-size: 10px; margin-bottom: 7px; }
+  .skin-home [data-feature="game-source"]::after { font-size: 11px; margin-top: 9px; }
+  .skin-home .group\/home-suggestions button { min-height: 114px !important; font-size: 12px !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skin-particles i { animation: none !important; }
+}
+
+/* ==========================================================================
+   Light shell — auto when App appearance is light (data-skin-shell="light")
+   Dark rules above remain default for data-skin-shell="dark" / unset.
+   ========================================================================== */
+
+html.cc-theme[data-skin-shell="light"] {
+  color-scheme: light !important;
+  --skin-bg: #f6f2f3;
+  --skin-panel: #ffffff;
+  --skin-panel-2: #fff7f8;
+  --skin-text: #1f1a1b;
+  --skin-muted: #6b5f62;
+  --skin-line: rgba(196, 120, 128, .22);
+  --skin-ink-soft: #3d3437;
+}
+
+html.cc-theme[data-skin-shell="light"] body {
+  background:
+    radial-gradient(circle at 88% 6%, rgba(255, 200, 210, .22), transparent 34%),
+    linear-gradient(180deg, #fbf8f9 0%, #f3eef0 100%) !important;
+  color: var(--skin-text) !important;
+  font-family: "SF Pro Text", "PingFang SC", "Microsoft YaHei UI", system-ui, sans-serif !important;
+}
+
+html.cc-theme[data-skin-shell="light"] body::before {
+  opacity: .12 !important;
+  background-image:
+    radial-gradient(circle, rgba(226, 85, 99, .35) 0 1px, transparent 1.8px),
+    radial-gradient(circle, rgba(243, 168, 175, .28) 0 1px, transparent 1.8px) !important;
+}
+
+html.cc-theme[data-skin-shell="light"] .app-shell-left-panel {
+  background: linear-gradient(180deg, #ffffff 0%, #fbf7f8 100%) !important;
+  border: 1px solid rgba(40, 30, 32, .08) !important;
+  border-left: 0 !important;
+  box-shadow: 8px 0 24px rgba(40, 20, 24, .05) !important;
+  color: #1f1a1b !important;
+}
+
+html.cc-theme[data-skin-shell="light"] .app-shell-left-panel,
+html.cc-theme[data-skin-shell="light"] .app-shell-left-panel * {
+  --tw-text-opacity: 1;
+}
+
+html.cc-theme[data-skin-shell="light"] .app-shell-left-panel button,
+html.cc-theme[data-skin-shell="light"] .app-shell-left-panel a,
+html.cc-theme[data-skin-shell="light"] .app-shell-left-panel span,
+html.cc-theme[data-skin-shell="light"] .app-shell-left-panel div {
+  color: #2a2325 !important;
+}
+
+html.cc-theme[data-skin-shell="light"] .app-shell-left-panel svg {
+  color: #5a5053 !important;
+  opacity: 1 !important;
+}
+
+html.cc-theme[data-skin-shell="light"] .app-shell-left-panel button:hover {
+  background: var(--skin-hover-surface) !important;
+  box-shadow: none !important;
+  transform: none !important;
+  color: #1f1a1b !important;
+}
+
+html.cc-theme[data-skin-shell="light"] .app-shell-left-panel button[aria-label^="切换模式"] {
+  color: #1f1a1b !important;
+  text-shadow: none !important;
+}
+
+html.cc-theme[data-skin-shell="light"] .app-shell-left-panel button[aria-label^="切换模式"]::after {
+  content: none !important;
+}
+
+html.cc-theme[data-skin-shell="light"] .app-shell-left-panel [class~="bg-token-list-hover-background"],
+html.cc-theme[data-skin-shell="light"] .app-shell-left-panel [aria-current="page"] {
+  background: var(--skin-selected-surface) !important;
+  border: 1px solid var(--skin-border-default) !important;
+  box-shadow: none !important;
+  color: var(--skin-text-strong) !important;
+}
+
+html.cc-theme[data-skin-shell="light"]:not([data-skin-theme-bridge]) main.main-surface {
+  background:
+    linear-gradient(180deg, rgba(252, 250, 251, .82) 0%, rgba(247, 242, 243, .9) 100%),
+    var(--skin-active-art, var(--skin-art)) 70% 12% / cover no-repeat !important;
+  border: 1px solid rgba(40, 30, 32, .07) !important;
+  box-shadow: inset 0 1px rgba(255, 255, 255, .85) !important;
+}
+
+html.cc-theme[data-skin-shell="light"]:not([data-skin-theme-bridge]) main.main-surface:not(.skin-home-shell) {
+  background:
+    linear-gradient(105deg, rgba(252, 250, 251, .88) 0%, rgba(252, 250, 251, .58) 42%, rgba(252, 250, 251, .28) 78%, rgba(252, 250, 251, .16) 100%),
+    var(--skin-active-art, var(--skin-art)) 72% center / cover no-repeat !important;
+}
+
+html.cc-theme[data-skin-shell="light"]:not([data-skin-theme-bridge]) main.main-surface:not(.skin-home-shell) [role="main"] {
+  background: transparent !important;
+  text-shadow: none !important;
+}
+
+html.cc-theme[data-skin-shell="light"]:not([data-skin-theme-bridge]) main.main-surface:not(.skin-home-shell) article {
+  border: 1px solid rgba(40, 30, 32, .06);
+  background: rgba(255, 255, 255, .86);
+  box-shadow: 0 8px 20px rgba(40, 20, 24, .05);
+  backdrop-filter: blur(10px) saturate(108%);
+}
+
+html.cc-theme[data-skin-shell="light"]:not([data-skin-theme-bridge]) main.main-surface > header.app-header-tint {
+  background: rgba(255, 255, 255, .88) !important;
+  border-bottom: 1px solid rgba(40, 30, 32, .06) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+html.cc-theme[data-skin-shell="light"] .skin-home [data-skin-role="home-hero"],
+html.cc-theme[data-skin-shell="light"] .skin-home > div:first-child > div:first-child > div:first-child {
+  border: 1px solid rgba(40, 30, 32, .1) !important;
+  background-color: #1c1214 !important;
+  background-image:
+    linear-gradient(100deg,
+      rgba(12, 8, 10, .38) 0%,
+      rgba(12, 8, 10, .12) 24%,
+      rgba(12, 8, 10, .03) 42%,
+      transparent 60%),
+    linear-gradient(0deg, rgba(12, 8, 10, .1) 0%, transparent 40%),
+    var(--skin-hero-art, var(--skin-active-art, var(--skin-art))) !important;
+  background-size: 100% 100%, 100% 100%, cover !important;
+  background-position: center, center, 58% center !important;
+  box-shadow: 0 16px 36px rgba(40, 16, 22, .14), inset 0 1px 0 rgba(255, 255, 255, .12) !important;
+  overflow: hidden !important;
+}
+
+html.cc-theme[data-skin-shell="light"] .skin-home [data-skin-role="home-hero"]::before,
+html.cc-theme[data-skin-shell="light"] .skin-home > div:first-child > div:first-child > div:first-child::before {
+  content: none !important;
+  background: none !important;
+}
+
+html.cc-theme[data-skin-shell="light"] .skin-home [data-feature="game-source"] {
+  color: #fffaf9 !important;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, .32), 0 1px 0 rgba(0, 0, 0, .2) !important;
+}
+
+html.cc-theme[data-skin-shell="light"] .skin-home [data-feature="game-source"]::before {
+  color: #ffd6dc !important;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, .3) !important;
+}
+
+html.cc-theme[data-skin-shell="light"] .skin-home [data-feature="game-source"]::after {
+  color: rgba(255, 245, 247, .9) !important;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, .28) !important;
+}
+
+html.cc-theme[data-skin-shell="light"] .skin-home .group\/home-suggestions button {
+  border: 1px solid rgba(255, 255, 255, .55) !important;
+  background: rgba(255, 255, 255, .78) !important;
+  color: #1f1a1b !important;
+  box-shadow: 0 10px 22px rgba(40, 16, 22, .08) !important;
+  backdrop-filter: blur(10px) saturate(112%) !important;
+}
+
+html.cc-theme[data-skin-shell="light"] .skin-home .group\/home-suggestions button > span:first-child > span:first-child {
+  background: linear-gradient(145deg, #f07a86, #e25563) !important;
+}
+
+html.cc-theme[data-skin-shell="light"]:not([data-skin-theme-bridge]) .composer-surface-chrome {
+  border: 1px solid rgba(40, 30, 32, .08) !important;
+  background: rgba(255, 255, 255, .94) !important;
+  box-shadow: 0 10px 28px rgba(40, 20, 24, .07) !important;
+  backdrop-filter: blur(14px) saturate(110%) !important;
+}
+
+html.cc-theme[data-skin-shell="light"]:not([data-skin-theme-bridge]) .composer-surface-chrome::before {
+  background: linear-gradient(180deg, #f07a86, #e25563) !important;
+}
+
+html.cc-theme[data-skin-shell="light"] .skin-brand,
+html.cc-theme[data-skin-shell="light"] .skin-status {
+  color: #4a4144 !important;
+}
+
+html.cc-theme[data-skin-shell="light"] .skin-quote {
+  color: rgba(40, 30, 32, .45) !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .8) !important;
+}
+
+html.cc-theme[data-skin-shell="light"] .skin-particles {
+  opacity: .2 !important;
+}
+
+/* Theme bridge 1.2
+   ----------------
+   Themes may provide only validated semantic colors, font-family arrays and
+   bounded appearance numbers. No theme-supplied selector or raw CSS enters
+   this layer. The extra attribute keeps older external contract inputs
+   compatible with the fixed renderer. */
+
+html.cc-theme[data-skin-theme-bridge] {
+  color-scheme: dark !important;
+  accent-color: var(--skin-focus-ring);
+}
+
+html.cc-theme[data-skin-theme-bridge][data-skin-shell="light"] {
+  color-scheme: light !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] body {
+  color: var(--skin-text) !important;
+  background: var(--skin-active-art, var(--skin-art)) var(--skin-art-position) / cover fixed no-repeat !important;
+}
+
+/* Native app-mount wrappers often carry an opaque white or black utility
+   background. They are layout containers, not reading surfaces, so clear
+   only these outer layers and let the translucent semantic panels below
+   provide contrast while the image/video remains visible. */
+html.cc-theme[data-skin-theme-bridge] body > [data-skin-app-mount],
+html.cc-theme[data-skin-theme-bridge] body > [data-skin-app-mount] > div {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* Codex 26.715 moved the route viewport behind stable app-shell attributes.
+   These are structural/fade layers rather than reading surfaces, so they must
+   not restore the native opaque white/black canvas above theme media. */
+html.cc-theme[data-skin-theme-bridge] [data-app-shell-main-content-layout],
+html.cc-theme[data-skin-theme-bridge] [data-app-shell-main-content-layout] > .app-shell-main-content-frame,
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="main-content"] {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] [data-app-shell-main-content-top-fade],
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="main-top-fade"] {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* Video mode owns the visual background. Do not paint the previous static
+   image a second time on body; the validated image remains available only as
+   the video element's poster/failure fallback. */
+html.cc-theme[data-skin-theme-bridge][data-skin-video="enabled"] body,
+html.cc-theme[data-skin-theme-bridge][data-skin-background-mode="ripple"][data-skin-interactive-state="enabled"] body,
+html.cc-theme[data-skin-theme-bridge][data-skin-background-mode="directional"]:is(
+  [data-skin-interactive-state="enabled"],
+  [data-skin-interactive-state="static"]
+) body {
+  background: var(--skin-bg) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] body::before {
+  opacity: var(--skin-particles-opacity) !important;
+  background-image:
+    radial-gradient(circle, color-mix(in srgb, var(--skin-focus-ring) 42%, transparent) 0 1px, transparent 1.8px),
+    radial-gradient(circle, color-mix(in srgb, var(--skin-link) 28%, transparent) 0 1px, transparent 1.8px) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] .app-shell-left-panel,
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="sidebar"] {
+  color: var(--skin-text) !important;
+  background: transparent !important;
+  border-color: var(--skin-border-subtle) !important;
+  border-right: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  isolation: isolate !important;
+}
+
+/* Keep the translucent sidebar paint on a bounded layer of its own. Painting
+   it directly on Codex's overflow-visible aside expands the compositor surface
+   through the resize hit target and produces a dark strip beside main. The
+   pseudo layer preserves the blur while the native resize handle stays fully
+   interactive outside the visual surface. */
+html.cc-theme[data-skin-theme-bridge] .app-shell-left-panel:not([data-skin-role="settings-sidebar"])::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: -1 !important;
+  pointer-events: none !important;
+  background: var(--skin-sidebar-surface) !important;
+  border-radius: inherit !important;
+  -webkit-backdrop-filter: blur(var(--skin-backdrop-blur)) saturate(var(--skin-backdrop-saturation)) !important;
+  backdrop-filter: blur(var(--skin-backdrop-blur)) saturate(var(--skin-backdrop-saturation)) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge][data-skin-surface-context="home"]
+.app-shell-left-panel:not([data-skin-role="settings-sidebar"])::before {
+  background: color-mix(in srgb, var(--skin-sidebar-surface) 78%, transparent) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] .app-shell-left-panel button {
+  color: var(--skin-text) !important;
+  transition:
+    color var(--skin-motion-duration) ease,
+    background var(--skin-motion-duration) ease,
+    border-color var(--skin-motion-duration) ease,
+    transform var(--skin-motion-duration) ease !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] .app-shell-left-panel :where(a, span, p, small, strong, h1, h2, h3, svg) {
+  color: var(--skin-text) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge][data-skin-shell] .app-shell-left-panel a,
+html.cc-theme[data-skin-theme-bridge][data-skin-shell] .app-shell-left-panel button,
+html.cc-theme[data-skin-theme-bridge][data-skin-shell] .app-shell-left-panel div,
+html.cc-theme[data-skin-theme-bridge][data-skin-shell] .app-shell-left-panel span,
+html.cc-theme[data-skin-theme-bridge][data-skin-shell] .app-shell-left-panel p,
+html.cc-theme[data-skin-theme-bridge][data-skin-shell] .app-shell-left-panel svg {
+  color: var(--skin-text) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] .app-shell-left-panel :where(small, [class*="description"], [class*="muted"]) {
+  color: var(--skin-muted) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] .app-shell-left-panel button:hover {
+  color: var(--skin-text-strong) !important;
+  background: var(--skin-hover-surface) !important;
+  box-shadow: none !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] .app-shell-left-panel :where([aria-current="page"], [aria-selected="true"], [class~="bg-token-list-hover-background"]) {
+  color: var(--skin-text-strong) !important;
+  background: var(--skin-selected-surface) !important;
+  box-shadow: none !important;
+}
+
+html.cc-theme[data-skin-theme-bridge][data-skin-shell] .app-shell-left-panel :where([aria-current="page"], [aria-selected="true"], [class~="bg-token-list-hover-background"]) * {
+  color: var(--skin-text-strong) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] .app-shell-left-panel :where([aria-current="page"], [aria-selected="true"]):hover {
+  background: var(--skin-selected-hover-surface) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] main.main-surface,
+html.cc-theme[data-skin-theme-bridge] main.main-surface:not(.skin-home-shell) {
+  color: var(--skin-text) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* The artwork is painted once on body (or by the fixed video/Canvas layer).
+   Page context changes only the strength of the semantic scrim above it. Home
+   remains more open; task and library pages retain the stronger long-form
+   reading treatment. No geometry or interaction property changes here. */
+html.cc-theme[data-skin-theme-bridge][data-skin-surface-context="home"] main.main-surface,
+html.cc-theme[data-skin-theme-bridge][data-skin-surface-context="home"] main.main-surface:not(.skin-home-shell) {
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--skin-main-scrim-start) 72%, transparent) 0%,
+    color-mix(in srgb, var(--skin-main-scrim-mid) 62%, transparent) 58%,
+    color-mix(in srgb, var(--skin-main-scrim-end) 52%, transparent) 100%) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge]:is(
+  [data-skin-surface-context="task"],
+  [data-skin-surface-context="library"]
+) main.main-surface,
+html.cc-theme[data-skin-theme-bridge]:is(
+  [data-skin-surface-context="task"],
+  [data-skin-surface-context="library"]
+) main.main-surface:not(.skin-home-shell) {
+  background: linear-gradient(90deg,
+    var(--skin-main-scrim-start) 0%,
+    var(--skin-main-scrim-mid) 58%,
+    var(--skin-main-scrim-end) 100%) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] main.main-surface:not(.skin-home-shell) [role="main"] {
+  color: var(--skin-text) !important;
+  background: transparent !important;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, .42) !important;
+}
+
+/* Shared Core `textStrong` is the paint role for display headings. Keep this
+   semantic mapping on the current structural viewport and the retained class
+   fallback; it changes only color and never the host's typography geometry. */
+html.cc-theme[data-skin-theme-bridge] [data-app-shell-main-content-layout] :where(h1, h2, h3, [role="heading"]),
+html.cc-theme[data-skin-theme-bridge] main.main-surface :where(h1, h2, h3, [role="heading"]) {
+  color: var(--skin-text-strong) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] main.main-surface > header.app-header-tint,
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="header"] {
+  color: var(--skin-text) !important;
+  background: var(--skin-header-surface) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(var(--skin-backdrop-blur)) saturate(var(--skin-backdrop-saturation)) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] main.main-surface:not(.skin-home-shell) article,
+html.cc-theme[data-skin-theme-bridge] [data-message-author-role] {
+  color: var(--skin-text) !important;
+  background: color-mix(in srgb, var(--skin-surface-base) 66%, transparent) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(8px) saturate(var(--skin-backdrop-saturation)) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] [data-message-author-role="user"] {
+  background: color-mix(in srgb, var(--skin-selected-surface) 78%, transparent) !important;
+  border-color: var(--skin-border-default) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] .skin-brand b {
+  color: var(--skin-focus-ring) !important;
+  letter-spacing: .08em;
+}
+
+html.cc-theme[data-skin-theme-bridge] .skin-brand small,
+html.cc-theme[data-skin-theme-bridge] .skin-status,
+html.cc-theme[data-skin-theme-bridge] .skin-quote {
+  color: var(--skin-muted) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] .skin-status i {
+  background: var(--skin-success) !important;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--skin-success) 58%, transparent) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] .skin-particles {
+  opacity: var(--skin-particles-opacity) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] .skin-orbit {
+  border-color: color-mix(in srgb, var(--skin-focus-ring) 22%, transparent) !important;
+  box-shadow: 0 0 34px color-mix(in srgb, var(--skin-action) 18%, transparent) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] .skin-home [data-skin-role="home-hero"],
+html.cc-theme[data-skin-theme-bridge] .skin-home > div:first-child > div:first-child > div:first-child {
+  color: var(--skin-text) !important;
+  border: 1px solid var(--skin-border-default) !important;
+  border-radius: var(--skin-radius-panel) !important;
+  background-color: var(--skin-surface-base) !important;
+  background-image:
+    linear-gradient(90deg, var(--skin-main-scrim-start) 0%, var(--skin-main-scrim-mid) 54%, transparent 100%),
+    var(--skin-hero-art, var(--skin-active-art, var(--skin-art))) !important;
+  background-size: 100% 100%, cover !important;
+  background-position: center, var(--skin-hero-position) !important;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, .42), inset 0 0 0 1px var(--skin-border-subtle) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] .skin-home [data-skin-role="home-hero"]::before,
+html.cc-theme[data-skin-theme-bridge] .skin-home > div:first-child > div:first-child > div:first-child::before {
+  content: "" !important;
+  width: 62%;
+  border-radius: var(--skin-radius-panel) 0 0 var(--skin-radius-panel);
+  background: linear-gradient(90deg, var(--skin-main-scrim-start) 0%, var(--skin-main-scrim-mid) 72%, transparent 100%) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] .skin-home [data-feature="game-source"] {
+  color: var(--skin-text-strong) !important;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, .64) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] .skin-home .group\/project-selector > button,
+html.cc-theme[data-skin-theme-bridge] .skin-home .group\/home-suggestions button {
+  color: var(--skin-text) !important;
+  border: 1px solid var(--skin-border-default) !important;
+  border-radius: var(--skin-radius-card) !important;
+  background: color-mix(in srgb, var(--skin-surface-raised) 92%, transparent) !important;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, .28) !important;
+  backdrop-filter: blur(var(--skin-backdrop-blur)) saturate(var(--skin-backdrop-saturation)) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] .skin-home div:has(> .horizontal-scroll-fade-mask .group\/project-selector) {
+  color: var(--skin-text) !important;
+  border-color: var(--skin-border-default) !important;
+  background: color-mix(in srgb, var(--skin-surface-raised) 96%, transparent) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] .skin-home div:has(> .horizontal-scroll-fade-mask .group\/project-selector)::before {
+  color: var(--skin-focus-ring) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] .skin-home .group\/project-selector > button:hover,
+html.cc-theme[data-skin-theme-bridge] .skin-home .group\/home-suggestions button:hover {
+  background: var(--skin-selected-hover-surface) !important;
+  border-color: var(--skin-focus-ring) !important;
+  transform: translateY(-1px);
+}
+
+html.cc-theme[data-skin-theme-bridge] .skin-home .group\/home-suggestions button > span:first-child > span:first-child {
+  color: var(--skin-action-foreground) !important;
+  background: linear-gradient(145deg, var(--skin-action-hover), var(--skin-action)) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] .composer-surface-chrome,
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="composer"] {
+  color: var(--skin-text) !important;
+  background: var(--skin-composer-surface) !important;
+  box-shadow: none !important;
+  /* Chromium can paint a light rectangular backdrop layer around a sticky
+     focused composer. The surface is already opaque enough, so avoid that
+     compositor artifact here while retaining glass on panels and menus. */
+  backdrop-filter: none !important;
+}
+
+/* The stable root added in Codex 26.715 is a layout/portal container. Keep it
+   clear and paint only the nested Composer surface above. */
+html.cc-theme[data-skin-theme-bridge] [data-codex-composer-root],
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="composer-root"] {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* Writing Blocks have their own native surface variable. Keep a bounded,
+   translucent reading layer instead of an opaque card or fully clear text. */
+html.cc-theme[data-skin-theme-bridge] [data-oai-writing-block-surface],
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="writing-block-surface"] {
+  --oai-wb-surface-primary: var(--skin-surface-raised) !important;
+  --oai-wb-border: var(--skin-border-subtle) !important;
+  color: var(--skin-text) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] .composer-surface-chrome:focus-within {
+  border-color: var(--skin-focus-ring) !important;
+  box-shadow: none !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] .composer-surface-chrome::before {
+  content: none !important;
+  display: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Codex paints a 130px bottom fade behind the sticky thread footer. Against
+   an image or video theme it reads as a large rectangular Composer shadow,
+   even though the Composer itself has no box-shadow. Keep the native layout
+   and click behavior, but remove only that decorative backdrop layer. */
+html.cc-theme[data-skin-theme-bridge] [data-thread-scroll-footer="true"] > [class~="pointer-events-none"] > [class~="bg-gradient-to-t"] {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* The live task progress summary uses a translucent backdrop blur above the
+   Composer. On moving artwork the blur reads as a small shadow/halo. Preserve
+   the native status chip, border and layout while removing only that effect. */
+html.cc-theme[data-skin-theme-bridge] [data-above-composer-portal="true"] [class~="backdrop-blur-sm"] {
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+/* The above-Composer portal adds a second, local 28px fade under the task
+   execution summary. It is independent from the larger sticky-footer fade and
+   otherwise reads as a dark shadow between the summary row and Composer. */
+html.cc-theme[data-skin-theme-bridge] [data-above-composer-portal="true"] [class~="pointer-events-none"][class~="absolute"][class~="bg-gradient-to-t"] {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] .ProseMirror {
+  color: var(--skin-text) !important;
+  caret-color: var(--skin-focus-ring) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] .ProseMirror :where(p.is-editor-empty:first-child, p[data-placeholder])::before {
+  color: var(--skin-placeholder) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] :where(
+  [data-skin-role="send-button"],
+  button[class~="bg-token-button-background"],
+  button[class~="electron:bg-token-primary"],
+  button[class~="bg-token-foreground"]
+) {
+  color: var(--skin-action-foreground) !important;
+  background: var(--skin-action) !important;
+  border-color: var(--skin-action) !important;
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--skin-action) 34%, transparent) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] button[data-skin-role="send-button"] {
+  color: var(--skin-action-foreground) !important;
+  background: var(--skin-action) !important;
+  background-image: none !important;
+  border-color: var(--skin-action) !important;
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--skin-action) 34%, transparent) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] button[data-skin-role="send-button"] :where(svg, path) {
+  color: var(--skin-action-foreground) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] :where(
+  [data-skin-role="send-button"],
+  button[class~="bg-token-button-background"],
+  button[class~="electron:bg-token-primary"],
+  button[class~="bg-token-foreground"]
+):hover:not(:disabled) {
+  background: var(--skin-action-hover) !important;
+  border-color: var(--skin-action-hover) !important;
+  transform: translateY(-1px);
+}
+
+html.cc-theme[data-skin-theme-bridge] :where(
+  [data-skin-role="send-button"],
+  button[class~="bg-token-button-background"],
+  button[class~="electron:bg-token-primary"],
+  button[class~="bg-token-foreground"]
+):active:not(:disabled) {
+  background: var(--skin-action-pressed) !important;
+  border-color: var(--skin-action-pressed) !important;
+  transform: translateY(0);
+}
+
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="model-picker"] {
+  color: var(--skin-text) !important;
+  background: color-mix(in srgb, var(--skin-surface-base) 92%, transparent) !important;
+  border-color: var(--skin-border-subtle) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="model-picker"]:hover,
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="model-picker"][data-state="open"] {
+  color: var(--skin-text-strong) !important;
+  background: var(--skin-hover-surface) !important;
+  border-color: var(--skin-border-default) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] :where(
+  [data-skin-role="overlay-surface"],
+  [data-skin-role="model-picker-popup"],
+  [role="menu"],
+  [role="listbox"],
+  [role="dialog"],
+  [role="tooltip"],
+  [role="status"],
+  [role="alert"]
+) {
+  color: var(--skin-text) !important;
+  border-color: var(--skin-border-default) !important;
+  background-color: var(--skin-surface-elevated) !important;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, .48) !important;
+  backdrop-filter: blur(var(--skin-backdrop-blur)) saturate(var(--skin-backdrop-saturation)) !important;
+}
+
+/* ChatGPT exposes the response-start pulse through a compact role=status
+   wrapper. Generic overlay styling otherwise paints a light rectangle behind
+   the native dot. In playing and paused video mode, clear only that wrapper's
+   paint while preserving the native dot geometry, color and animation. */
+html.cc-theme[data-skin-theme-bridge]:is([data-skin-video="enabled"], [data-skin-background-mode])
+[data-skin-role="response-waiting-indicator"] {
+  background-color: transparent !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+/* The User messages rail preview owns a rounded inner card. In video mode,
+   keep the outer Tooltip Portal paint-free so two translucent whites do not
+   compound into an opaque square; disabled mode never matches this rule. */
+html.cc-theme[data-skin-theme-bridge]:is([data-skin-video="enabled"], [data-skin-background-mode])
+[data-skin-role="history-preview-surface"] {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+html.cc-theme[data-skin-theme-bridge]:is([data-skin-video="enabled"], [data-skin-background-mode])
+[data-skin-role="history-preview-card"] {
+  color: var(--skin-text) !important;
+  background: var(--skin-composer-surface) !important;
+  box-shadow:
+    inset 0 0 0 .5px var(--skin-border-default),
+    0 12px 32px rgba(0, 0, 0, .24) !important;
+  backdrop-filter: blur(var(--skin-backdrop-blur)) saturate(var(--skin-backdrop-saturation)) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] :where(
+  [role="menuitem"],
+  [role="menuitemcheckbox"],
+  [role="menuitemradio"],
+  [role="option"],
+  [role="radio"],
+  [role="checkbox"]
+):hover {
+  color: var(--skin-text-strong) !important;
+  background: var(--skin-hover-surface) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] :where(
+  [role="menuitem"][aria-selected="true"],
+  [role="menuitemcheckbox"][aria-checked="true"],
+  [role="menuitemradio"][aria-checked="true"],
+  [role="option"][aria-selected="true"],
+  [role="radio"][aria-checked="true"],
+  [role="checkbox"][aria-checked="true"]
+) {
+  color: var(--skin-text-strong) !important;
+  background: var(--skin-selected-surface) !important;
+  box-shadow: inset 3px 0 var(--skin-focus-ring) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] [role="slider"],
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="model-power-slider"] {
+  accent-color: var(--skin-focus-ring) !important;
+  color: var(--skin-focus-ring) !important;
+}
+
+/* Settings keeps readable translucent groups but no longer paints a full-route
+   white/black blocker above the shared media background. */
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="settings-shell"] {
+  color: var(--skin-text) !important;
+  background: transparent !important;
+  text-shadow: none !important;
+}
+
+/* Keep the Settings route shell transparent in video mode. The fixed direct-
+   body video remains the one wallpaper plane for the complete route; sidebar
+   and content add only controlled scrims above it. */
+html.cc-theme[data-skin-theme-bridge]:is([data-skin-video="enabled"], [data-skin-background-mode]) [data-skin-role="settings-shell"] {
+  background: transparent !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="settings-sidebar"] {
+  color: var(--skin-text) !important;
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--skin-sidebar-surface) 86%, transparent),
+    var(--skin-sidebar-surface)) !important;
+  border-right: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(var(--skin-backdrop-blur)) saturate(var(--skin-backdrop-saturation)) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge]:is([data-skin-video="enabled"], [data-skin-background-mode]) [data-skin-role="settings-sidebar"] {
+  background-color: color-mix(in srgb, var(--skin-sidebar-surface) 52%, transparent) !important;
+  background-image: none !important;
+  border-right: 0 !important;
+  box-shadow: none !important;
+  /* A shadow on the container is inherited by every Settings label. That
+     produces visible grey ghosting around Back, section headings and search
+     chrome while the video is moving underneath. The sidebar scrim already
+     provides the contrast, so keep native text rasterization crisp. */
+  text-shadow: none !important;
+}
+
+/* Codex 26.715 paints a 20px ::after resize affordance beyond the Settings
+   sidebar's visual edge. The element changed from an aside to a div, so bind
+   this paint-only correction to our semantic role instead of its tag name.
+   The native resize hit target remains mounted and interactive. */
+html.cc-theme[data-skin-theme-bridge]:is([data-skin-video="enabled"], [data-skin-background-mode])[data-skin-route="settings"]
+[data-skin-role="settings-sidebar"]::after {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="settings-nav"] {
+  color: var(--skin-text) !important;
+  background: transparent !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="settings-content"] {
+  color: var(--skin-text) !important;
+  background: var(--skin-surface-base) !important;
+  border-color: var(--skin-border-subtle) !important;
+  text-shadow: none !important;
+  scrollbar-color: var(--skin-border-default) var(--skin-surface-base) !important;
+}
+
+/* Do not turn the Settings content column into an opaque second wallpaper
+   plane. System palettes use a 68% base surface; mixing 46% of that surface
+   over transparency yields an effective scrim near 31%, close to the video
+   sidebar treatment. Settings groups and controls below remain the bounded,
+   higher-opacity reading surfaces. */
+html.cc-theme[data-skin-theme-bridge]:is([data-skin-video="enabled"], [data-skin-background-mode]) [data-skin-role="settings-content"] {
+  background: color-mix(in srgb, var(--skin-surface-base) 46%, transparent) !important;
+  border-left: 0 !important;
+  box-shadow: none !important;
+  scrollbar-color: var(--skin-border-default) transparent !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="settings-content"] :where(h1, h2, h3) {
+  color: var(--skin-text-strong) !important;
+  text-shadow: none !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="settings-content"] :where(p, small) {
+  text-shadow: none !important;
+}
+
+/* Library routes keep the same main scrim as conversations. Clear only the
+   route canvas that can reintroduce an opaque native surface, and make their
+   search field use the same bounded reading surface as the chat Composer.
+   No sizing, spacing, radius or positioning property is changed here. */
+html.cc-theme[data-skin-theme-bridge]:is([data-skin-video="enabled"], [data-skin-background-mode]) [data-skin-role="library-shell"] {
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+html.cc-theme[data-skin-theme-bridge]:is([data-skin-video="enabled"], [data-skin-background-mode]) [data-skin-role="library-search-header"],
+html.cc-theme[data-skin-theme-bridge]:is([data-skin-video="enabled"], [data-skin-background-mode]) [data-skin-role="library-search-header"]::after {
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html.cc-theme[data-skin-theme-bridge]:is([data-skin-video="enabled"], [data-skin-background-mode]) [data-skin-role="library-search"] {
+  background: var(--skin-composer-surface) !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+html.cc-theme[data-skin-theme-bridge]:is([data-skin-video="enabled"], [data-skin-background-mode]) [data-skin-role="library-search-input"] {
+  background: transparent !important;
+  text-shadow: none !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="settings-nav-item"] {
+  color: var(--skin-text) !important;
+  border: 0 !important;
+  border-radius: var(--skin-radius-control) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transition:
+    color var(--skin-motion-duration) ease,
+    background-color var(--skin-motion-duration) ease,
+    transform var(--skin-motion-duration) ease !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="settings-nav-item"]:hover:not(:disabled) {
+  color: var(--skin-text-strong) !important;
+  background: var(--skin-hover-surface) !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  transform: translateX(1px);
+}
+
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="settings-nav-item"]:is(
+  [aria-current="page"],
+  [aria-selected="true"],
+  [data-state="active"],
+  [data-active="true"]
+) {
+  color: var(--skin-text-strong) !important;
+  background: var(--skin-selected-surface) !important;
+  border: 0 !important;
+  box-shadow: inset 3px 0 var(--skin-focus-ring) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="settings-search"] {
+  color: var(--skin-text) !important;
+  background: color-mix(in srgb, var(--skin-surface-raised) 96%, transparent) !important;
+  border: 1px solid var(--skin-border-default) !important;
+  border-radius: var(--skin-radius-control) !important;
+  box-shadow: 0 6px 18px -14px rgba(0, 0, 0, .72) !important;
+  backdrop-filter: none !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="settings-search"]:focus-within {
+  border-color: var(--skin-focus-ring) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--skin-focus-ring) 20%, transparent) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="settings-search-input"] {
+  color: var(--skin-text) !important;
+  background: transparent !important;
+  caret-color: var(--skin-focus-ring) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="settings-search-input"]::placeholder {
+  color: var(--skin-placeholder) !important;
+  opacity: 1 !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="settings-group"] {
+  color: var(--skin-text) !important;
+  background: var(--skin-surface-raised) !important;
+  border: 1px solid var(--skin-border-default) !important;
+  border-radius: var(--skin-radius-card) !important;
+  box-shadow:
+    0 14px 34px -24px rgba(0, 0, 0, .78),
+    inset 0 1px color-mix(in srgb, var(--skin-text-strong) 4%, transparent) !important;
+  overflow: hidden !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="settings-group"] :where([role="separator"], hr) {
+  color: var(--skin-border-subtle) !important;
+  background: var(--skin-border-subtle) !important;
+  border-color: var(--skin-border-subtle) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="settings-row"] {
+  color: var(--skin-text) !important;
+  border-color: var(--skin-border-subtle) !important;
+  background: transparent !important;
+  transition: background-color var(--skin-motion-duration) ease, box-shadow var(--skin-motion-duration) ease !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="settings-row"]:hover {
+  background: var(--skin-hover-surface) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="settings-row"]:focus-within {
+  background: color-mix(in srgb, var(--skin-hover-surface) 84%, transparent) !important;
+  box-shadow: inset 3px 0 var(--skin-focus-ring) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] :where(
+  [data-skin-role="settings-input"],
+  [data-skin-role="settings-select"]
+) {
+  color: var(--skin-text) !important;
+  background: var(--skin-surface-elevated) !important;
+  border-color: var(--skin-border-default) !important;
+  border-radius: var(--skin-radius-control) !important;
+  box-shadow: inset 0 1px color-mix(in srgb, var(--skin-text-strong) 4%, transparent) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] :where(
+  [data-skin-role="settings-input"],
+  [data-skin-role="settings-select"]
+):hover:not(:disabled) {
+  color: var(--skin-text-strong) !important;
+  background: color-mix(in srgb, var(--skin-surface-elevated) 90%, var(--skin-hover-surface)) !important;
+  border-color: var(--skin-border-strong) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="settings-control"] {
+  color: var(--skin-text) !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] :where(
+  [data-skin-role="settings-checkbox"],
+  [data-skin-role="settings-radio"],
+  [data-skin-role="settings-radio-group"]
+) {
+  accent-color: var(--skin-action) !important;
+  color: var(--skin-text) !important;
+  border-color: var(--skin-border-default) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] :where(
+  [data-skin-role^="settings-"][aria-disabled="true"]:not([data-skin-role="settings-switch"]),
+  [data-skin-role^="settings-"]:disabled:not([data-skin-role="settings-switch"])
+) {
+  color: var(--skin-muted) !important;
+  opacity: .58 !important;
+  filter: saturate(.62) !important;
+}
+
+/* Preserve native focus treatment for all host controls. Only the playback
+   button is Skin-owned and therefore receives a Skin focus ring. */
+html.cc-theme[data-skin-theme-bridge] #cc-theme-video-toggle:focus-visible {
+  outline: 2px solid currentColor !important;
+  outline-offset: 2px !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="settings-nav-item"]:is(:focus-visible, :has(:focus-visible)) {
+  outline: none !important;
+  color: var(--skin-text-strong) !important;
+  background: var(--skin-hover-surface) !important;
+  border: 0 !important;
+  box-shadow: inset 3px 0 var(--skin-focus-ring) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="settings-nav-item"] :focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] :where(button, input, textarea, select, [aria-disabled="true"]):disabled:not([data-skin-role="settings-switch"]),
+html.cc-theme[data-skin-theme-bridge] [aria-disabled="true"]:not([data-skin-role="settings-switch"]) {
+  color: var(--skin-muted) !important;
+  opacity: .48 !important;
+  cursor: not-allowed !important;
+}
+
+/* Bottom Panel and its nested xterm host are separate theme surfaces. The
+   terminal keeps a native 12px bottom padding; paint its parent instead of
+   deleting that spacing, otherwise the light Electron host shows through. */
+html.cc-theme[data-skin-theme-bridge] :where(
+  [data-skin-role="bottom-panel-shell"],
+  [data-app-shell-focus-area="bottom-panel"]
+) {
+  color: var(--skin-text) !important;
+  background: var(--skin-surface-base) !important;
+  border-color: var(--skin-border-default) !important;
+  box-shadow: 0 -14px 34px rgba(0, 0, 0, .28) !important;
+  isolation: isolate;
+}
+
+html.cc-theme[data-skin-theme-bridge] :where(
+  [data-skin-role="bottom-panel-surface"],
+  [data-app-shell-focus-area="bottom-panel"] [data-app-shell-tabs="true"]
+) {
+  color: var(--skin-text) !important;
+  background: var(--skin-surface-base) !important;
+  border-top: 1px solid var(--skin-border-default) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] :where(
+  [data-skin-role="bottom-panel-header"],
+  [data-app-shell-tab-strip-controller="bottom"]
+) {
+  color: var(--skin-text) !important;
+  background: var(--skin-surface-raised) !important;
+  border-bottom: 1px solid var(--skin-border-subtle) !important;
+  box-shadow: inset 0 1px color-mix(in srgb, var(--skin-text-strong) 5%, transparent) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] :where(
+  [data-skin-role="bottom-panel-tablist"],
+  [data-app-shell-tab-strip-controller="bottom"] [role="tablist"]
+) {
+  color: var(--skin-muted) !important;
+  background: transparent !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] :where(
+  [data-skin-role="bottom-panel-tab"],
+  [data-app-shell-tab-controller="bottom"]
+) {
+  color: var(--skin-muted) !important;
+  background: transparent !important;
+  border-radius: var(--skin-radius-control) !important;
+  transition: color var(--skin-motion-duration) ease, background-color var(--skin-motion-duration) ease !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] :where(
+  [data-skin-role="bottom-panel-tab"],
+  [data-app-shell-tab-controller="bottom"]
+):hover {
+  color: var(--skin-text-strong) !important;
+  background: var(--skin-hover-surface) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] :where(
+  [data-skin-role="bottom-panel-tab"][aria-selected="true"],
+  [data-skin-role="bottom-panel-tab"][data-state="active"],
+  [data-app-shell-tab-controller="bottom"][aria-selected="true"],
+  [data-app-shell-tab-controller="bottom"][data-state="active"]
+) {
+  color: var(--skin-text-strong) !important;
+  background: var(--skin-selected-surface) !important;
+  box-shadow: inset 0 -2px var(--skin-border-strong) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] :where(
+  [data-skin-role="bottom-panel-body"],
+  [data-app-shell-tab-panel-controller="bottom"]
+) {
+  color: var(--skin-text) !important;
+  background: var(--skin-surface-code) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] :where(
+  [data-skin-role="bottom-panel-terminal-shell"],
+  [data-codex-terminal][data-codex-xterm]
+) {
+  --vscode-editor-background: var(--skin-surface-code) !important;
+  --vscode-editor-foreground: var(--skin-text) !important;
+  --vscode-terminal-background: var(--skin-surface-code) !important;
+  --vscode-terminal-foreground: var(--skin-text) !important;
+  --vscode-terminal-border: var(--skin-border-default) !important;
+  --vscode-terminalCursor-foreground: var(--skin-text-strong) !important;
+  --vscode-terminal-selectionBackground: var(--skin-selected-surface) !important;
+  --vscode-terminal-inactiveSelectionBackground: color-mix(in srgb, var(--skin-selected-surface) 68%, transparent) !important;
+  --vscode-terminal-findMatchBackground: var(--skin-selected-hover-surface) !important;
+  --vscode-terminal-findMatchHighlightBackground: var(--skin-hover-surface) !important;
+  --vscode-terminal-hoverHighlightBackground: var(--skin-hover-surface) !important;
+  --vscode-terminal-dropBackground: var(--skin-pressed-surface) !important;
+  --vscode-terminalOverviewRuler-border: var(--skin-border-default) !important;
+  --vscode-terminalOverviewRuler-cursorForeground: var(--skin-text-strong) !important;
+  --vscode-terminalOverviewRuler-findMatchForeground: var(--skin-focus-ring) !important;
+  --vscode-terminal-initialHintForeground: var(--skin-link) !important;
+  --vscode-terminalCommandGuide-foreground: var(--skin-link) !important;
+  --vscode-terminal-tab\.activeBorder: var(--skin-border-strong) !important;
+  --vscode-terminal-ansiBlack: var(--skin-bg) !important;
+  --vscode-terminal-ansiBrightBlack: var(--skin-muted) !important;
+  --vscode-terminal-ansiRed: var(--skin-danger) !important;
+  --vscode-terminal-ansiBrightRed: var(--skin-danger) !important;
+  --vscode-terminal-ansiGreen: var(--skin-success) !important;
+  --vscode-terminal-ansiBrightGreen: var(--skin-success) !important;
+  --vscode-terminal-ansiYellow: var(--skin-warning) !important;
+  --vscode-terminal-ansiBrightYellow: var(--skin-warning) !important;
+  --vscode-terminal-ansiBlue: var(--skin-link) !important;
+  --vscode-terminal-ansiBrightBlue: var(--skin-link) !important;
+  --vscode-terminal-ansiMagenta: var(--skin-action-hover) !important;
+  --vscode-terminal-ansiBrightMagenta: var(--skin-action-hover) !important;
+  --vscode-terminal-ansiCyan: var(--skin-link) !important;
+  --vscode-terminal-ansiBrightCyan: var(--skin-link) !important;
+  --vscode-terminal-ansiWhite: var(--skin-text) !important;
+  --vscode-terminal-ansiBrightWhite: var(--skin-text-strong) !important;
+  --vscode-terminalCommandDecoration-defaultBackground: var(--skin-muted) !important;
+  --vscode-terminalCommandDecoration-errorBackground: var(--skin-danger) !important;
+  --vscode-terminalCommandDecoration-successBackground: var(--skin-success) !important;
+  --vscode-terminalStickyScrollHover-background: var(--skin-surface-elevated) !important;
+  --color-token-terminal-background: var(--skin-surface-code) !important;
+  --color-token-terminal-foreground: var(--skin-text) !important;
+  --color-token-terminal-border: var(--skin-border-default) !important;
+  color-scheme: inherit !important;
+  color: var(--skin-text) !important;
+  background: var(--skin-surface-code) !important;
+  border-color: var(--skin-border-default) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="bottom-panel-terminal-padding"] {
+  color: var(--skin-text) !important;
+  background: var(--skin-surface-code) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] :where(
+  [data-skin-role="bottom-panel-terminal"],
+  [data-skin-role="bottom-panel-terminal-viewport"],
+  [data-codex-terminal][data-codex-xterm] .xterm,
+  [data-codex-terminal][data-codex-xterm] .xterm-viewport
+) {
+  color: var(--skin-text) !important;
+  background-color: var(--skin-surface-code) !important;
+  border-color: var(--skin-border-default) !important;
+  scrollbar-color: var(--skin-border-default) var(--skin-surface-code) !important;
+}
+
+/* Playing and paused video states both keep data-skin-video="enabled". Flatten
+   the Bottom Panel's otherwise cumulative opaque layers into one readable
+   translucent surface, while leaving disabled mode on the native paint path. */
+html.cc-theme[data-skin-theme-bridge]:is([data-skin-video="enabled"], [data-skin-background-mode]) :where(
+  [data-skin-role="bottom-panel-shell"],
+  [data-app-shell-focus-area="bottom-panel"]
+) {
+  background: color-mix(in srgb, var(--skin-surface-base) 56%, transparent) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge]:is([data-skin-video="enabled"], [data-skin-background-mode]) :where(
+  [data-skin-role="bottom-panel-surface"],
+  [data-app-shell-focus-area="bottom-panel"] [data-app-shell-tabs="true"]
+) {
+  background: transparent !important;
+}
+
+html.cc-theme[data-skin-theme-bridge]:is([data-skin-video="enabled"], [data-skin-background-mode]) :where(
+  [data-skin-role="bottom-panel-header"],
+  [data-app-shell-tab-strip-controller="bottom"]
+) {
+  background: color-mix(in srgb, var(--skin-surface-raised) 70%, transparent) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge]:is([data-skin-video="enabled"], [data-skin-background-mode]) :where(
+  [data-skin-role="bottom-panel-body"],
+  [data-app-shell-tab-panel-controller="bottom"]
+) {
+  background: color-mix(in srgb, var(--skin-surface-code) 64%, transparent) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge]:is([data-skin-video="enabled"], [data-skin-background-mode]) :where(
+  [data-skin-role="bottom-panel-terminal-shell"],
+  [data-skin-role="bottom-panel-terminal-padding"],
+  [data-skin-role="bottom-panel-terminal"],
+  [data-skin-role="bottom-panel-terminal-viewport"],
+  [data-codex-terminal][data-codex-xterm],
+  [data-codex-terminal][data-codex-xterm] .xterm,
+  [data-codex-terminal][data-codex-xterm] .xterm-viewport
+) {
+  --vscode-editor-background: transparent !important;
+  --vscode-terminal-background: transparent !important;
+  --color-token-terminal-background: transparent !important;
+  background: transparent !important;
+  scrollbar-color: var(--skin-border-default) transparent !important;
+}
+
+html.cc-theme[data-skin-theme-bridge]:is([data-skin-video="enabled"], [data-skin-background-mode]) :where(
+  [data-skin-role="bottom-panel-terminal"],
+  [data-skin-role="bottom-panel-terminal-viewport"],
+  [data-codex-terminal][data-codex-xterm] .xterm,
+  [data-codex-terminal][data-codex-xterm] .xterm-viewport
+)::-webkit-scrollbar-track,
+html.cc-theme[data-skin-theme-bridge]:is([data-skin-video="enabled"], [data-skin-background-mode]) :where(
+  [data-skin-role="bottom-panel-terminal"],
+  [data-skin-role="bottom-panel-terminal-viewport"],
+  [data-codex-terminal][data-codex-xterm] .xterm,
+  [data-codex-terminal][data-codex-xterm] .xterm-viewport
+)::-webkit-scrollbar-corner {
+  background: transparent !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] [data-skin-role="bottom-panel-terminal-screen"] {
+  color: var(--skin-text) !important;
+  background-color: transparent !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] :where(
+  [data-skin-role="bottom-panel-terminal"],
+  [data-skin-role="bottom-panel-terminal-viewport"],
+  [data-codex-terminal][data-codex-xterm] .xterm,
+  [data-codex-terminal][data-codex-xterm] .xterm-viewport
+)::-webkit-scrollbar-track,
+html.cc-theme[data-skin-theme-bridge] :where(
+  [data-skin-role="bottom-panel-terminal"],
+  [data-skin-role="bottom-panel-terminal-viewport"],
+  [data-codex-terminal][data-codex-xterm] .xterm,
+  [data-codex-terminal][data-codex-xterm] .xterm-viewport
+)::-webkit-scrollbar-corner {
+  background: var(--skin-surface-code) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] :where(
+  [data-skin-role="bottom-panel-sash"],
+  [data-app-shell-focus-area="bottom-panel"] > [role="separator"]
+) {
+  color: var(--skin-border-default) !important;
+  background: transparent !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] :where(
+  [data-skin-role="bottom-panel-sash"],
+  [data-app-shell-focus-area="bottom-panel"] > [role="separator"]
+)::after {
+  content: "";
+  position: absolute;
+  inset: 7px 0 auto;
+  height: 1px;
+  pointer-events: none;
+  background: var(--skin-border-default);
+  opacity: .72;
+  transition: height var(--skin-motion-duration) ease, opacity var(--skin-motion-duration) ease,
+    background-color var(--skin-motion-duration) ease;
+}
+
+html.cc-theme[data-skin-theme-bridge] :where(
+  [data-skin-role="bottom-panel-sash"]:hover,
+  [data-skin-role="bottom-panel-sash"]:focus-visible,
+  [data-app-shell-focus-area="bottom-panel"] > [role="separator"]:hover,
+  [data-app-shell-focus-area="bottom-panel"] > [role="separator"]:focus-visible
+)::after {
+  height: 2px;
+  background: var(--skin-focus-ring);
+  opacity: 1;
+}
+
+html.cc-theme[data-skin-theme-bridge] :where(pre, .monaco-editor, .xterm) {
+  color: var(--skin-text) !important;
+  background-color: var(--skin-surface-code) !important;
+  border-color: var(--skin-border-default) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] a {
+  color: var(--skin-link) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] a:hover {
+  color: var(--skin-text-strong) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge] ::selection {
+  color: var(--skin-text-strong);
+  background: var(--skin-selected-surface);
+}
+
+html.cc-theme[data-skin-theme-bridge] * {
+  scrollbar-color: var(--skin-border-default) transparent;
+}
+
+html.cc-theme[data-skin-theme-bridge] *::-webkit-scrollbar-thumb {
+  background: var(--skin-border-default) !important;
+  border-radius: 999px;
+}
+
+html.cc-theme[data-skin-theme-bridge] *::-webkit-scrollbar-thumb:hover {
+  background: var(--skin-border-strong) !important;
+}
+
+/* Moving backgrounds retain the native New Chat / Work layout. The semantic
+   Home roles below therefore own paint only: no width, height, padding,
+   radius, positioning or transform is changed. This makes video, ripple and
+   directional Home surfaces readable without the older DOM-depth selectors. */
+html.cc-theme[data-skin-theme-bridge]:is([data-skin-video="enabled"], [data-skin-background-mode])
+:where([data-skin-role="home-heading"], [data-skin-role="home-suggestion-label"]) {
+  color: var(--skin-text-strong) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge]:is([data-skin-video="enabled"], [data-skin-background-mode])
+[data-skin-role="home-suggestion-card"] {
+  color: var(--skin-text) !important;
+  background: color-mix(in srgb, var(--skin-surface-raised) 72%, transparent) !important;
+  border-color: var(--skin-border-subtle) !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+html.cc-theme[data-skin-theme-bridge]:is([data-skin-video="enabled"], [data-skin-background-mode])
+[data-skin-role="home-suggestion-card"]:hover:not(:disabled):not([aria-disabled="true"]) {
+  color: var(--skin-text-strong) !important;
+  background: color-mix(in srgb, var(--skin-surface-raised) 64%, var(--skin-hover-surface)) !important;
+  border-color: var(--skin-border-default) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge]:is([data-skin-video="enabled"], [data-skin-background-mode])
+[data-skin-role="home-suggestion-icon"] {
+  color: var(--skin-focus-ring) !important;
+  background: color-mix(in srgb, var(--skin-focus-ring) 12%, transparent) !important;
+}
+
+/* New Task: cards-first presentation
+   ----------------------------------
+   Codex already owns the heading, responsive suggestions grid and click
+   handlers. The theme only resets the legacy Skin banner treatment and
+   paints the four native task buttons through renderer-owned markers. */
+
+html.cc-theme[data-skin-theme-bridge][data-skin-home-layout="cards"] .skin-home > div:first-child {
+  padding-top: 0 !important;
+}
+
+html.cc-theme[data-skin-theme-bridge][data-skin-home-layout="cards"] .skin-home > div:first-child > div:first-child {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  align-items: center !important;
+  padding-bottom: 6rem !important;
+}
+
+html.cc-theme[data-skin-theme-bridge][data-skin-home-layout="cards"] .skin-home > div:first-child > div:first-child > div:first-child {
+  position: relative !important;
+  isolation: auto !important;
+  width: min(900px, calc(100% - 44px)) !important;
+  max-width: 900px !important;
+  height: auto !important;
+  min-height: 0 !important;
+  flex: 0 1 auto !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  overflow: visible !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+html.cc-theme[data-skin-theme-bridge][data-skin-home-layout="cards"] .skin-home > div:first-child > div:first-child > div:first-child::before {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+}
+
+html.cc-theme[data-skin-theme-bridge][data-skin-home-layout="cards"] .skin-home > div:first-child > div:first-child > div:first-child > div:first-child {
+  position: relative !important;
+  z-index: 1 !important;
+  height: auto !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding-left: 0 !important;
+}
+
+html.cc-theme[data-skin-theme-bridge][data-skin-home-layout="cards"] .skin-home > div:first-child > div:first-child > div:first-child > div:first-child > div:first-child {
+  width: 100% !important;
+  max-width: 100% !important;
+  align-items: center !important;
+  gap: 0 !important;
+}
+
+html.cc-theme[data-skin-theme-bridge][data-skin-home-layout="cards"] .skin-home > div:first-child > div:first-child > div:first-child > div:nth-child(2) {
+  left: 0 !important;
+  right: 0 !important;
+  top: 100% !important;
+  width: 100% !important;
+  margin-top: 2rem !important;
+}
+
+html.cc-theme[data-skin-theme-bridge][data-skin-home-layout="cards"] .skin-home [data-skin-role="home-icon"] {
+  display: block !important;
+  width: 48px !important;
+  height: 48px !important;
+  margin: 0 auto 14px !important;
+  color: var(--skin-focus-ring) !important;
+  filter: drop-shadow(0 6px 16px color-mix(in srgb, var(--skin-focus-ring) 24%, transparent));
+}
+
+html.cc-theme[data-skin-theme-bridge][data-skin-home-layout="cards"] .skin-home [data-skin-role="home-heading"] {
+  display: block !important;
+  max-width: min(760px, 100%) !important;
+  margin-inline: auto !important;
+  color: var(--skin-text-strong) !important;
+  font-family: var(--skin-font-display) !important;
+  font-size: clamp(22px, 2.15vw, 31px) !important;
+  line-height: 1.28 !important;
+  font-weight: 720 !important;
+  text-align: center !important;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, .46) !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* Display typography is an explicit Shared Core role even when a moving
+   background preserves Codex's native Home geometry. Apply only the font and
+   paint to the verified heading marker; sizing and layout remain host-owned. */
+html.cc-theme[data-skin-theme-bridge][data-skin-home-layout="cards"] [data-skin-role="home-heading"] {
+  color: var(--skin-text-strong) !important;
+  font-family: var(--skin-font-display) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge][data-skin-home-layout="cards"] .skin-home [data-skin-role="home-heading"] button {
+  color: var(--skin-text-strong) !important;
+  border-color: color-mix(in srgb, var(--skin-focus-ring) 52%, transparent) !important;
+  background: color-mix(in srgb, var(--skin-hover-surface) 82%, transparent) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge][data-skin-home-layout="cards"] .skin-home [data-skin-role="home-suggestions"] {
+  width: 100% !important;
+  overflow: visible !important;
+}
+
+html.cc-theme[data-skin-theme-bridge][data-skin-home-layout="cards"] .skin-home [data-skin-role="home-suggestions-grid"] {
+  width: 100% !important;
+  overflow: visible !important;
+}
+
+html.cc-theme[data-skin-theme-bridge][data-skin-home-layout="cards"] .skin-home [data-skin-role="home-suggestion-card"] {
+  --skin-home-card-accent: var(--skin-link);
+  position: relative !important;
+  min-height: 138px !important;
+  padding: 15px 15px 14px !important;
+  align-items: stretch !important;
+  justify-content: space-between !important;
+  text-align: left !important;
+  color: var(--skin-text) !important;
+  border: 1px solid var(--skin-border-default) !important;
+  border-radius: var(--skin-radius-card) !important;
+  background:
+    linear-gradient(155deg, color-mix(in srgb, var(--skin-home-card-accent) 10%, transparent), transparent 48%),
+    color-mix(in srgb, var(--skin-surface-raised) 92%, transparent) !important;
+  box-shadow:
+    0 14px 32px -20px rgba(0, 0, 0, .78),
+    inset 0 1px color-mix(in srgb, var(--skin-text-strong) 6%, transparent) !important;
+  backdrop-filter: blur(var(--skin-backdrop-blur)) saturate(var(--skin-backdrop-saturation)) !important;
+  transform: translateY(0) scale(1) !important;
+  transition:
+    transform var(--skin-motion-duration) ease,
+    border-color var(--skin-motion-duration) ease,
+    background-color var(--skin-motion-duration) ease,
+    box-shadow var(--skin-motion-duration) ease !important;
+}
+
+html.cc-theme[data-skin-theme-bridge][data-skin-home-layout="cards"] .skin-home [data-skin-role="home-suggestion-card"][data-skin-card-index="2"] {
+  --skin-home-card-accent: var(--skin-action-hover);
+}
+
+html.cc-theme[data-skin-theme-bridge][data-skin-home-layout="cards"] .skin-home [data-skin-role="home-suggestion-card"][data-skin-card-index="3"] {
+  --skin-home-card-accent: var(--skin-success);
+}
+
+html.cc-theme[data-skin-theme-bridge][data-skin-home-layout="cards"] .skin-home [data-skin-role="home-suggestion-card"][data-skin-card-index="4"] {
+  --skin-home-card-accent: var(--skin-warning);
+}
+
+html.cc-theme[data-skin-theme-bridge][data-skin-home-layout="cards"] .skin-home [data-skin-role="home-suggestion-card"] > span:first-child {
+  justify-content: flex-start !important;
+}
+
+html.cc-theme[data-skin-theme-bridge][data-skin-home-layout="cards"] .skin-home [data-skin-role="home-suggestion-card"] > span:last-child {
+  align-items: flex-start !important;
+  text-align: left !important;
+}
+
+html.cc-theme[data-skin-theme-bridge][data-skin-home-layout="cards"] .skin-home [data-skin-role="home-suggestion-icon"] {
+  width: 38px !important;
+  height: 38px !important;
+  display: grid !important;
+  place-items: center !important;
+  margin: 0 !important;
+  color: var(--skin-home-card-accent) !important;
+  border-radius: calc(var(--skin-radius-control) + 2px) !important;
+  background: color-mix(in srgb, var(--skin-home-card-accent) 17%, var(--skin-surface-elevated)) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--skin-home-card-accent) 24%, transparent) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge][data-skin-home-layout="cards"] .skin-home [data-skin-role="home-suggestion-icon"] svg {
+  width: 20px !important;
+  height: 20px !important;
+  color: var(--skin-home-card-accent) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge][data-skin-home-layout="cards"] .skin-home [data-skin-role="home-suggestion-label"] {
+  color: var(--skin-text-strong) !important;
+  font-family: var(--skin-font-ui) !important;
+  font-weight: 650 !important;
+  line-height: 1.42 !important;
+}
+
+html.cc-theme[data-skin-theme-bridge][data-skin-home-layout="cards"] .skin-home [data-skin-role="home-suggestion-card"]:hover:not(:disabled):not([aria-disabled="true"]) {
+  color: var(--skin-text-strong) !important;
+  border-color: color-mix(in srgb, var(--skin-home-card-accent) 72%, var(--skin-border-default)) !important;
+  background:
+    linear-gradient(155deg, color-mix(in srgb, var(--skin-home-card-accent) 18%, transparent), transparent 54%),
+    color-mix(in srgb, var(--skin-surface-raised) 88%, var(--skin-hover-surface)) !important;
+  box-shadow:
+    0 19px 38px -20px rgba(0, 0, 0, .84),
+    0 0 0 1px color-mix(in srgb, var(--skin-home-card-accent) 18%, transparent) !important;
+  transform: translateY(-4px) scale(1.01) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge][data-skin-home-layout="cards"] .skin-home [data-skin-role="home-suggestion-card"]:active:not(:disabled):not([aria-disabled="true"]) {
+  border-color: var(--skin-home-card-accent) !important;
+  background: color-mix(in srgb, var(--skin-surface-raised) 78%, var(--skin-pressed-surface)) !important;
+  box-shadow: 0 8px 20px -14px rgba(0, 0, 0, .8) !important;
+  transform: translateY(-1px) scale(.99) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge][data-skin-home-layout="cards"] .skin-home [data-skin-role="home-suggestion-card"]:focus-visible {
+  outline: 2px solid var(--skin-home-card-accent) !important;
+  outline-offset: 3px !important;
+  border-color: var(--skin-home-card-accent) !important;
+  box-shadow:
+    0 0 0 5px color-mix(in srgb, var(--skin-home-card-accent) 22%, transparent),
+    0 14px 32px -20px rgba(0, 0, 0, .78) !important;
+}
+
+html.cc-theme[data-skin-theme-bridge][data-skin-home-layout="cards"] .skin-home [data-skin-role="home-suggestion-card"]:disabled,
+html.cc-theme[data-skin-theme-bridge][data-skin-home-layout="cards"] .skin-home [data-skin-role="home-suggestion-card"][aria-disabled="true"] {
+  opacity: .46 !important;
+  filter: saturate(.55) !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+html.cc-theme[data-skin-theme-bridge][data-skin-home-layout="cards"] .skin-orbit {
+  display: none !important;
+}
+
+@media (max-width: 900px) {
+  html.cc-theme[data-skin-theme-bridge][data-skin-home-layout="cards"] .skin-home > div:first-child > div:first-child {
+    flex-basis: auto !important;
+    min-height: 0 !important;
+  }
+
+  html.cc-theme[data-skin-theme-bridge][data-skin-home-layout="cards"] .skin-home > div:first-child > div:first-child > div:first-child {
+    width: min(760px, calc(100% - 28px)) !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  html.cc-theme[data-skin-theme-bridge][data-skin-home-layout="cards"] .skin-home [data-skin-role="home-suggestion-card"] {
+    min-height: 122px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.cc-theme[data-skin-theme-bridge][data-skin-home-layout="cards"] .skin-home [data-skin-role="home-suggestion-card"] {
+    transition: none !important;
+  }
+
+  html.cc-theme[data-skin-theme-bridge][data-skin-home-layout="cards"] .skin-home [data-skin-role="home-suggestion-card"]:is(:hover, :active) {
+    transform: none !important;
+  }
+}

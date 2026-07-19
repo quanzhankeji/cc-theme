@@ -1,0 +1,25 @@
+{
+  "kind": "cc-theme.adapter-project-manifest",
+  "schemaVersion": 1,
+  "adapterId": "mac-workbuddy",
+  "adapterVersion": "5.2.6",
+  "adapterReleaseRevision": 1,
+  "platform": "macos",
+  "architecture": "arm64",
+  "host": {
+    "application": "WorkBuddy",
+    "bundleIdentifier": "com.workbuddy.workbuddy",
+    "cfBundleShortVersionString": "5.2.6",
+    "compatibilityEvidence": {
+      "cfBundleVersion": "5.2.6",
+      "uiSurfaceCatalog": "compatibility/workbuddy-macos/5.2.6/ui-surface-catalog.json"
+    }
+  },
+  "release": {
+    "assetIdentity": "mac-workbuddy-5.2.6-r1-macos-arm64",
+    "sourceArchive": "mac-workbuddy-5.2.6-r1-macos-arm64.zip",
+    "clientArchive": "cc-theme-mac-workbuddy-5.2.6-r1-macos-arm64.zip",
+    "publicationStatus": "unpublished-development",
+    "overwritePolicy": "replace-unpublished-development-revision"
+  }
+}

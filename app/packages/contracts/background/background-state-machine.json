@@ -1,0 +1,42 @@
+{
+  "kind": "cc-theme.background-state-machine",
+  "revision": 1,
+  "states": [
+    "loading",
+    "enabled",
+    "static",
+    "fallback",
+    "disposed"
+  ],
+  "initialState": "loading",
+  "terminalState": "disposed",
+  "allowedTransitions": {
+    "loading": ["enabled", "static", "fallback", "disposed"],
+    "enabled": ["static", "fallback", "disposed"],
+    "static": ["enabled", "fallback", "disposed"],
+    "fallback": ["disposed"],
+    "disposed": []
+  },
+  "interactiveModes": {
+    "ripple": {
+      "control": {
+        "enabled": "水波启用",
+        "disabled": "静态图片"
+      },
+      "staticPresentation": "base-image"
+    },
+    "directional": {
+      "control": {
+        "enabled": "方向跟随",
+        "disabled": "默认方向"
+      },
+      "staticPresentation": "idle-frame"
+    }
+  },
+  "policies": {
+    "reduceMotion": "force-static",
+    "disableInteraction": "preserve-theme-appearance",
+    "resourceOrRendererFailure": "fallback-to-base-image",
+    "themeRuntimeCode": "forbidden"
+  }
+}

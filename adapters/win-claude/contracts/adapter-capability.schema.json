@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cc-theme.local/win-claude/adapter-capability.schema.json",
+  "title": "Win-Claude raw Adapter capability",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "kind",
+    "schemaVersion",
+    "adapterId",
+    "platform",
+    "capabilityVersion",
+    "targetThemeKind",
+    "targetThemeSchemaVersion",
+    "themeStyleCatalogId",
+    "themeStyleCatalogVersion",
+    "uiSurfaceCatalogVersion",
+    "compileAvailable",
+    "runtimeApplyAvailable",
+    "availability",
+    "compatibility",
+    "interfaces",
+    "sharedCoreDecisions",
+    "targetProfile",
+    "localRuntimeOverrides",
+    "identityResponsibilities",
+    "gate"
+  ],
+  "properties": {
+    "kind": { "const": "cc-theme.adapter-capability" },
+    "schemaVersion": { "const": 1 },
+    "adapterId": { "const": "win-claude" },
+    "platform": { "const": "windows" },
+    "capabilityVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "targetThemeKind": { "const": "skin.theme" },
+    "targetThemeSchemaVersion": { "const": 1 },
+    "themeStyleCatalogId": { "const": "win-claude-theme" },
+    "themeStyleCatalogVersion": { "type": "integer", "minimum": 1 },
+    "uiSurfaceCatalogVersion": { "type": "integer", "minimum": 1 },
+    "compileAvailable": { "type": "boolean" },
+    "runtimeApplyAvailable": { "type": "boolean" },
+    "availability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "projectionAvailable", "validationAvailable", "deepSettingsAvailable", "reasonCode", "reason"],
+      "properties": {
+        "status": { "enum": ["available", "projection-only", "unavailable"] },
+        "projectionAvailable": { "type": "boolean" },
+        "validationAvailable": { "type": "boolean" },
+        "deepSettingsAvailable": { "type": "boolean" },
+        "reasonCode": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 320 }
+      }
+    },
+    "compatibility": { "type": "object" },
+    "interfaces": { "type": "object" },
+    "sharedCoreDecisions": { "type": "array", "minItems": 1 },
+    "targetProfile": { "type": "object" },
+    "localRuntimeOverrides": { "type": "object" },
+    "identityResponsibilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runtimeOrdering", "artifactProvenance"],
+      "properties": {
+        "runtimeOrdering": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["scope", "fields", "crossProcessComparable", "releaseDigest"],
+          "properties": {
+            "scope": { "const": "renderer-session" },
+            "fields": { "const": ["sessionNonce", "generation", "revision"] },
+            "crossProcessComparable": { "const": false },
+            "releaseDigest": { "const": false }
+          }
+        },
+        "artifactProvenance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["fields", "algorithm", "sessionScoped", "deterministicReleaseIdentity"],
+          "properties": {
+            "fields": { "const": ["fileSha256", "manifestSha256", "archiveSha256"] },
+            "algorithm": { "const": "sha256" },
+            "sessionScoped": { "const": false },
+            "deterministicReleaseIdentity": { "const": true }
+          }
+        }
+      }
+    },
+    "gate": { "type": "object" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "availability": { "properties": { "status": { "const": "unavailable" } } } } },
+      "then": {
+        "properties": {
+          "compileAvailable": { "const": false },
+          "runtimeApplyAvailable": { "const": false }
+        }
+      }
+    }
+  ]
+}

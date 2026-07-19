@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cc-theme.local/contracts/mac-workbuddy-target-profile.schema.json",
+  "title": "Mac WorkBuddy CC Theme target profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "schemaVersion", "adapterId", "values"],
+  "properties": {
+    "kind": { "const": "cc-theme.target-profile" },
+    "schemaVersion": { "const": 1 },
+    "adapterId": { "const": "mac-workbuddy" },
+    "values": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "paletteStrategy": { "enum": ["system", "adaptive", "custom"] },
+        "backgroundVideoPosterMode": { "enum": ["none", "image"] }
+      }
+    }
+  }
+}

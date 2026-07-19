@@ -1,0 +1,107 @@
+{
+  "kind": "theme.style-catalog",
+  "schemaVersion": 1,
+  "catalogVersion": 1,
+  "catalogId": "mac-claude-theme",
+  "adapterId": "mac-claude",
+  "adapterVersion": "1.22209.3",
+  "adapterReleaseRevision": 1,
+  "geometryPolicy": "native",
+  "description": "Portable semantic theme values interpreted only by the Claude UI adapter.",
+  "surfaceContexts": ["home", "conversation", "settings", "overlay"],
+  "groups": [
+    { "id": "foundation", "labelZhCN": "基础表面", "labelEn": "Foundation" },
+    { "id": "text", "labelZhCN": "文字与图标", "labelEn": "Text and icons" },
+    { "id": "navigation", "labelZhCN": "侧边栏与导航", "labelEn": "Navigation" },
+    { "id": "content", "labelZhCN": "内容与对话", "labelEn": "Content" },
+    { "id": "composer", "labelZhCN": "输入框", "labelEn": "Composer" },
+    { "id": "interaction", "labelZhCN": "交互与状态", "labelEn": "Interaction and status" },
+    { "id": "border", "labelZhCN": "边框与焦点", "labelEn": "Borders and focus" },
+    { "id": "typography", "labelZhCN": "字体", "labelEn": "Typography" }
+  ],
+  "roleFamilies": [
+    {
+      "id": "shell",
+      "labelZhCN": "Claude 主壳",
+      "roles": ["main-content", "sidebar", "primary-pane", "header"]
+    },
+    {
+      "id": "conversation",
+      "labelZhCN": "会话与输入",
+      "roles": ["conversation-turn", "composer-input", "composer", "send-button", "model-picker"]
+    },
+    {
+      "id": "settings",
+      "labelZhCN": "设置",
+      "roles": ["settings-shell", "settings-sidebar", "settings-nav-item", "settings-content", "settings-content-owned"]
+    },
+    {
+      "id": "overlay",
+      "labelZhCN": "弹窗与浮层",
+      "roles": ["overlay-surface"],
+      "variants": ["dialog", "menu", "listbox"]
+    }
+  ],
+  "nativeRoles": [
+    {
+      "id": "settings-nav-item",
+      "reason": "CC Theme clones the adjacent General item and keeps native geometry, states and motion."
+    }
+  ],
+  "adapterBindingFamilies": ["--bg-*", "--text-*", "--border-*", "--accent-*", "--brand-*", "--font-*"],
+  "runtimeOnlyVariables": [
+    "--skin-active-art", "--skin-art", "--skin-art-focus-x", "--skin-art-focus-y",
+    "--skin-art-position",
+    "--skin-focus-x", "--skin-focus-y", "--skin-hero-art", "--skin-hero-position",
+    "--skin-motion-duration", "--skin-native-canvas", "--skin-radius-scale",
+    "--skin-radius-control", "--skin-radius-card", "--skin-radius-panel",
+    "--skin-native-sidebar", "--skin-video-position", "--skin-video-scrim-color"
+  ],
+  "tokens": [
+    { "id": "foundation.canvas", "labelZhCN": "窗口底色", "labelEn": "Canvas", "group": "foundation", "type": "color", "themePath": "colors.background", "cssVariable": "--skin-bg", "roles": ["main-content", "primary-pane"] },
+    { "id": "foundation.panel", "labelZhCN": "基础面板", "labelEn": "Panel", "group": "foundation", "type": "color", "themePath": "colors.panel", "cssVariable": "--skin-panel", "roles": ["main-content", "settings-content"] },
+    { "id": "foundation.panelRaised", "labelZhCN": "次级面板", "labelEn": "Raised panel", "group": "foundation", "type": "color", "themePath": "colors.panelAlt", "cssVariable": "--skin-panel-2", "roles": ["settings-content-owned", "overlay-surface"] },
+    { "id": "foundation.surfaceBase", "labelZhCN": "主内容表面", "labelEn": "Base surface", "group": "content", "type": "color", "themePath": "semanticColors.surfaceBase", "cssVariable": "--skin-surface-base", "roles": ["main-content", "settings-content"] },
+    { "id": "foundation.surfaceRaised", "labelZhCN": "控件表面", "labelEn": "Raised surface", "group": "content", "type": "color", "themePath": "semanticColors.surfaceRaised", "cssVariable": "--skin-surface-raised", "roles": ["composer", "settings-content-owned"] },
+    { "id": "foundation.surfaceElevated", "labelZhCN": "弹窗表面", "labelEn": "Elevated surface", "group": "content", "type": "color", "themePath": "semanticColors.surfaceElevated", "cssVariable": "--skin-surface-elevated", "roles": ["overlay-surface"] },
+    { "id": "foundation.surfaceCode", "labelZhCN": "代码表面", "labelEn": "Code surface", "group": "content", "type": "color", "themePath": "semanticColors.surfaceCode", "cssVariable": "--skin-surface-code", "roles": ["conversation-turn"] },
+    { "id": "navigation.sidebar", "labelZhCN": "侧边栏表面", "labelEn": "Sidebar surface", "group": "navigation", "type": "color", "themePath": "semanticColors.sidebarSurface", "cssVariable": "--skin-sidebar-surface", "roles": ["sidebar", "settings-sidebar"] },
+    { "id": "navigation.header", "labelZhCN": "顶部栏表面", "labelEn": "Header surface", "group": "navigation", "type": "color", "themePath": "semanticColors.headerSurface", "cssVariable": "--skin-header-surface", "roles": ["header"] },
+    { "id": "content.composer", "labelZhCN": "输入框表面", "labelEn": "Composer surface", "group": "composer", "type": "color", "themePath": "semanticColors.composerSurface", "cssVariable": "--skin-composer-surface", "roles": ["composer"] },
+    { "id": "content.scrimStart", "labelZhCN": "主区域遮罩起点", "labelEn": "Main scrim start", "group": "content", "type": "color", "themePath": "semanticColors.mainScrimStart", "cssVariable": "--skin-main-scrim-start", "roles": ["primary-pane"] },
+    { "id": "content.scrimMiddle", "labelZhCN": "主区域遮罩中段", "labelEn": "Main scrim middle", "group": "content", "type": "color", "themePath": "semanticColors.mainScrimMid", "cssVariable": "--skin-main-scrim-mid", "roles": ["primary-pane"] },
+    { "id": "content.scrimEnd", "labelZhCN": "主区域遮罩终点", "labelEn": "Main scrim end", "group": "content", "type": "color", "themePath": "semanticColors.mainScrimEnd", "cssVariable": "--skin-main-scrim-end", "roles": ["primary-pane"] },
+    { "id": "text.primary", "labelZhCN": "主要文字", "labelEn": "Primary text", "group": "text", "type": "color", "themePath": "colors.text", "cssVariable": "--skin-text", "roles": ["main-content", "sidebar", "settings-content"] },
+    { "id": "text.strong", "labelZhCN": "强调文字", "labelEn": "Strong text", "group": "text", "type": "color", "themePath": "semanticColors.textStrong", "cssVariable": "--skin-text-strong", "roles": ["conversation-turn", "settings-content-owned"] },
+    { "id": "text.muted", "labelZhCN": "次要文字", "labelEn": "Muted text", "group": "text", "type": "color", "themePath": "colors.muted", "cssVariable": "--skin-muted", "roles": ["main-content", "settings-content"] },
+    { "id": "text.placeholder", "labelZhCN": "占位文字", "labelEn": "Placeholder", "group": "text", "type": "color", "themePath": "semanticColors.placeholder", "cssVariable": "--skin-placeholder", "roles": ["composer-input"] },
+    { "id": "text.link", "labelZhCN": "链接文字", "labelEn": "Link", "group": "text", "type": "color", "themePath": "semanticColors.link", "cssVariable": "--skin-link", "roles": ["conversation-turn", "settings-content-owned"] },
+    { "id": "accent.primary", "labelZhCN": "主强调色", "labelEn": "Primary accent", "group": "interaction", "type": "color", "themePath": "colors.accent", "cssVariable": "--skin-green", "roles": ["send-button", "model-picker"] },
+    { "id": "accent.hover", "labelZhCN": "强调悬停色", "labelEn": "Accent hover", "group": "interaction", "type": "color", "themePath": "colors.accentAlt", "cssVariable": "--skin-lime", "roles": ["send-button"] },
+    { "id": "accent.secondary", "labelZhCN": "次强调色", "labelEn": "Secondary accent", "group": "interaction", "type": "color", "themePath": "colors.secondary", "cssVariable": "--skin-cyan", "roles": ["main-content"] },
+    { "id": "accent.highlight", "labelZhCN": "高亮色", "labelEn": "Highlight", "group": "interaction", "type": "color", "themePath": "colors.highlight", "cssVariable": "--skin-purple", "roles": ["settings-nav-item"] },
+    { "id": "action.background", "labelZhCN": "主要操作", "labelEn": "Action", "group": "interaction", "type": "color", "themePath": "semanticColors.action", "cssVariable": "--skin-action", "roles": ["send-button"] },
+    { "id": "action.hoverBackground", "labelZhCN": "操作悬停", "labelEn": "Action hover", "group": "interaction", "type": "color", "themePath": "semanticColors.actionHover", "cssVariable": "--skin-action-hover", "roles": ["send-button"] },
+    { "id": "action.pressedBackground", "labelZhCN": "操作按下", "labelEn": "Action pressed", "group": "interaction", "type": "color", "themePath": "semanticColors.actionPressed", "cssVariable": "--skin-action-pressed", "roles": ["send-button"] },
+    { "id": "action.foreground", "labelZhCN": "操作文字", "labelEn": "Action foreground", "group": "interaction", "type": "color", "themePath": "semanticColors.actionForeground", "cssVariable": "--skin-action-foreground", "roles": ["send-button"] },
+    { "id": "state.hover", "labelZhCN": "悬停表面", "labelEn": "Hover surface", "group": "interaction", "type": "color", "themePath": "semanticColors.hoverSurface", "cssVariable": "--skin-hover-surface", "roles": ["settings-nav-item"] },
+    { "id": "state.pressed", "labelZhCN": "按下表面", "labelEn": "Pressed surface", "group": "interaction", "type": "color", "themePath": "semanticColors.pressedSurface", "cssVariable": "--skin-pressed-surface", "roles": ["settings-nav-item"] },
+    { "id": "state.selected", "labelZhCN": "选中表面", "labelEn": "Selected surface", "group": "interaction", "type": "color", "themePath": "semanticColors.selectedSurface", "cssVariable": "--skin-selected-surface", "roles": ["settings-nav-item"] },
+    { "id": "state.selectedHover", "labelZhCN": "选中悬停表面", "labelEn": "Selected hover surface", "group": "interaction", "type": "color", "themePath": "semanticColors.selectedHoverSurface", "cssVariable": "--skin-selected-hover-surface", "roles": ["settings-nav-item"] },
+    { "id": "state.danger", "labelZhCN": "错误与危险", "labelEn": "Danger", "group": "interaction", "type": "color", "themePath": "semanticColors.danger", "cssVariable": "--skin-danger", "roles": ["overlay-surface", "settings-content-owned"] },
+    { "id": "state.success", "labelZhCN": "成功", "labelEn": "Success", "group": "interaction", "type": "color", "themePath": "semanticColors.success", "cssVariable": "--skin-success", "roles": ["overlay-surface", "settings-content-owned"] },
+    { "id": "state.warning", "labelZhCN": "警告", "labelEn": "Warning", "group": "interaction", "type": "color", "themePath": "semanticColors.warning", "cssVariable": "--skin-warning", "roles": ["overlay-surface", "settings-content-owned"] },
+    { "id": "border.base", "labelZhCN": "基础分隔线", "labelEn": "Base line", "group": "border", "type": "color", "themePath": "colors.line", "cssVariable": "--skin-line", "roles": ["main-content", "sidebar"] },
+    { "id": "border.subtle", "labelZhCN": "弱边框", "labelEn": "Subtle border", "group": "border", "type": "color", "themePath": "semanticColors.borderSubtle", "cssVariable": "--skin-border-subtle", "roles": ["settings-content-owned"] },
+    { "id": "border.default", "labelZhCN": "默认边框", "labelEn": "Default border", "group": "border", "type": "color", "themePath": "semanticColors.borderDefault", "cssVariable": "--skin-border-default", "roles": ["composer", "overlay-surface"] },
+    { "id": "border.strong", "labelZhCN": "强调边框", "labelEn": "Strong border", "group": "border", "type": "color", "themePath": "semanticColors.borderStrong", "cssVariable": "--skin-border-strong", "roles": ["settings-nav-item"] },
+    { "id": "border.focus", "labelZhCN": "焦点环", "labelEn": "Focus ring", "group": "border", "type": "color", "themePath": "semanticColors.focusRing", "cssVariable": "--skin-focus-ring", "roles": ["send-button", "settings-nav-item"] },
+    { "id": "effect.backdropBlur", "labelZhCN": "背景模糊", "labelEn": "Backdrop blur", "group": "interaction", "type": "number", "minimum": 0, "maximum": 48, "step": 1, "unit": "px", "themePath": "appearance.backdropBlurPx", "cssVariable": "--skin-backdrop-blur", "roles": ["sidebar", "composer", "settings-content"] },
+    { "id": "effect.backdropSaturation", "labelZhCN": "背景饱和度", "labelEn": "Backdrop saturation", "group": "interaction", "type": "number", "minimum": 0.5, "maximum": 1.5, "step": 0.05, "unit": "", "themePath": "appearance.backdropSaturation", "cssVariable": "--skin-backdrop-saturation", "roles": ["sidebar", "composer", "settings-content"] },
+    { "id": "effect.videoScrimOpacity", "labelZhCN": "视频遮罩透明度", "labelEn": "Video scrim opacity", "group": "interaction", "type": "number", "minimum": 0, "maximum": 0.8, "step": 0.01, "unit": "", "themePath": "appearance.backgroundVideoScrimOpacity", "cssVariable": "--skin-video-scrim-opacity", "roles": ["main-content"] },
+    { "id": "effect.interactiveScrimOpacity", "labelZhCN": "交互背景遮罩透明度", "labelEn": "Interactive scrim opacity", "group": "interaction", "type": "number", "minimum": 0, "maximum": 0.8, "step": 0.01, "unit": "", "themePath": "interactiveBackground.scrimOpacity", "cssVariable": "--skin-interactive-scrim-opacity", "roles": ["main-content"] },
+    { "id": "font.ui", "labelZhCN": "界面字体", "labelEn": "UI font", "group": "typography", "type": "fontList", "themePath": "fonts.ui", "cssVariable": "--skin-font-ui", "roles": ["sidebar", "main-content", "settings-content"] },
+    { "id": "font.display", "labelZhCN": "标题字体", "labelEn": "Display font", "group": "typography", "type": "fontList", "themePath": "fonts.display", "cssVariable": "--skin-font-display", "roles": ["settings-content-owned"] },
+    { "id": "font.code", "labelZhCN": "代码字体", "labelEn": "Code font", "group": "typography", "type": "fontList", "themePath": "fonts.code", "cssVariable": "--skin-font-code", "roles": ["conversation-turn"] }
+  ]
+}

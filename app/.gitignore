@@ -1,0 +1,9 @@
+node_modules/
+dist/
+src-tauri/target/
+.runtime-cache/
+.runtime-resources/
+.runtime-resources-*/
+.adapter-dist/
+*.log
+.DS_Store

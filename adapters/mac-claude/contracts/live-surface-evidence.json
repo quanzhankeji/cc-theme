@@ -1,0 +1,18 @@
+{
+  "kind": "cc-theme.live-surface-evidence-policy",
+  "schemaVersion": 1,
+  "adapter": "mac-claude",
+  "maximumNodesPerCapture": 64,
+  "allowedData": [
+    "element-name", "stable-semantic-role", "stable-class-token", "stable-testid",
+    "parent-child-structure", "element-child-count", "geometry", "boolean-state",
+    "allowlisted-computed-style", "aggregate-count"
+  ],
+  "forbiddenData": [
+    "chat-text", "innerText", "textContent", "input-value", "accessible-name",
+    "url", "query", "hash", "link-target", "media-source", "raw-screenshot"
+  ],
+  "storagePolicy": "diagnostic-json-only-mode-0600",
+  "rawArtifactsCommitted": false,
+  "admissionPolicy": "diagnostic-evidence-not-electron-version-inference"
+}

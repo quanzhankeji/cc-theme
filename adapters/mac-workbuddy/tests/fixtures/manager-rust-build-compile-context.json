@@ -1,0 +1,11 @@
+{
+  "detectedClientVersion": "5.2.6",
+  "detectedClientBuild": null,
+  "surfaceCatalogId": null,
+  "surfaceCatalogVersion": 2,
+  "probeStatus": "verified",
+  "compileAllowed": true,
+  "applyAllowed": true,
+  "reasonCode": null,
+  "localRuntimeOverrides": null
+}

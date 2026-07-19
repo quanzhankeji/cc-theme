@@ -1,0 +1,50 @@
+{
+  "kind": "cc-theme.ui-surface-catalog",
+  "schemaVersion": 1,
+  "adapterId": "win-claude",
+  "evidenceClass": "unverified",
+  "target": {
+    "clientVersion": null,
+    "publisher": null,
+    "packageForm": "unknown",
+    "architecture": "unknown",
+    "binarySha256": null
+  },
+  "runtime": {
+    "uiTechnology": null,
+    "transport": null,
+    "runtimeApplyAvailable": false
+  },
+  "surfaceRoles": [
+    "app.canvas",
+    "app.navigation",
+    "content.primary-surface",
+    "content.primary-text",
+    "control.primary-action",
+    "settings.navigation-entry",
+    "settings.owned-content",
+    "overlay.surface"
+  ],
+  "settingsEntry": {
+    "nativeAdjacentEntryVerified": false,
+    "layout": "unverified",
+    "states": "unverified",
+    "animation": "unverified",
+    "keyboard": "unverified",
+    "uia": "unverified"
+  },
+  "privacy": {
+    "policy": "contracts/live-surface-evidence-policy.json",
+    "rawScreenshotsCommitted": false,
+    "sensitiveFieldCount": 0
+  },
+  "unverified": [
+    "installed Claude package identity and exact version",
+    "process and window ownership",
+    "real UI technology",
+    "Settings hierarchy and adjacent native entry",
+    "chat, composer and overlay surfaces",
+    "fixed reversible runtime transport",
+    "apply, verify, pause and restore behavior"
+  ]
+}

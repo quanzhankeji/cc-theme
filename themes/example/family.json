@@ -1,0 +1,41 @@
+{
+  "kind": "cc-theme.theme-family-package",
+  "schemaVersion": 1,
+  "id": "example",
+  "version": "1.0.0",
+  "minimumManagerVersion": "0.1.0",
+  "metadata": {
+    "author": "CC Theme Contributors",
+    "defaultLocale": "en-US",
+    "locales": {
+      "zh-CN": {
+        "name": "示例主题",
+        "description": "可复制的 CC Theme 标准模板，展示语义颜色、字体、静态背景与无障碍约定。"
+      },
+      "en-US": {
+        "name": "Example Theme",
+        "description": "A reusable CC Theme template demonstrating semantic colors, fonts, a static background, and accessibility defaults."
+      }
+    },
+    "previewAsset": "background.webp",
+    "license": "MIT",
+    "assetLicense": "CC0-1.0"
+  },
+  "source": {
+    "path": "unified-theme.json",
+    "bytes": 1754,
+    "sha256": "d835ee01462c65e6aa9089734ac16cf95241bffe06df4019490070423e543ec7"
+  },
+  "assets": [
+    {
+      "path": "assets/background.webp",
+      "bytes": 188,
+      "sha256": "b09c21d5ecdb5ca084a48cef785e4edc0e0d60e8cda38a62eaf8ce2c1ac4a4e3",
+      "contentType": "image/webp",
+      "roles": [
+        "background",
+        "preview"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cc-theme.local/contracts/mac-workbuddy-operation-result.schema.json",
+  "title": "CC Theme mac-workbuddy operation result",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["kind", "schemaVersion", "adapter", "operation", "phase", "status", "ok", "changed", "code", "message"],
+  "properties": {
+    "kind": { "const": "cc-theme.operation-result" },
+    "schemaVersion": { "const": 1 },
+    "adapter": { "const": "mac-workbuddy" },
+    "operation": { "enum": ["check", "preflight", "apply", "verify", "pause", "restore"] },
+    "phase": { "enum": ["check", "preflight", "apply", "verify", "cleanup"] },
+    "status": { "enum": ["ok", "failed", "partial", "skipped"] },
+    "ok": { "type": "boolean" },
+    "changed": { "type": "boolean" },
+    "code": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,79}$" },
+    "message": { "type": "string", "minLength": 1, "maxLength": 320 },
+    "revision": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{20}$",
+      "description": "Process/session-scoped renderer generation; not a deterministic source or artifact digest."
+    },
+    "revisionScope": { "const": "renderer-session-generation" },
+    "releaseTraceability": { "const": "file-manifest-sha256" },
+    "details": { "type": "object" }
+  }
+}

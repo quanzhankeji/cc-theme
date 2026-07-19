@@ -1,0 +1,45 @@
+{
+  "kind": "cc-theme.environment-evidence",
+  "schemaVersion": 1,
+  "capturedDate": "2026-07-18",
+  "adapterId": "win-workbuddy-skin",
+  "privacy": "bounded-no-paths-no-command-lines-no-tokens",
+  "vmVerified": {
+    "hypervisor": "Parallels Desktop",
+    "hypervisorVersion": "26.4.0",
+    "vmName": "Windows 11",
+    "vmStatus": "running",
+    "guestExec": true,
+    "guestProduct": "Windows 11 Pro",
+    "guestRelease": "24H2",
+    "guestBuild": "26100",
+    "guestArchitecture": "ARM64",
+    "clientInstalled": true,
+    "clientRunning": true,
+    "clientVersion": "5.2.6",
+    "processArchitecture": "x64",
+    "signatureStatus": "valid",
+    "publisher": "Tencent Technology (Shenzhen) Company Limited",
+    "themeProofStatus": "partial-live-verified",
+    "themeProofId": "xtxg",
+    "themeProofOperations": ["preflight", "apply", "verify", "pause", "restore"],
+    "themeProofVisual": true
+  },
+  "staticAnalysis": {
+    "packageKind": "electron-asar",
+    "packageName": "@genie/workbuddy-desktop",
+    "electronVersion": "37.10.3",
+    "rendererEntry": "local-module-bundle",
+    "rendererFramework": "react",
+    "reactMarkers": ["react-dom", "createRoot"]
+  },
+  "unverified": [
+    "settings-navigation-mount",
+    "persistent-apply",
+    "settings-apply",
+    "production-cleanup",
+    "long-duration-cpu-stability",
+    "keyboard-focus-parity",
+    "contrast-audit"
+  ]
+}

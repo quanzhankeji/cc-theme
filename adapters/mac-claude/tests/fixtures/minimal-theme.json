@@ -1,0 +1,17 @@
+{
+  "kind": "skin.theme",
+  "id": "contract-fixture",
+  "name": "Contract Fixture",
+  "image": "fixture.png",
+  "fonts": {
+    "ui": ["system-ui", "sans-serif"]
+  },
+  "art": {
+    "analysis": "off",
+    "paletteMode": "system"
+  },
+  "appearance": {
+    "shellMode": "auto",
+    "backgroundPosition": { "xPercent": 50, "yPercent": 50 }
+  }
+}

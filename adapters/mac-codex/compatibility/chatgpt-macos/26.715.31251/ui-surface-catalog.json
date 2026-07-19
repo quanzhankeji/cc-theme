@@ -1,0 +1,168 @@
+{
+  "kind": "skin.ui-surface-catalog",
+  "schemaVersion": "1.0.0",
+  "catalogId": "chatgpt-macos-26.715.31251-2026-07-18",
+  "client": {
+    "product": "Codex Desktop",
+    "bundleId": "com.openai.codex",
+    "platform": "macOS",
+    "version": "26.715.31251",
+    "build": "5538",
+    "chromium": "150.0.7871.124",
+    "rendererUrl": "app://-/index.html",
+    "capturedAt": "2026-07-18",
+    "captureScope": "installed application bundle and packaged renderer resources"
+  },
+  "bundleEvidence": {
+    "application": "/Applications/ChatGPT.app",
+    "asarSha256": "8142e0848fe49097c129a1093f80061c13de04c2893525ee7c751d26b5a7bd4f",
+    "asarFileCount": 6095,
+    "rendererResourcesInspected": [
+      "webview/assets/app-initial~avatarOverlayCompositionSurface~artifact-tab-content-DJDX7Pvr.css",
+      "webview/assets/app-initial~avatarOverlayCompositionSurface~artifact-tab-content.electron~app-main~appgen-s~j5d6n91g-ClvLCsEi.js",
+      "webview/assets/app-initial~app-main~settings-command-menu-section-items~new-thread-panel-page~settings-pag~unq8yzli-gdOls2ie.js",
+      "webview/assets/app-initial~app-main~appgen-settings-page~page~appgen-library-page~appgen-page~appgen-setti~ogh9jurw-DtUKODnl.js",
+      "webview/assets/app-initial~artifact-tab-content.electron~notebook-preview-panel~app-main~pull-request-rout~jvsvjxtt-DiL8nF_e.js",
+      "webview/assets/settings-page-D6sxIjsu.js"
+    ],
+    "stableSelectorCounts": {
+      "data-app-shell-main-content-layout": 4,
+      "data-app-shell-main-content-top-fade": 3,
+      "data-codex-composer-root": 6,
+      "data-home-ambient-suggestions": 1,
+      "data-oai-writing-block-surface": 1,
+      "data-settings-panel-slug": 2,
+      "data-app-shell-focus-area": 6,
+      "data-browser-sidebar-webview-host-root": 1
+    }
+  },
+  "sources": [
+    {
+      "method": "info-plist-readonly",
+      "scope": "version, build, bundle id and Chromium version",
+      "confidence": 1
+    },
+    {
+      "method": "codesign-readonly",
+      "scope": "installed bundle identity and notarized signature",
+      "confidence": 1
+    },
+    {
+      "method": "asar-header-and-resource-inspection",
+      "scope": "packaged renderer files and stable selector presence",
+      "confidence": 0.98
+    },
+    {
+      "method": "theme-adapter-source-audit",
+      "scope": "semantic role mapping and paint-only transparent-surface rules",
+      "confidence": 1
+    },
+    {
+      "method": "loopback-cdp-node-contract",
+      "scope": "live app shell, sidebar, primary route and post-injection ownership markers",
+      "confidence": 1
+    }
+  ],
+  "surfaceTargets": [
+    {
+      "targetId": "target.shell-main",
+      "primarySelector": "[data-app-shell-main-content-layout]",
+      "fallbackSelector": "main.main-surface",
+      "runtimeRole": "main-content",
+      "policy": "transparent structural viewport above context-specific main scrim"
+    },
+    {
+      "targetId": "target.shell-top-fade",
+      "primarySelector": "[data-app-shell-main-content-top-fade]",
+      "runtimeRole": "main-top-fade",
+      "policy": "remove only the native opaque gradient so one window artwork remains continuous"
+    },
+    {
+      "targetId": "target.sidebar",
+      "primarySelector": "aside.app-shell-left-panel",
+      "fallbackSelector": ".app-shell-left-panel",
+      "runtimeRole": "sidebar/settings-sidebar",
+      "policy": "paint one bounded semantic surface without repainting the artwork or resize edge"
+    },
+    {
+      "targetId": "target.composer",
+      "primarySelector": "[data-codex-composer-root]",
+      "fallbackSelector": ".composer-surface-chrome",
+      "runtimeRole": "composer-root/composer",
+      "policy": "clear the layout root and retain one translucent readable input surface"
+    },
+    {
+      "targetId": "target.home-suggestions",
+      "primarySelector": "[data-home-ambient-suggestions]",
+      "fallbackSelector": ".group/home-suggestions",
+      "runtimeRole": "home-suggestions/home-suggestion-card/home-suggestion-label",
+      "policy": "moving backgrounds change paint only; optional static cards layout remains separately guarded"
+    },
+    {
+      "targetId": "target.settings",
+      "primarySelector": "[data-settings-panel-slug]",
+      "runtimeRole": "settings-shell/settings-sidebar/settings-content/settings-*",
+      "policy": "semantic Settings surfaces stay readable without a second wallpaper or boundary shadow; native pages remain unchanged"
+    },
+    {
+      "targetId": "target.settings-theme-page",
+      "primarySelector": "[data-settings-panel-slug='appearance']",
+      "ownedNavigation": "#cc-theme-settings-nav-item",
+      "ownedPanel": "#cc-theme-settings-page",
+      "ownedSelector": "#cc-theme-style-editor",
+      "runtimeRole": "theme-editor-host",
+      "adjacentReferenceSelector": "[data-settings-panel-slug='appearance']",
+      "mirroredStateAttributes": ["class", "style", "aria-current", "aria-selected", "aria-disabled", "data-state", "tabindex"],
+      "evidencePolicy": "diagnostic-only-never-a-version-gate",
+      "policy": "insert one Engine-owned CC Theme navigation item immediately after Appearance and render a dedicated right-side page; derive geometry, typography, paint, state and motion from the adjacent live native navigation item instead of hardcoding a client release; preserve independent ownership and keyboard semantics; edit only the current external theme through collapsed paint-token groups; restore native content on exit and never copy native event handlers, mutate Appearance controls, add a toolbar action or change host geometry"
+    },
+    {
+      "targetId": "target.writing-block",
+      "primarySelector": "[data-oai-writing-block-surface]",
+      "runtimeRole": "writing-block-surface",
+      "policy": "map native writing-block variables to translucent semantic colors"
+    },
+    {
+      "targetId": "target.bottom-panel",
+      "primarySelector": "[data-app-shell-focus-area='bottom-panel']",
+      "runtimeRole": "bottom-panel-shell",
+      "policy": "preserve native terminal geometry while mapping panel and xterm paint tokens"
+    },
+    {
+      "targetId": "target.browser-side-panel",
+      "primarySelector": "[data-browser-sidebar-webview-host-root]",
+      "runtimeRole": "native-portal",
+      "policy": "keep the native browser portal above the themed application mount"
+    }
+  ],
+  "migrationFromPreviousCatalog": {
+    "previousCatalogId": "chatgpt-macos-26.715.21425-2026-07-17",
+    "stableSelectorsRetained": [
+      "[data-app-shell-main-content-layout]",
+      "[data-app-shell-main-content-top-fade]",
+      "[data-codex-composer-root]",
+      "[data-home-ambient-suggestions]",
+      "[data-oai-writing-block-surface]",
+      "[data-settings-panel-slug]",
+      "[data-app-shell-focus-area='bottom-panel']",
+      "[data-browser-sidebar-webview-host-root]"
+    ],
+    "retainedFallbacks": [
+      "main.main-surface",
+      ".app-shell-left-panel",
+      ".composer-surface-chrome"
+    ],
+    "styleChanges": [
+      "static artwork is painted once at the window root, including Settings",
+      "Home and task/library contexts use separate scrim strength without layout changes",
+      "moving-background Home roles receive paint-only card and label treatment"
+    ],
+    "strategy": "prefer packaged stable attributes, translate them to Theme Surface Roles, and isolate version-sensitive fallbacks in the adapter"
+  },
+  "limitations": [
+    "The active development task remained in this Codex process, so validation reused its verified loopback CDP session instead of restarting the application.",
+    "The live shell and post-injection node contract passed; the lazy CC Theme navigation and dedicated page are rechecked whenever Settings is mounted.",
+    "Hashed asset file names are evidence references only and are never used as runtime selectors.",
+    "Future client builds still require a new compatibility profile before release."
+  ]
+}

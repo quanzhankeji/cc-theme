@@ -1,0 +1,271 @@
+{
+  "kind": "cc-theme.ui-surface-catalog",
+  "schemaVersion": 2,
+  "adapter": "mac-claude",
+  "adapterVersion": "1.22209.3",
+  "adapterReleaseRevision": 1,
+  "target": {
+    "bundleId": "com.anthropic.claudefordesktop",
+    "version": "1.22209.3",
+    "build": "1.22209.3",
+    "signingTeamId": "Q6L2SF6YDW",
+    "electronVersion": "42.5.1",
+    "chromiumVersion": "148.0.7778.271",
+    "remoteUiBuildId": null,
+    "remoteUiGitHash": null,
+    "remoteUiBuildTimestamp": null,
+    "remoteUiEvidenceStatus": "not-reverified-for-1.22209.3",
+    "appAsarSha256": "a72a8b5085dbe4bcf7a4271fa9928b5755b7942c99ae70e2a72416755d14e06b",
+    "appAsarIntegrity": "5d18bf11c657d56b2445d5cf72f6adb90321af1496c2788db0d855a8012af412",
+    "hostEvidence": "compatibility/claude-macos/1.22209.3/host-evidence.json"
+  },
+  "diagnosticEvidence": {
+    "officialBundleReadOnly": true,
+    "signatureVerified": true,
+    "rendererTransport": "official-authenticated-cdp-required",
+    "runtimeApplyAvailable": false,
+    "runtimeApplyReasonCode": "official-cdp-auth-required",
+    "debugEntry": "CLAUDE_DEV_TOOLS=detach",
+    "localShellIsAsarBacked": true,
+    "remoteRendererRequired": true,
+    "compatibilityClaim": "exact-host-binary-evidence-surfaces-pending-live-revalidation-runtime-seam-blocked",
+    "surfaceAdmission": "fail-closed-pending-live-landmarks",
+    "manualDiagnosticPreview": {
+      "observedDate": "2026-07-18",
+      "sourceTargetVersion": "1.22209.0",
+      "appliesToCurrentTarget": false,
+      "status": "historical-reference-only",
+      "entry": "CLAUDE_DEV_TOOLS=detach",
+      "themeId": "external-diagnostic-sample",
+      "pageFamily": "new-conversation",
+      "paintedSurfaces": ["background", "sidebar", "primary-pane", "composer"],
+      "validatedLocalStaticMedia": true,
+      "visualPaintResult": "passed",
+      "rawScreenshotCommitted": false,
+      "readsUserContent": false,
+      "persistence": "current-renderer-session-only",
+      "repeatableAutomation": false,
+      "capabilityUpgrade": false,
+      "reason": "The official diagnostic DevTools entry can prove paint mapping manually, but it is not an authenticated, automatic or restart-persistent apply/restore Seam."
+    },
+    "manualSettingsPreview": {
+      "observedDate": "2026-07-18",
+      "sourceTargetVersion": "1.22209.0",
+      "appliesToCurrentTarget": false,
+      "status": "historical-reference-only",
+      "entry": "CLAUDE_DEV_TOOLS=detach",
+      "placement": "desktop-app-after-general",
+      "navigationItemMounted": true,
+      "icon": "single-letter-c-in-cloned-native-icon-container",
+      "independentPageMounted": true,
+      "embeddedInGeneral": false,
+      "fullEditorMounted": true,
+      "editableControlGroupsObserved": 8,
+      "saveButtonPresent": false,
+      "layoutStableAcrossPlayingPausedDisabled": true,
+      "dedicatedPageFooterBackground": "transparent",
+      "motionFallback": {
+        "reasonCode": "video-media-policy-animated-image-fallback",
+        "mp4SourcePoliciesRejected": ["blob", "loopback", "data"],
+        "transferAccepted": true,
+        "format": "image/gif",
+        "bytes": 14613971,
+        "width": 800,
+        "height": 450,
+        "playbackState": "playing",
+        "videoSourceAttached": false,
+        "reversibleOwnedNode": true,
+        "equivalentToVideo": false
+      },
+      "strictSingleSelectionVerified": true,
+      "nativeSelectionRoundTripTarget": "developer",
+      "nativeTabReturnVerified": true,
+      "settingsCloseReopenVerified": true,
+      "keyboardFocusVisibleVerified": true,
+      "rawScreenshotCommitted": false,
+      "readsUserContent": false,
+      "persistence": "current-renderer-session-only",
+      "diagnosticPersistenceBackend": "session-memory-only",
+      "repeatableAutomation": false,
+      "capabilityUpgrade": false,
+      "reason": "The owned entry and page were mounted through the official diagnostic DevTools session and verified against the live Desktop app group. This is manual session evidence, not an authorized restart-persistent Seam."
+    }
+  },
+  "localeEvidence": {
+    "catalog": "contracts/claude-locale-catalog.json",
+    "authority": "claude.hybrid.DesktopIntl",
+    "initialMethod": "getInitialLocale",
+    "changeEventMethod": "onLocaleChanged",
+    "adapterWritesHostLocale": false,
+    "changeLifecycle": "immediate",
+    "defaultLocale": "en-US",
+    "locales": ["en-US", "fr-FR", "de-DE", "hi-IN", "id-ID", "it-IT", "ja-JP", "ko-KR", "pt-BR", "es-419", "es-ES"],
+    "signedResourceKeyCountPerLocale": 466,
+    "chromiumLprojDirectoriesAreProductLocaleEvidence": false,
+    "nativeLanguageMenuVerified": true,
+    "nativeImmediateSwitchVerified": true,
+    "ccThemeRuntimeSwitchVerification": "blocked-official-cdp-auth-required"
+  },
+  "capture": {
+    "kind": "structure-only-v1",
+    "visualStates": 2,
+    "computedStyleSnapshots": 10,
+    "rawScreenshotsCommitted": false,
+    "sensitiveFieldCount": 0,
+    "allowed": [
+      "stable attributes",
+      "semantic roles",
+      "stable class tokens",
+      "parent-child structure",
+      "counts",
+      "geometry",
+      "boolean state",
+      "allowlisted computed style"
+    ],
+    "forbidden": [
+      "rendered copy",
+      "input payloads",
+      "accessible labels",
+      "navigation payloads",
+      "link destinations",
+      "media locations"
+    ]
+  },
+  "identitySelectors": [
+    "main.dframe-content",
+    "aside.dframe-sidebar",
+    "[role='region'].dframe-pane-primary",
+    "[data-testid='chat-input']",
+    "[role='dialog']:has(> nav.flex.w-48.shrink-0.flex-col)"
+  ],
+  "domHierarchy": [
+    { "id": "document-root", "selector": "html[data-theme][data-mode]", "parent": null, "cardinality": "one", "ownership": "host" },
+    { "id": "application-root", "selector": "#root", "parent": "document-root", "cardinality": "one", "ownership": "host" },
+    { "id": "main", "selector": "main.dframe-content", "parent": "application-root", "cardinality": "one", "ownership": "host" },
+    { "id": "sidebar", "selector": "aside.dframe-sidebar", "parent": "main", "cardinality": "one", "ownership": "host" },
+    { "id": "primary-pane", "selector": "[role='region'].dframe-pane-primary", "parent": "main", "cardinality": "one", "ownership": "host" },
+    { "id": "composer-input", "selector": "[data-testid='chat-input']", "parent": "primary-pane", "cardinality": "one", "ownership": "host" },
+    { "id": "model-trigger", "selector": "[data-testid='model-selector-dropdown']", "parent": "primary-pane", "cardinality": "zero-or-one", "ownership": "host" },
+    { "id": "settings-dialog", "selector": "[role='dialog']:has(> nav.flex.w-48.shrink-0.flex-col)", "parent": "application-root", "cardinality": "zero-or-one", "ownership": "host" },
+    { "id": "settings-nav", "selector": ":scope > nav.flex.w-48.shrink-0.flex-col", "parent": "settings-dialog", "cardinality": "one", "ownership": "host" },
+    { "id": "settings-content", "selector": ":scope > .flex.min-h-0.min-w-0.flex-1.flex-col", "parent": "settings-dialog", "cardinality": "one", "ownership": "host" },
+    { "id": "cc-theme-nav", "selector": "#cc-theme-settings-nav-item", "parent": "settings-nav", "cardinality": "zero-or-one", "ownership": "skin-owned" },
+    { "id": "cc-theme-page", "selector": "#cc-theme-settings-page", "parent": "settings-dialog", "cardinality": "zero-or-one", "ownership": "skin-owned" }
+  ],
+  "runtimeRoles": [
+    { "role": "main-content", "selectors": ["main.dframe-content"], "cardinality": "one" },
+    { "role": "sidebar", "selectors": ["aside.dframe-sidebar"], "cardinality": "one" },
+    { "role": "primary-pane", "selectors": ["[role='region'].dframe-pane-primary"], "cardinality": "one" },
+    { "role": "header", "selectors": ["[role='region'].dframe-pane-primary header"], "cardinality": "zero-or-one" },
+    { "role": "composer-input", "selectors": ["[data-testid='chat-input']"], "cardinality": "one" },
+    { "role": "model-picker", "selectors": ["[data-testid='model-selector-dropdown']"], "cardinality": "zero-or-one" },
+    { "role": "conversation-turn", "selectors": ["[role='region'].dframe-pane-primary article"], "cardinality": "many" },
+    { "role": "settings-content-owned", "selectors": ["#cc-theme-settings-page"], "cardinality": "zero-or-one" },
+    { "role": "overlay-surface", "selectors": ["[role='dialog']:not(:has(> nav.flex.w-48.shrink-0.flex-col))", "[role='menu']", "[role='listbox']"], "cardinality": "many" }
+  ],
+  "runtimeInterpreter": {
+    "kind": "cc-theme.ui-interpreter-config",
+    "version": 1,
+    "roleAttribute": "data-skin-role",
+    "identity": {
+      "alternatives": [
+        ["main.dframe-content", "aside.dframe-sidebar", "[data-testid='chat-input']"],
+        ["[role='dialog']:has(> nav.flex.w-48.shrink-0.flex-col)"]
+      ]
+    },
+    "targets": {
+      "main": { "selectors": ["main.dframe-content"], "cardinality": "one" },
+      "sidebar": { "selectors": ["aside.dframe-sidebar"], "cardinality": "one" },
+      "primaryPane": { "selectors": ["[role='region'].dframe-pane-primary"], "cardinality": "one" },
+      "composerInput": { "selectors": ["[data-testid='chat-input']"], "cardinality": "one" },
+      "modelTrigger": { "selectors": ["[data-testid='model-selector-dropdown']"], "cardinality": "zero-or-one" },
+      "settingsDialog": { "selectors": ["[role='dialog']:has(> nav.flex.w-48.shrink-0.flex-col)"], "cardinality": "zero-or-one" },
+      "settingsNav": { "selectors": [":scope > nav.flex.w-48.shrink-0.flex-col"], "cardinality": "one" },
+      "settingsClose": {
+        "selectors": [
+          ":scope > div:first-child button:last-of-type",
+          ":scope > header:first-child button:last-of-type"
+        ],
+        "cardinality": "zero-or-one"
+      }
+    },
+    "roles": [
+      { "role": "main-content", "selectors": ["main.dframe-content"], "cardinality": "one" },
+      { "role": "sidebar", "selectors": ["aside.dframe-sidebar"], "cardinality": "one" },
+      { "role": "primary-pane", "selectors": ["[role='region'].dframe-pane-primary"], "cardinality": "one" },
+      { "role": "header", "selectors": ["[role='region'].dframe-pane-primary header"], "cardinality": "zero-or-one" },
+      { "role": "composer-input", "selectors": ["[data-testid='chat-input']"], "cardinality": "one" },
+      { "role": "model-picker", "selectors": ["[data-testid='model-selector-dropdown']"], "cardinality": "zero-or-one" },
+      { "role": "conversation-turn", "selectors": ["[role='region'].dframe-pane-primary article"], "cardinality": "many" },
+      { "role": "settings-content-owned", "selectors": ["#cc-theme-settings-page"], "cardinality": "zero-or-one" },
+      { "role": "overlay-surface", "variant": "dialog", "selectors": ["[role='dialog']:not(:has(> nav.flex.w-48.shrink-0.flex-col))"], "cardinality": "many" },
+      { "role": "overlay-surface", "variant": "menu", "selectors": ["[role='menu']", "[role='listbox']"], "cardinality": "many" }
+    ],
+    "settingsMount": {
+      "desktopListSelector": "ul.flex.flex-col.gap-px",
+      "nativeItemCount": 3,
+      "generalPosition": 1,
+      "activeButtonClasses": "flex h-control w-full items-center gap-sm rounded px-sm text-left text-body transition-colors cursor-pointer bg-alpha-2 font-medium text-primary",
+      "inactiveButtonClasses": "flex h-control w-full items-center gap-sm rounded px-sm text-left text-body transition-colors cursor-pointer text-secondary hover:bg-fill-ghost-hover hover:text-primary",
+      "insertionMode": "after-general",
+      "pageMode": "dialog-direct-child"
+    }
+  },
+  "settingsEntryNativeContract": {
+    "verificationState": "historical-1.22209.0-plus-offline-owned-contract-pending-1.22209.3-live-revalidation",
+    "source": "clone-adjacent-general-list-item",
+    "ownedId": "cc-theme-settings-nav-item",
+    "icon": "single-letter-c-in-native-icon-container",
+    "activeButtonClasses": "flex h-control w-full items-center gap-sm rounded px-sm text-left text-body transition-colors cursor-pointer bg-alpha-2 font-medium text-primary",
+    "inactiveButtonClasses": "flex h-control w-full items-center gap-sm rounded px-sm text-left text-body transition-colors cursor-pointer text-secondary hover:bg-fill-ghost-hover hover:text-primary",
+    "stateAttributes": ["aria-current", "data-state"],
+    "transitionPolicy": "inherit-adjacent-native",
+    "reducedMotionPolicy": "no-added-entry-motion"
+  },
+  "nativeVisualTokens": {
+    "light": {
+      "bg000": "0 0% 100%",
+      "bg100": "60 14% 97%",
+      "bg200": "60 11% 95%",
+      "bg300": "45 12% 93%",
+      "bg400": "50 11% 89%",
+      "text100": "0 0% 7%",
+      "text200": "60 3% 21%",
+      "text400": "43 3% 47%",
+      "accent100": "213 68% 45%",
+      "accentBrand": "14.8 63.1% 59.6%"
+    }
+  },
+  "pageFamilies": [
+    { "id": "new-conversation", "rootSelectors": ["main.dframe-content", "[role='region'].dframe-pane-primary"], "state": "candidate-from-1.22209.0-pending-live-revalidation" },
+    { "id": "conversation", "rootSelectors": ["[role='region'].dframe-pane-primary"], "state": "candidate-from-1.22209.0-pending-live-revalidation" },
+    { "id": "settings-general", "rootSelectors": ["[role='dialog']:has(> nav.flex.w-48.shrink-0.flex-col)"], "state": "candidate-from-1.22209.0-pending-live-revalidation" },
+    { "id": "settings-cc-theme", "rootSelectors": ["#cc-theme-settings-page"], "state": "offline-owned-contract-pending-live-revalidation" },
+    { "id": "generic-overlay", "rootSelectors": ["[role='dialog']", "[role='menu']", "[role='listbox']"], "state": "candidate-from-1.22209.0-pending-live-revalidation" }
+  ],
+  "lifecycleAcceptance": {
+    "runtimeAcceptanceStatus": "blocked-official-cdp-auth-required",
+    "phases": ["detect", "preflight", "apply", "verify", "pause", "restore"],
+    "failureCategories": ["adapter-landmark", "theme-contract", "visual"],
+    "requiredSurfaces": ["main-content", "sidebar", "primary-pane", "composer-input", "settings-content-owned", "overlay-surface"],
+    "requiresHorizontalOverflowCheck": true,
+    "requiresReducedMotionCheck": true,
+    "requiresCompleteOwnedResourceCleanup": true
+  },
+  "unverified": [
+    "all live host and settings landmarks on Claude 1.22209.3; the listed selectors are carried forward as candidates and are not admitted without a current runtime probe",
+    "current remote UI build identity for Claude 1.22209.3",
+    "runtime theme application to main shell, sidebar, conversation and Composer",
+    "CC Theme entry parity for hover, pressed, light/dark, zoom and Reduced Motion outside the verified manual diagnostic session states",
+    "WYSIWYG renderer preview, restart persistence and failure rollback in the real Claude renderer",
+    "theme replacement and owned renderer resource cleanup in an authorized live session",
+    "voice mode",
+    "artifacts and file previews",
+    "projects and connectors",
+    "deep conversation states with tool results",
+    "account and billing subpages",
+    "all non-English settings layouts",
+    "live CC Theme re-render for all 11 Claude locales while a debounced write is pending",
+    "all native overlays outside the inspected settings flow"
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "kind": "ui.surface-catalog",
+  "schemaVersion": 1,
+  "catalogVersion": 0,
+  "catalogId": "workbuddy-windows-5.2.6-identity-only",
+  "application": "workbuddy",
+  "platform": "windows",
+  "clientVersion": "5.2.6",
+  "verificationStatus": "identity-only",
+  "hostIdentity": {
+    "productName": "WorkBuddy",
+    "productVersion": "5.2.6",
+    "fileVersion": "5.2.6",
+    "publisher": "Tencent Technology (Shenzhen) Company Limited",
+    "authenticode": "valid",
+    "package": "electron-asar",
+    "electronVersion": "37.10.3",
+    "rendererFramework": "react",
+    "processArchitecture": "x64",
+    "guestArchitecture": "arm64"
+  },
+  "transport": {
+    "verificationStatus": "unverified",
+    "kind": null,
+    "processBinding": "unverified",
+    "localOnly": "unverified",
+    "reversible": "unverified",
+    "rollbackVerified": false
+  },
+  "roles": [],
+  "pageFamilies": [],
+  "overlayFamilies": [],
+  "settingsNavigation": {
+    "verificationStatus": "unverified",
+    "adjacentNativeItem": null,
+    "mount": null,
+    "keyboardModel": null
+  },
+  "evidence": {
+    "classification": ["vm-verified", "static-analysis"],
+    "liveUiVerified": false,
+    "privacyPolicy": "docs/EVIDENCE-PLAN.md"
+  }
+}

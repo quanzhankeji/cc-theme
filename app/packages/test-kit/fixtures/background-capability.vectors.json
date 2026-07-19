@@ -1,0 +1,232 @@
+{
+  "kind": "cc-theme.background-capability-vectors",
+  "revision": 1,
+  "valid": [
+    {
+      "id": "media-image",
+      "value": {
+        "image": "background.webp"
+      }
+    },
+    {
+      "id": "media-video",
+      "value": {
+        "image": "poster.webp",
+        "backgroundVideo": "background.mp4"
+      }
+    },
+    {
+      "id": "ripple-defaults",
+      "value": {
+        "image": "pond.webp",
+        "interactiveBackground": {
+          "type": "ripple"
+        }
+      }
+    },
+    {
+      "id": "ripple-bounds",
+      "value": {
+        "image": "pond.webp",
+        "interactiveBackground": {
+          "type": "ripple",
+          "intensity": 1,
+          "radiusPx": 96,
+          "quality": "high",
+          "scrimOpacity": 0.8
+        }
+      }
+    },
+    {
+      "id": "directional-8",
+      "value": {
+        "image": "directional-poster.webp",
+        "interactiveBackground": {
+          "type": "directional",
+          "atlas": "directions.webp",
+          "directions": 8,
+          "columns": 4,
+          "rows": 2,
+          "idleFrame": 7
+        }
+      }
+    },
+    {
+      "id": "directional-32",
+      "value": {
+        "image": "directional-poster.webp",
+        "interactiveBackground": {
+          "type": "directional",
+          "atlas": "directions.webp",
+          "directions": 32,
+          "columns": 8,
+          "rows": 4,
+          "firstDirectionDegrees": -90,
+          "idleFrame": 31,
+          "origin": {
+            "xPercent": 50,
+            "yPercent": 50
+          },
+          "scrimOpacity": 0.16
+        }
+      }
+    }
+  ],
+  "invalid": [
+    {
+      "id": "interactive-and-video",
+      "error": "mutually-exclusive",
+      "value": {
+        "image": "background.webp",
+        "backgroundVideo": "background.mp4",
+        "interactiveBackground": {
+          "type": "ripple"
+        }
+      }
+    },
+    {
+      "id": "remote-base-image",
+      "error": "local-basename",
+      "value": {
+        "image": "https://example.com/background.webp",
+        "interactiveBackground": {
+          "type": "ripple"
+        }
+      }
+    },
+    {
+      "id": "script-as-base-image",
+      "error": "image-type",
+      "value": {
+        "image": "background.js",
+        "interactiveBackground": {
+          "type": "ripple"
+        }
+      }
+    },
+    {
+      "id": "absolute-atlas",
+      "error": "local-basename",
+      "value": {
+        "image": "poster.webp",
+        "interactiveBackground": {
+          "type": "directional",
+          "atlas": "/tmp/directions.webp",
+          "directions": 8,
+          "columns": 4,
+          "rows": 2
+        }
+      }
+    },
+    {
+      "id": "atlas-traversal",
+      "error": "local-basename",
+      "value": {
+        "image": "poster.webp",
+        "interactiveBackground": {
+          "type": "directional",
+          "atlas": "../directions.webp",
+          "directions": 8,
+          "columns": 4,
+          "rows": 2
+        }
+      }
+    },
+    {
+      "id": "atlas-not-webp",
+      "error": "static-webp",
+      "value": {
+        "image": "poster.webp",
+        "interactiveBackground": {
+          "type": "directional",
+          "atlas": "directions.png",
+          "directions": 8,
+          "columns": 4,
+          "rows": 2
+        }
+      }
+    },
+    {
+      "id": "unsupported-directions",
+      "error": "directions",
+      "value": {
+        "image": "poster.webp",
+        "interactiveBackground": {
+          "type": "directional",
+          "atlas": "directions.webp",
+          "directions": 12,
+          "columns": 4,
+          "rows": 3
+        }
+      }
+    },
+    {
+      "id": "grid-mismatch",
+      "error": "grid",
+      "value": {
+        "image": "poster.webp",
+        "interactiveBackground": {
+          "type": "directional",
+          "atlas": "directions.webp",
+          "directions": 16,
+          "columns": 4,
+          "rows": 2
+        }
+      }
+    },
+    {
+      "id": "idle-out-of-range",
+      "error": "idle-frame",
+      "value": {
+        "image": "poster.webp",
+        "interactiveBackground": {
+          "type": "directional",
+          "atlas": "directions.webp",
+          "directions": 8,
+          "columns": 4,
+          "rows": 2,
+          "idleFrame": 8
+        }
+      }
+    },
+    {
+      "id": "theme-shader",
+      "error": "unknown-field",
+      "value": {
+        "image": "pond.webp",
+        "interactiveBackground": {
+          "type": "ripple",
+          "shader": "effect.frag"
+        }
+      }
+    }
+  ],
+  "binaryResourceCases": [
+    {
+      "id": "static-webp-within-limits",
+      "expected": "accept",
+      "requirements": [
+        "riff-webp-signature",
+        "no-anim-or-anmf-chunk",
+        "not-a-link",
+        "dimensions-divisible-by-grid",
+        "within-all-limits"
+      ]
+    },
+    {
+      "id": "animated-webp",
+      "expected": "reject",
+      "reason": "ANIM or ANMF chunk"
+    },
+    {
+      "id": "symbolic-or-reparse-link",
+      "expected": "reject",
+      "reason": "resource escapes the staged theme boundary"
+    },
+    {
+      "id": "oversized-atlas",
+      "expected": "reject",
+      "reason": "over 32 MiB, 32 MP, or 16384 px on either side"
+    }
+  ]
+}

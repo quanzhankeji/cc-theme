@@ -1,0 +1,86 @@
+{
+  "kind": "cc-theme.host-compatibility-evidence",
+  "schemaVersion": 1,
+  "adapterId": "mac-claude",
+  "adapterVersion": "1.22209.3",
+  "adapterReleaseRevision": 1,
+  "releaseStatus": "development-unpublished",
+  "projectStatus": "preserved-source",
+  "managerRegistrationStatus": "paused",
+  "observedDate": "2026-07-19",
+  "releaseTarget": {
+    "os": "macos",
+    "arch": "arm64"
+  },
+  "host": {
+    "bundleId": "com.anthropic.claudefordesktop",
+    "shortVersion": "1.22209.3",
+    "build": "1.22209.3",
+    "mainExecutable": "Contents/MacOS/Claude",
+    "binaryArchitectures": [
+      "arm64",
+      "x86_64"
+    ],
+    "appAsarSha256": "a72a8b5085dbe4bcf7a4271fa9928b5755b7942c99ae70e2a72416755d14e06b",
+    "appAsarIntegrity": {
+      "algorithm": "SHA256",
+      "hash": "5d18bf11c657d56b2445d5cf72f6adb90321af1496c2788db0d855a8012af412"
+    }
+  },
+  "signature": {
+    "teamId": "Q6L2SF6YDW",
+    "authority": "Developer ID Application: Anthropic PBC (Q6L2SF6YDW)",
+    "codeDirectorySha256": "9cf979f2bf5f36fc9d568f7fe362d586f40aead11866eae4e5cbe354f14d9707",
+    "hardenedRuntime": true,
+    "runtimeVersion": "26.2.0",
+    "notarizationTicket": "stapled",
+    "gatekeeperAssessment": "accepted-notarized-developer-id",
+    "deepStrictVerification": true
+  },
+  "runtime": {
+    "electronVersion": "42.5.1",
+    "chromiumVersion": "148.0.7778.271",
+    "localShellPackageVersion": "1.22209.3",
+    "localShellPackageSource": "signed-app-asar-package-json"
+  },
+  "processIdentity": {
+    "observed": true,
+    "mainProcessName": "Claude",
+    "mainProcessCount": 1,
+    "directChildProcessCounts": {
+      "gpu-process": 1,
+      "renderer": 2,
+      "utility": 3
+    },
+    "rendererHelperBundleId": "com.anthropic.claudefordesktop.helper",
+    "rendererHelperTeamId": "Q6L2SF6YDW",
+    "rendererHelperCodeDirectorySha256": "655310169637280e3adb66c196da26550b2d515cefc9ad5ee2cfd8860c444250",
+    "capturedCommandLines": false,
+    "capturedUserPaths": false,
+    "capturedEnvironment": false
+  },
+  "remoteRendererEvidence": {
+    "status": "not-reverified-for-1.22209.3",
+    "buildId": null,
+    "gitHash": null,
+    "buildTimestamp": null,
+    "reasonCode": "authorized-live-renderer-evidence-unavailable"
+  },
+  "admission": {
+    "projectionAvailable": true,
+    "normalizerVerifiedOffline": true,
+    "diagnosticPreviewAvailable": true,
+    "diagnosticPreviewMode": "user-confirmed-devtools",
+    "surfaceAdmission": "fail-closed-pending-live-landmarks",
+    "runtimeApplyAvailable": false,
+    "managerApplyAllowed": false,
+    "managerEngineDeliveryAllowed": false,
+    "reasonCode": "official-cdp-auth-required"
+  },
+  "privacy": {
+    "classification": "structure-and-binary-identity-only",
+    "userContentCaptured": false,
+    "rawScreenshotsCommitted": false,
+    "urlsCaptured": false
+  }
+}

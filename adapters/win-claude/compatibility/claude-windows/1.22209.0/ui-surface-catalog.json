@@ -1,0 +1,40 @@
+{
+  "kind": "cc-theme.ui-surface-catalog",
+  "schemaVersion": 1,
+  "adapterId": "win-claude",
+  "evidenceClass": "unverified",
+  "target": {
+    "clientVersion": "1.22209.0",
+    "publisher": "Anthropic",
+    "packageForm": "msix",
+    "architecture": "arm64",
+    "binarySha256": null
+  },
+  "runtime": {
+    "uiTechnology": "Electron shell with app.asar; exact versions unverified",
+    "transport": "official-authenticated-cdp-required; DevTools proof only",
+    "runtimeApplyAvailable": false
+  },
+  "surfaceRoles": [],
+  "settingsEntry": {
+    "nativeAdjacentEntryVerified": false,
+    "layout": "unverified",
+    "states": "unverified",
+    "animation": "unverified",
+    "keyboard": "unverified",
+    "uia": "unverified"
+  },
+  "privacy": {
+    "policy": "contracts/live-surface-evidence-policy.json",
+    "rawScreenshotsCommitted": false,
+    "sensitiveFieldCount": 0
+  },
+  "unverified": [
+    "exact Electron and remote-renderer versions",
+    "process and window identity landmarks",
+    "Settings hierarchy and adjacent native entry",
+    "chat, composer and overlay surfaces",
+    "fixed reversible production transport",
+    "apply, verify, pause and restore behavior"
+  ]
+}

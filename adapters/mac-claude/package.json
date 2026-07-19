@@ -1,0 +1,44 @@
+{
+  "name": "mac-claude",
+  "version": "1.22209.3",
+  "description": "A reversible, version-aware macOS theme adapter for Claude / Claude Desktop image and video backgrounds.",
+  "keywords": [
+    "claude",
+    "claude-desktop",
+    "macos",
+    "theme",
+    "theme-manager",
+    "theme-editor",
+    "desktop-customization",
+    "local-first",
+    "image-background",
+    "video-background",
+    "cc-theme"
+  ],
+  "homepage": "https://github.com/quanzhankeji/cc-theme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/quanzhankeji/cc-theme.git",
+    "directory": "adapters/mac-claude"
+  },
+  "bugs": {
+    "url": "https://github.com/quanzhankeji/cc-theme/issues"
+  },
+  "license": "MIT",
+  "private": false,
+  "type": "module",
+  "scripts": {
+    "test": "./tests/run-tests.sh",
+    "doctor": "./scripts/doctor-macos.sh",
+    "build": "./scripts/build-release.sh",
+    "apply:cc-theme": "./scripts/apply-cc-theme-macos.sh",
+    "lifecycle": "node ./scripts/theme-lifecycle.mjs",
+    "adapter:capability": "node ./scripts/adapter-capability.mjs",
+    "adapter:release": "node ./scripts/adapter-release.mjs",
+    "adapter:project": "node ./scripts/project-unified-theme.mjs",
+    "diagnostic:preview": "node ./scripts/diagnostic-preview.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

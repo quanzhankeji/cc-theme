@@ -1,0 +1,52 @@
+{
+  "kind": "theme.style-catalog",
+  "schemaVersion": 1,
+  "catalogId": "win-claude-theme",
+  "adapterId": "win-claude",
+  "status": "baseline-unverified-runtime-bindings",
+  "geometryPolicy": "native",
+  "groups": [
+    { "id": "foundation", "defaultCollapsed": true },
+    { "id": "text", "defaultCollapsed": true },
+    { "id": "interaction", "defaultCollapsed": false },
+    { "id": "typography", "defaultCollapsed": true }
+  ],
+  "tokens": [
+    {
+      "id": "foundation.surfaceBase",
+      "group": "foundation",
+      "valueType": "color",
+      "sourcePath": "sharedCore.tokens.colors.surfaceBase",
+      "targetThemePath": "semanticColors.surfaceBase",
+      "surfaceRoles": ["app.canvas", "content.primary-surface"],
+      "runtimeBinding": null
+    },
+    {
+      "id": "text.primary",
+      "group": "text",
+      "valueType": "color",
+      "sourcePath": "sharedCore.tokens.colors.text",
+      "targetThemePath": "colors.text",
+      "surfaceRoles": ["content.primary-text"],
+      "runtimeBinding": null
+    },
+    {
+      "id": "action.background",
+      "group": "interaction",
+      "valueType": "color",
+      "sourcePath": "sharedCore.tokens.colors.action",
+      "targetThemePath": "semanticColors.action",
+      "surfaceRoles": ["control.primary-action"],
+      "runtimeBinding": null
+    },
+    {
+      "id": "font.ui",
+      "group": "typography",
+      "valueType": "fontList",
+      "sourcePath": "sharedCore.tokens.fonts.ui",
+      "targetThemePath": "fonts.ui",
+      "surfaceRoles": ["content.interface-text"],
+      "runtimeBinding": null
+    }
+  ]
+}

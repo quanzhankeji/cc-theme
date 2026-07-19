@@ -1,0 +1,30 @@
+{
+  "kind": "theme.style-catalog",
+  "schemaVersion": 1,
+  "catalogVersion": 2,
+  "catalogId": "win-workbuddy-proof-styles-v2",
+  "verificationStatus": "partial-live-verified",
+  "scope": "proof-runtime-only",
+  "geometryPolicy": "native",
+  "selectorPolicy": "surface-catalog-role-indirection-only",
+  "bindings": [
+    { "id": "shell-color", "source": "colors.surfaceBase", "roles": ["shell"], "decision": "exact", "runtimeStatus": "proof-verified" },
+    { "id": "background-image", "source": "background.image", "roles": ["shell"], "decision": "exact", "runtimeStatus": "proof-verified" },
+    { "id": "background-video", "source": "background.video", "roles": [], "decision": "unsupported", "diagnostic": "background-video-runtime-unsupported" },
+    { "id": "menubar-surface", "source": "colors.surfaceRaised", "roles": ["menubar"], "decision": "approximate", "diagnostic": "raised-surface-over-background" },
+    { "id": "sidebar-surface", "source": "colors.surfaceRaised", "roles": ["sidebar"], "decision": "approximate", "diagnostic": "raised-surface-over-background" },
+    { "id": "main-background", "source": "background.image", "roles": ["teams", "main-grid-wrapper", "main-grid-content", "main-welcome", "chat", "home"], "decision": "approximate", "diagnostic": "transparent-host-surfaces-over-fixed-background" },
+    { "id": "composer-surface", "source": "colors.surfaceRaised", "roles": ["composer", "growth-plan", "scene-tabs"], "decision": "approximate", "diagnostic": "verified-container-only" },
+    { "id": "text", "source": "colors.text", "roles": ["menubar", "sidebar", "composer", "growth-plan", "scene-tabs"], "decision": "approximate", "diagnostic": "raised-container-inheritance-host-specificity-may-win" },
+    { "id": "font-ui", "source": "fonts.ui", "roles": ["shell", "root"], "decision": "approximate", "diagnostic": "windows-font-fallback-may-apply" },
+    { "id": "focus-ring", "source": "colors.focusRing", "roles": [], "decision": "unsupported", "diagnostic": "native-focus-selector-not-yet-observed" },
+    { "id": "active-conversation", "source": "colors.action", "roles": [], "decision": "unsupported", "diagnostic": "active-conversation-selector-not-yet-observed" },
+    { "id": "active-scene-pill", "source": "colors.action", "roles": [], "decision": "unsupported", "diagnostic": "active-scene-selector-not-yet-observed" },
+    { "id": "settings-entry", "source": "settings", "roles": [], "decision": "unsupported", "diagnostic": "settings-surface-not-yet-observed" }
+  ],
+  "paletteStrategies": {
+    "custom": { "runtimeStatus": "proof-ready", "mapping": "Shared Core colors then Target Profile then allowlisted local override" },
+    "system": { "runtimeStatus": "unverified", "diagnostic": "system-palette-runtime-unverified" },
+    "adaptive": { "runtimeStatus": "unverified", "diagnostic": "adaptive-palette-runtime-unverified" }
+  }
+}

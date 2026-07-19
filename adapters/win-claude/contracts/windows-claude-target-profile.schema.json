@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cc-theme.local/win-claude/windows-claude-target-profile.schema.json",
+  "title": "Win-Claude Target Profile",
+  "$comment": "No Windows-Claude-only design field has sufficient real-client evidence yet. Additions require a capability decision, projection rule, diagnostic, and VM evidence.",
+  "type": "object",
+  "additionalProperties": false,
+  "maxProperties": 0,
+  "properties": {}
+}

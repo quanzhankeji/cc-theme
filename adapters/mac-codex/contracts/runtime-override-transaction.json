@@ -1,0 +1,14 @@
+{
+  "kind": "cc-theme.runtime-override-interface",
+  "revision": 1,
+  "adapterId": "mac-codex",
+  "operations": ["inspect", "mutate"],
+  "resultKind": "cc-theme.runtime-override-result",
+  "sources": ["local-editor", "cc-theme-manager"],
+  "serialization": "per-theme-file-lock",
+  "merge": "changed-token-patch",
+  "conflictResolution": "serialized-current-mutation-wins-per-token",
+  "persistence": "atomic-rename-0600",
+  "baseChangePolicy": "rebase-compatible-quarantine-incompatible",
+  "designDataContainsPaths": false
+}

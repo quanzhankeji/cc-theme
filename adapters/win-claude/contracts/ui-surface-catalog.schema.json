@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cc-theme.local/win-claude/ui-surface-catalog.schema.json",
+  "title": "Win-Claude UI Surface Catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "schemaVersion", "adapterId", "evidenceClass", "target", "runtime", "surfaceRoles", "settingsEntry", "privacy", "unverified"],
+  "properties": {
+    "kind": { "const": "cc-theme.ui-surface-catalog" },
+    "schemaVersion": { "const": 1 },
+    "adapterId": { "const": "win-claude" },
+    "evidenceClass": { "enum": ["vm-verified", "static-analysis", "unverified"] },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["clientVersion", "publisher", "packageForm", "architecture", "binarySha256"],
+      "properties": {
+        "clientVersion": { "type": ["string", "null"], "maxLength": 80 },
+        "publisher": { "type": ["string", "null"], "maxLength": 200 },
+        "packageForm": { "enum": ["exe", "msix", "appx", "store", "unknown"] },
+        "architecture": { "enum": ["arm64", "x64", "x86", "unknown"] },
+        "binarySha256": { "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$" }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["uiTechnology", "transport", "runtimeApplyAvailable"],
+      "properties": {
+        "uiTechnology": { "type": ["string", "null"], "maxLength": 80 },
+        "transport": { "type": ["string", "null"], "maxLength": 120 },
+        "runtimeApplyAvailable": { "type": "boolean" }
+      }
+    },
+    "surfaceRoles": { "type": "array", "items": { "type": "string", "pattern": "^[a-z][a-z0-9.-]+$" }, "uniqueItems": true },
+    "settingsEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nativeAdjacentEntryVerified", "layout", "states", "animation", "keyboard", "uia"],
+      "properties": {
+        "nativeAdjacentEntryVerified": { "type": "boolean" },
+        "layout": { "enum": ["verified", "unverified"] },
+        "states": { "enum": ["verified", "unverified"] },
+        "animation": { "enum": ["verified", "unverified"] },
+        "keyboard": { "enum": ["verified", "unverified"] },
+        "uia": { "enum": ["verified", "unverified"] }
+      }
+    },
+    "privacy": { "type": "object" },
+    "unverified": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 240 } }
+  }
+}

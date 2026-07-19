@@ -1,0 +1,14 @@
+{
+  "name": "@cc-theme/win-claude",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Paused-by-user Windows Claude Adapter baseline preserved for reference",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "lifecycle": "node scripts/theme-lifecycle.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

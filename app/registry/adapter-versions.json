@@ -1,0 +1,50 @@
+{
+  "kind": "cc-theme.adapter-release-catalog",
+  "schemaVersion": 1,
+  "publicationStatus": "development-local",
+  "currentVersionPolicy": "explicit",
+  "adapters": [
+    {
+      "adapterId": "mac-codex",
+      "current": {
+        "adapterVersion": "26.715.31925",
+        "adapterReleaseRevision": 1
+      },
+      "releases": [
+        {
+          "adapterVersion": "26.715.31925",
+          "adapterReleaseRevision": 1,
+          "assetIdentity": "mac-codex-26.715.31925-r1-macos-arm64",
+          "contracts": {
+            "minimumManagerVersion": "0.1.0",
+            "capabilityVersion": "2.0.0",
+            "unifiedThemeSchemaVersion": 1,
+            "adapterPackageSchemaVersion": 1
+          },
+          "packages": []
+        }
+      ]
+    },
+    {
+      "adapterId": "mac-workbuddy",
+      "current": {
+        "adapterVersion": "5.2.6",
+        "adapterReleaseRevision": 1
+      },
+      "releases": [
+        {
+          "adapterVersion": "5.2.6",
+          "adapterReleaseRevision": 1,
+          "assetIdentity": "mac-workbuddy-5.2.6-r1-macos-arm64",
+          "contracts": {
+            "minimumManagerVersion": "0.1.0",
+            "capabilityVersion": "1.0.0",
+            "unifiedThemeSchemaVersion": 1,
+            "adapterPackageSchemaVersion": 1
+          },
+          "packages": []
+        }
+      ]
+    }
+  ]
+}

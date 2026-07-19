@@ -1,0 +1,96 @@
+{
+  "kind": "claude.locale-catalog",
+  "schemaVersion": "1.0.0",
+  "adapterId": "mac-claude",
+  "adapterVersion": "1.22209.3",
+  "adapterReleaseRevision": 1,
+  "client": {
+    "bundleId": "com.anthropic.claudefordesktop",
+    "verifiedVersion": "1.22209.3",
+    "verifiedBuild": "1.22209.3"
+  },
+  "authority": {
+    "global": "claude.hybrid.DesktopIntl",
+    "initialMethod": "getInitialLocale",
+    "changeEventMethod": "onLocaleChanged",
+    "adapterMayRequestLocaleChange": false,
+    "systemLocaleIsAdapterAuthority": false,
+    "domTextMayIdentifyLocale": false,
+    "conversationContentMayIdentifyLocale": false
+  },
+  "changeLifecycle": "immediate",
+  "defaultLocale": "en-US",
+  "locales": [
+    "en-US",
+    "fr-FR",
+    "de-DE",
+    "hi-IN",
+    "id-ID",
+    "it-IT",
+    "ja-JP",
+    "ko-KR",
+    "pt-BR",
+    "es-419",
+    "es-ES"
+  ],
+  "aliases": {
+    "en": "en-US",
+    "en_US": "en-US",
+    "fr": "fr-FR",
+    "fr_FR": "fr-FR",
+    "de": "de-DE",
+    "de_DE": "de-DE",
+    "hi": "hi-IN",
+    "hi_IN": "hi-IN",
+    "id": "id-ID",
+    "id_ID": "id-ID",
+    "in": "id-ID",
+    "in_ID": "id-ID",
+    "it": "it-IT",
+    "it_IT": "it-IT",
+    "ja": "ja-JP",
+    "ja_JP": "ja-JP",
+    "ko": "ko-KR",
+    "ko_KR": "ko-KR",
+    "pt": "pt-BR",
+    "pt_BR": "pt-BR",
+    "es": "es-ES",
+    "es_ES": "es-ES",
+    "es_419": "es-419"
+  },
+  "directions": {
+    "en-US": "ltr",
+    "fr-FR": "ltr",
+    "de-DE": "ltr",
+    "hi-IN": "ltr",
+    "id-ID": "ltr",
+    "it-IT": "ltr",
+    "ja-JP": "ltr",
+    "ko-KR": "ltr",
+    "pt-BR": "ltr",
+    "es-419": "ltr",
+    "es-ES": "ltr"
+  },
+  "fallback": {
+    "order": ["exact", "declared-alias", "defaultLocale"],
+    "pageAtomic": true,
+    "diagnosticCode": "unsupported-host-locale-fallback",
+    "maximumDiagnosticLocaleLength": 35
+  },
+  "formatting": {
+    "numbers": "Intl.NumberFormat(effectiveLocale)",
+    "percentages": "Intl.NumberFormat(effectiveLocale, percent)",
+    "layoutDirection": "directions[effectiveLocale]"
+  },
+  "evidence": {
+    "privacy": "structure-and-signed-bundle-metadata-only",
+    "clientResourcePattern": "<Claude.app>/Contents/Resources/{locale}.json",
+    "resourceKeyCountPerLocale": 466,
+    "resourceLocalesMatchCatalog": true,
+    "nativeMenuLocalesMatchCatalogAfterAliasNormalization": true,
+    "mainProcessInitialSelection": "persisted host locale, otherwise host preferred-language matching",
+    "mainProcessChangeOrder": "load locale resource, publish event, persist host locale",
+    "rendererBridgeMethods": ["getInitialLocale", "onLocaleChanged"],
+    "verifiedAt": "2026-07-18"
+  }
+}

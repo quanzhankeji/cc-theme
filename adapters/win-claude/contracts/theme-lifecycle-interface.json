@@ -1,0 +1,32 @@
+{
+  "kind": "cc-theme.lifecycle-interface",
+  "schemaVersion": 1,
+  "adapterId": "win-claude",
+  "operations": [
+    "detect",
+    "preflight",
+    "install",
+    "apply",
+    "launch",
+    "apply-and-launch",
+    "verify",
+    "pause",
+    "restore"
+  ],
+  "transactionPhases": [
+    "detect",
+    "preflight",
+    "stage",
+    "install",
+    "apply",
+    "launch",
+    "verify",
+    "cleanup",
+    "complete"
+  ],
+  "targetPolicy": "exact-trusted-package-plus-live-landmarks-and-reversible-seam",
+  "resumeMeaning": "apply",
+  "cleanupIncompleteStatus": "partial",
+  "reportPrivacy": "structure-only-no-user-content",
+  "implementationStatus": "unverified"
+}

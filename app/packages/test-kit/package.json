@@ -1,0 +1,9 @@
+{
+  "name": "@cc-theme/test-kit",
+  "version": "0.1.0",
+  "private": true,
+  "files": [
+    "fixtures",
+    "golden"
+  ]
+}

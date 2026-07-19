@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cc-theme.local/contracts/adapter-version-catalog.schema.json",
+  "title": "CC Theme Adapter release catalog",
+  "description": "Closed metadata for immutable Adapter Engine packages. Capability and runtime apply availability remain Adapter-owned facts and are intentionally absent.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "schemaVersion", "publicationStatus", "currentVersionPolicy", "adapters"],
+  "properties": {
+    "kind": { "const": "cc-theme.adapter-release-catalog" },
+    "schemaVersion": { "const": 1 },
+    "publicationStatus": { "enum": ["development-local", "published"] },
+    "currentVersionPolicy": { "const": "explicit" },
+    "adapters": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": { "$ref": "#/$defs/adapter" }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "publicationStatus": { "const": "published" } },
+        "required": ["publicationStatus"]
+      },
+      "then": {
+        "properties": {
+          "adapters": {
+            "items": {
+              "properties": {
+                "releases": {
+                  "items": {
+                    "properties": {
+                      "packages": {
+                        "minItems": 1,
+                        "items": { "required": ["downloadUrl"] }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "semver": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-(?:0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(?:\\.(?:0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*)?$",
+      "maxLength": 80
+    },
+    "contracts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minimumManagerVersion", "capabilityVersion", "unifiedThemeSchemaVersion", "adapterPackageSchemaVersion"],
+      "properties": {
+        "minimumManagerVersion": { "$ref": "#/$defs/semver" },
+        "capabilityVersion": { "$ref": "#/$defs/semver" },
+        "unifiedThemeSchemaVersion": { "type": "integer", "minimum": 1 },
+        "adapterPackageSchemaVersion": { "const": 1 }
+      }
+    },
+    "package": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["platform", "architecture", "assetName", "bytes", "sha256", "manifestSha256"],
+      "properties": {
+        "platform": { "enum": ["macos", "windows"] },
+        "architecture": { "enum": ["arm64", "x86_64", "universal2"] },
+        "assetName": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,159}\\.ccadapter$",
+          "maxLength": 170
+        },
+        "bytes": { "type": "integer", "minimum": 1, "maximum": 1073741824 },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "manifestSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "downloadUrl": {
+          "type": "string",
+          "pattern": "^https://[^/@\\s]+/[^\\s?#]+$",
+          "maxLength": 2048
+        }
+      }
+    },
+    "current": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["adapterVersion", "adapterReleaseRevision"],
+      "properties": {
+        "adapterVersion": { "$ref": "#/$defs/semver" },
+        "adapterReleaseRevision": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "release": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["adapterVersion", "adapterReleaseRevision", "assetIdentity", "contracts", "packages"],
+      "properties": {
+        "adapterVersion": { "$ref": "#/$defs/semver" },
+        "adapterReleaseRevision": { "type": "integer", "minimum": 1 },
+        "assetIdentity": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)+-[0-9]+\\.[0-9]+\\.[0-9]+-r[1-9][0-9]*-(?:macos|windows)-(?:arm64|x86_64|universal2)$",
+          "maxLength": 200
+        },
+        "contracts": { "$ref": "#/$defs/contracts" },
+        "packages": {
+          "type": "array",
+          "maxItems": 6,
+          "items": { "$ref": "#/$defs/package" }
+        }
+      }
+    },
+    "adapter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["adapterId", "current", "releases"],
+      "properties": {
+        "adapterId": {
+          "type": "string",
+          "pattern": "^(?!.*-skin(?:-|$))[a-z0-9]+(?:-[a-z0-9]+)+$",
+          "minLength": 3,
+          "maxLength": 80
+        },
+        "current": { "$ref": "#/$defs/current" },
+        "releases": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/release" }
+        }
+      }
+    }
+  }
+}

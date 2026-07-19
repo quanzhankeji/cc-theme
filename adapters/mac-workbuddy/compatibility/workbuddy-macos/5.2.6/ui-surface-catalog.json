@@ -1,0 +1,1680 @@
+{
+  "schemaVersion": 2,
+  "catalogVersion": 2,
+  "adapter": "mac-workbuddy",
+  "adapterVersion": "5.2.6",
+  "adapterReleaseRevision": 1,
+  "capturedAt": "2026-07-18",
+  "capture": {
+    "mode": "read-only native UI traversal plus CDP computed-style audit",
+    "theme": "light",
+    "visualStates": 55,
+    "computedStyleSnapshots": 65,
+    "rawScreenshotsCommitted": false,
+    "privacyNote": "Raw screenshots may contain account names, project content, invitation data, or QR codes. Only normalized DOM and style evidence is committed."
+  },
+  "systemPalettePolicy": {
+    "scope": "background media plus explicitly cataloged structural transparency",
+    "nativeOverlayAppearance": true,
+    "protectedOverlayProperties": ["background", "color", "border", "border-radius", "box-shadow", "backdrop-filter", "control colors"],
+    "themedOverlayStrategies": ["adaptive", "custom"]
+  },
+  "target": {
+    "bundleId": "com.workbuddy.workbuddy",
+    "version": "5.2.6",
+    "electron": "37.10.3",
+    "teamIdentifier": "FN2V63AD2J",
+    "rendererUrlContains": "/Contents/Resources/app.asar/renderer/index.html",
+    "bodyClasses": [
+      "light",
+      "cb-light",
+      "vscode-light",
+      "agent-ui-theme",
+      "is-mac"
+    ],
+    "bodyDataset": {
+      "applicationName": "workbuddy",
+      "platform": "mac",
+      "productName": "WorkBuddy",
+      "productVersion": "5.2.6"
+    }
+  },
+  "identitySelectors": [
+    "body[data-application-name=\"workbuddy\"][data-platform=\"mac\"]",
+    ".teams-container.is-mac",
+    "[data-view-id=\"main-content\"]"
+  ],
+  "identityStates": {
+    "expanded": "[data-view-id=\"sidebar\"] is present",
+    "collapsed": ".teams-container.sidebar-collapsed is present and the sidebar node is removed from layout"
+  },
+  "nativeVisualTokens": {
+    "background": {
+      "sidebar": "#F2F2F2",
+      "canvas": "#FAFAFA",
+      "surface": "#FFFFFF",
+      "surfaceSubtle": "#F7F7F7",
+      "surfaceMuted": "#EBEBEB",
+      "hover": "color-mix(in srgb, #000000 5%, transparent)",
+      "active": "color-mix(in srgb, #000000 8%, transparent)",
+      "selected": "#E6E6E6",
+      "userMessage": "#EBEBEB",
+      "tableHeader": "#F7F7F7",
+      "artifactCard": "#F2F2F2"
+    },
+    "text": {
+      "primary": "rgba(0, 0, 0, 0.9)",
+      "secondary": "rgba(0, 0, 0, 0.7)",
+      "tertiary": "rgba(0, 0, 0, 0.5)",
+      "disabled": "rgba(0, 0, 0, 0.3)",
+      "brand": "#00C29A",
+      "link": "#1470B4",
+      "success": "#0CBF5B",
+      "warning": "#FF7800",
+      "danger": "#F64041"
+    },
+    "border": {
+      "weak": "color-mix(in srgb, #000000 4%, transparent)",
+      "default": "color-mix(in srgb, #000000 8%, transparent)",
+      "control": "color-mix(in srgb, #000000 12%, transparent)",
+      "secondary": "#EBEBEB",
+      "strong": "#E6E6E6",
+      "focus": "rgba(0, 0, 0, 0.75)"
+    },
+    "radius": {
+      "none": "0px",
+      "xs": "2px",
+      "sm": "4px",
+      "md": "6px",
+      "lg": "8px",
+      "xl": "12px",
+      "2xl": "16px",
+      "modal": "24px",
+      "full": "9999px"
+    },
+    "shadow": {
+      "none": "none",
+      "small": "0 1px 2px rgba(0, 0, 0, 0.08)",
+      "inputHome": "0 12px 24px -8px rgba(0, 0, 0, 0.02), 0 2px 4px -4px rgba(0, 0, 0, 0.02)",
+      "inputConversation": "0 6px 12px -8px rgba(0, 0, 0, 0.02), 0 2px 4px -4px rgba(0, 0, 0, 0.03)",
+      "popover": "0 4px 12px -4px rgba(0, 0, 0, 0.04), 0 3px 6px -8px rgba(0, 0, 0, 0.04)",
+      "menu": "0 4px 16px -4px rgba(0, 0, 0, 0.06), 0 4px 8px -8px rgba(0, 0, 0, 0.04)",
+      "accountMenu": "0 4px 16px rgba(0, 0, 0, 0.16)",
+      "settingsModal": "0 10px 15px -3px rgba(0, 0, 0, 0.10), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+      "createProjectModal": "0 8px 32px rgba(0, 0, 0, 0.20)",
+      "collaborationPopover": "0 24px 48px 2px rgba(0, 0, 0, 0.08), 0 5px 12px 4px rgba(0, 0, 0, 0.08)",
+      "qrPopover": "0 4px 20px rgba(0, 0, 0, 0.15)",
+      "inspirationDetail": "0 24px 80px rgba(0, 0, 0, 0.22)",
+      "expertCard": "0 16px 32px rgba(0, 0, 0, 0.03)"
+    },
+    "scrim": {
+      "modal": "rgba(0, 0, 0, 0.60)",
+      "detail": "rgba(0, 0, 0, 0.34)"
+    },
+    "blur": {
+      "none": "none",
+      "collaborationPopover": "blur(48px)"
+    },
+    "zIndex": {
+      "topbar": 101,
+      "detailOverlay": 1000,
+      "popover": 1100,
+      "collaborationPopover": 10002
+    }
+  },
+  "componentStyleEvidence": [
+    {
+      "id": "sidebar.active-navigation-row",
+      "family": "navigation",
+      "selectors": [
+        ".conversation-list-tab-row.active",
+        ".conversation-list-tab-button.active",
+        ".conversation-list-tab-actions"
+      ],
+      "nativeComputed": {
+        "rowBackground": "rgb(230, 230, 230)",
+        "rowRadius": "8px",
+        "labelColor": "rgb(255, 255, 255)"
+      },
+      "adapterMismatch": "The button was themed while its wider active row retained the native light surface.",
+      "resolutionRoles": ["sidebar-nav-row", "sidebar-nav-item", "sidebar-nav-actions", "sidebar-nav-action"]
+    },
+    {
+      "id": "account.menu-typography-controls",
+      "family": "floating",
+      "selectors": [
+        ".user-menu-popover",
+        ".user-menu-header-name",
+        ".user-menu-item-label",
+        ".user-menu-item-value",
+        ".user-menu-item-subtitle",
+        ".plan-action-btn",
+        ".user-menu-theme-switcher",
+        ".user-menu-theme-option"
+      ],
+      "nativeComputed": {
+        "labelColor": "rgb(59, 59, 59)",
+        "secondaryColor": "rgba(0, 0, 0, 0.5)",
+        "subtitleColor": "rgb(59, 59, 59)",
+        "planActionBackground": "rgb(0, 0, 0)",
+        "themeOptionColor": "rgba(0, 0, 0, 0.7)",
+        "themeSwitcherBackground": "rgba(0, 0, 0, 0.06)",
+        "themeThumbBackground": "rgb(255, 255, 255)"
+      },
+      "adapterMismatch": "Earlier system-mode rules recolored the popover, activity card, actions, menu leaves, icons, and appearance switcher even though WorkBuddy already supplied a coherent native light/dark design. System mode now keeps every account-popover appearance declaration native; the catalog roles remain available only for inspection and for explicit adaptive/custom themes.",
+      "resolutionRoles": ["account-menu-header", "account-menu-item", "account-menu-label", "account-menu-value", "account-menu-subtitle", "account-menu-icon", "account-plan-action", "account-theme-switcher", "account-theme-thumb", "account-theme-option"]
+    },
+    {
+      "id": "interaction.primary-action-pressed",
+      "family": "content",
+      "selectors": [
+        ".wb-scene-tabs__pill--active",
+        ".plan-action-btn"
+      ],
+      "nativeComputed": {
+        "sceneActionState": "stable active scene-tab class plus native :active interaction",
+        "planActionRestingBackground": "rgb(0, 0, 0)",
+        "planActionState": "native button :active interaction"
+      },
+      "adapterMismatch": "The exact Shared Core actionPressed token previously reached the Style Catalog but had no pressed-state consumer. The fixed mapping is limited to captured primary-action roles and preserves native system/disabled appearance.",
+      "resolutionRoles": ["scene-tab", "account-plan-action"]
+    },
+    {
+      "id": "miniprogram.popup-typography-switches",
+      "family": "floating",
+      "selectors": [
+        ".wechatmp-popup-container",
+        ".wechatmp-popup-header-text",
+        ".wechatmp-popup-description",
+        ".wechatmp-popup-footer-text",
+        ".wechatmp-toggle",
+        ".wechatmp-toggle__slider",
+        ".wechatmp-popup-qrcode-placeholder"
+      ],
+      "nativeComputed": {
+        "surfaceBackground": "rgb(255, 255, 255)",
+        "headingColor": "rgba(0, 0, 0, 0.9)",
+        "descriptionColor": "rgba(0, 0, 0, 0.7)",
+        "footerColor": "rgba(0, 0, 0, 0.7)",
+        "toggleTrackBackground": "rgb(229, 229, 229)",
+        "qrCanvasBackground": "rgb(255, 255, 255)"
+      },
+      "adapterMismatch": "The dark popup surface did not override explicit light-theme copy and switch-track colors; the QR canvas must remain white.",
+      "resolutionRoles": ["overlay-qr", "miniprogram-heading", "miniprogram-description", "miniprogram-footer", "miniprogram-footer-text", "miniprogram-toggle", "miniprogram-toggle-track", "miniprogram-qr-canvas"]
+    },
+    {
+      "id": "system.background-route-shells",
+      "family": "shell",
+      "selectors": [
+        ".main-content--projects",
+        ".workbuddy-collab:not(.workbuddy-collab--portal)",
+        ".landing",
+        ".expert-center-page",
+        ".ec-main-content",
+        ".main-content--automation",
+        ".landing-hero",
+        ".landing-template-card",
+        ".ec-featured-scene-card",
+        ".ec-expert-card",
+        ".atm-template-card"
+      ],
+      "nativeComputed": {
+        "projectShellBackgrounds": ["rgb(250, 250, 250)", "rgb(255, 255, 255)", "rgb(255, 255, 255)"],
+        "expertShellBackgrounds": ["rgb(255, 255, 255)", "rgb(250, 250, 250)"],
+        "automationShellBackground": "rgb(250, 250, 250)",
+        "projectHeroBlendMode": "normal",
+        "contentCardBackground": "rgb(255, 255, 255)"
+      },
+      "adapterMismatch": "Inner route roles were transparent, but unmarked full-viewport shells and opaque card families still concealed the background media in Project, Expert, and Automation.",
+      "resolutionRoles": ["page-project", "page-expert", "page-automation", "project-hero-media", "project-template-card", "expert-scene-card", "expert-card", "automation-template-card"]
+    },
+    {
+      "id": "topbar.video-playback-control",
+      "family": "navigation",
+      "selectors": [
+        ".task-topbar-actions",
+        ".task-topbar-actions > .task-header-btn[title=\"流转\"]",
+        "#workbuddy-skin-video-toggle"
+      ],
+      "nativeComputed": {
+        "flowActionSize": "32px × 32px",
+        "flowActionRadius": "6px",
+        "flowActionBackground": "transparent",
+        "lightActionColor": "rgba(0, 0, 0, 0.9)",
+        "darkActionColor": "rgba(255, 255, 255, 0.92)",
+        "actionGap": "4px"
+      },
+      "adapterMismatch": "The injected media control needs a stable native anchor and must preserve the neighboring action geometry and current WorkBuddy light/dark foreground instead of using a fixed absolute position or preset color.",
+      "resolutionRoles": ["topbar-actions", "flow-action", "video-playback-control"]
+    },
+    {
+      "id": "topbar.task-transfer-native-disabled",
+      "family": "overlay",
+      "selectors": [
+        ".workbuddy-collab--portal",
+        ".task-transfer-overlay .plan-modal-backdrop",
+        ".task-transfer-popover",
+        ".task-transfer-popover .plan-new-head",
+        ".task-transfer-popover .plan-new-pane",
+        ".task-transfer-popover .plan-new-footer"
+      ],
+      "nativeComputed": {
+        "backdropBackground": "rgba(0, 0, 0, 0.6)",
+        "popoverBackground": "rgb(255, 255, 255)",
+        "popoverBorder": "1px solid rgb(235, 235, 235)",
+        "popoverRadius": "18px",
+        "popoverShadow": "color(srgb 0 0 0 / 0.2) 0px 8px 32px 0px",
+        "sectionBackgrounds": "rgb(255, 255, 255)"
+      },
+      "adapterMismatch": "The portal host matched the broad .workbuddy-collab page selector, inherited the page-level --wb-bg-primary bridge, and changed the transfer modal and its sections from native opaque white to a 28% white surface even when video was disabled.",
+      "resolutionRoles": ["page-project", "overlay-transfer-scrim", "overlay-transfer-modal"]
+    },
+    {
+      "id": "detail.artifact-panel-transparency",
+      "family": "content",
+      "selectors": [
+        ".detail-panel-container",
+        ".detail-panel-container > .detail-panel",
+        ".detail-panel > .detail-header",
+        ".detail-panel > .compact-nav-wrapper",
+        ".detail-panel > .detail-layout",
+        ".detail-panel .empty-content"
+      ],
+      "nativeComputed": {
+        "outerBackground": "color(srgb 1 1 1 / 0.78)",
+        "nestedSurfaceBackground": "color(srgb 1 1 1 / 0.78)",
+        "headerBackground": "rgb(255, 255, 255)",
+        "bodyBackground": "color(srgb 1 1 1 / 0.78)",
+        "panelWidth": "440px",
+        "panelHeight": "1046px"
+      },
+      "adapterMismatch": "The same elevated 78% surface was applied to three nested full-size layers while the header remained opaque, so alpha compositing made the artifact panel visually solid and concealed the background video.",
+      "resolutionRoles": ["detail-panel", "detail-panel-surface", "detail-panel-header", "detail-panel-tab", "detail-panel-navigation", "detail-panel-body", "detail-panel-empty"]
+    },
+    {
+      "id": "markdown.table-theme-divergence",
+      "family": "conversation",
+      "selectors": [
+        ".cb-markdown-table-wrapper",
+        ".cb-markdown-table-wrapper > table",
+        ".cb-markdown-table-wrapper th",
+        ".cb-markdown-table-wrapper td"
+      ],
+      "nativeComputed": {
+        "lightTableBackground": "rgb(255, 255, 255)",
+        "lightHeaderBackground": "rgb(247, 247, 247)",
+        "lightBodyCellBackground": "transparent",
+        "darkTableBackground": "transparent",
+        "darkHeaderBackground": "rgb(37, 37, 38)",
+        "darkBodyCellBackground": "transparent",
+        "lightBorder": "rgb(235, 235, 235)",
+        "darkBorder": "rgb(60, 60, 60)"
+      },
+      "adapterComputed": {
+        "lightTableBackground": "system primary surface at 28% opacity",
+        "darkTableBackground": "system primary surface at 28% opacity",
+        "lightHeaderBackground": "system raised surface at 52% opacity",
+        "darkHeaderBackground": "system raised surface at 52% opacity",
+        "bodyCellBackground": "transparent",
+        "border": "current theme text at 10% opacity",
+        "shadow": "none",
+        "backdropFilter": "none"
+      },
+      "adapterMismatch": "The previous table normalization was scoped to page-chat while project conversations were classified as page-project, so the native light table root stayed white and the dark root stayed transparent. Semantic Markdown table roles now apply the same 28% base, 52% header, transparent body-cell, and theme-relative border hierarchy in both modes.",
+      "resolutionRoles": ["markdown-table-wrapper", "markdown-table", "markdown-table-header-cell", "markdown-table-body-cell"]
+    }
+  ],
+  "surfaceLevels": [
+    {
+      "id": "shell",
+      "purpose": "Application canvas and routing layout",
+      "defaultBackground": "canvas",
+      "defaultShadow": "none"
+    },
+    {
+      "id": "navigation",
+      "purpose": "Persistent sidebar and topbar",
+      "defaultBackground": "sidebar",
+      "defaultShadow": "none"
+    },
+    {
+      "id": "content",
+      "purpose": "Cards, tables, forms, artifacts, and detail bodies",
+      "defaultBackground": "surface",
+      "defaultShadow": "none"
+    },
+    {
+      "id": "floating",
+      "purpose": "Menus, listboxes, and non-blocking popovers",
+      "defaultBackground": "surface",
+      "defaultShadow": "popover"
+    },
+    {
+      "id": "modal",
+      "purpose": "Blocking dialogs and full detail overlays",
+      "defaultBackground": "surface",
+      "defaultShadow": "settingsModal"
+    }
+  ],
+  "layout": {
+    "sidebarExpandedWidth": "264px",
+    "sidebarCollapsedBehavior": "sidebar node is removed; main content expands to x=0 and full viewport width",
+    "topbarHeight": "56px",
+    "conversationComposer": {
+      "bottom": "42px",
+      "height": "108px",
+      "radius": "16px"
+    },
+    "homeComposer": {
+      "maxWidth": "800px",
+      "radius": "16px"
+    },
+    "detailSidebarMinimumWidth": "318px",
+    "modalScrimCoverage": "full viewport"
+  },
+  "domHierarchy": [
+    {
+      "id": "document",
+      "selector": "body[data-application-name=\"workbuddy\"][data-platform=\"mac\"]",
+      "parent": null,
+      "lifecycle": "persistent",
+      "cardinality": "one",
+      "ownership": "host"
+    },
+    {
+      "id": "react-root",
+      "selector": "#root",
+      "parent": "document",
+      "lifecycle": "persistent",
+      "cardinality": "one",
+      "ownership": "host"
+    },
+    {
+      "id": "shell",
+      "selector": ".teams-container",
+      "parent": "react-root",
+      "lifecycle": "persistent",
+      "cardinality": "one",
+      "ownership": "host"
+    },
+    {
+      "id": "sidebar",
+      "selector": "[data-view-id=\"sidebar\"]",
+      "parent": "shell",
+      "lifecycle": "expanded-only",
+      "cardinality": "zero-or-one",
+      "ownership": "host"
+    },
+    {
+      "id": "conversation-sidebar",
+      "selector": ".conversation-sidebar",
+      "parent": "sidebar",
+      "lifecycle": "expanded-only",
+      "cardinality": "zero-or-one",
+      "ownership": "host"
+    },
+    {
+      "id": "conversation-list",
+      "selector": ".conversation-list",
+      "parent": "conversation-sidebar",
+      "lifecycle": "expanded-only",
+      "cardinality": "zero-or-one",
+      "ownership": "host"
+    },
+    {
+      "id": "main",
+      "selector": "[data-view-id=\"main-content\"]",
+      "parent": "shell",
+      "lifecycle": "persistent",
+      "cardinality": "one",
+      "ownership": "host"
+    },
+    {
+      "id": "content-wrapper",
+      "selector": ".teams-content-wrapper",
+      "parent": "main",
+      "lifecycle": "persistent",
+      "cardinality": "one",
+      "ownership": "host"
+    },
+    {
+      "id": "topbar",
+      "selector": ".workbuddy-topbar",
+      "parent": "content-wrapper",
+      "lifecycle": "persistent",
+      "cardinality": "one",
+      "ownership": "host"
+    },
+    {
+      "id": "topbar-actions",
+      "selector": ".task-topbar-actions",
+      "parent": "topbar",
+      "lifecycle": "project-conversation",
+      "cardinality": "zero-or-one",
+      "ownership": "host"
+    },
+    {
+      "id": "flow-action",
+      "selector": ".task-topbar-actions > .task-header-btn[title=\"流转\"]",
+      "parent": "topbar-actions",
+      "lifecycle": "project-conversation",
+      "cardinality": "zero-or-one",
+      "ownership": "host"
+    },
+    {
+      "id": "video-playback-control",
+      "selector": "#workbuddy-skin-video-toggle",
+      "parent": "topbar-actions",
+      "lifecycle": "skin-active-project-conversation",
+      "cardinality": "zero-or-one",
+      "ownership": "skin-owned"
+    },
+    {
+      "id": "route-content",
+      "selector": ".teams-main-content",
+      "parent": "content-wrapper",
+      "lifecycle": "route",
+      "cardinality": "one",
+      "ownership": "host"
+    },
+    {
+      "id": "home",
+      "selector": ".wb-home-page",
+      "parent": "route-content",
+      "lifecycle": "route",
+      "cardinality": "zero-or-one",
+      "ownership": "host"
+    },
+    {
+      "id": "home-composer",
+      "selector": ".wb-home-composer",
+      "parent": "home",
+      "lifecycle": "route",
+      "cardinality": "zero-or-one",
+      "ownership": "host"
+    },
+    {
+      "id": "markdown-table-wrapper",
+      "selector": ".cb-markdown-table-wrapper",
+      "parent": "route-content",
+      "lifecycle": "message-content",
+      "cardinality": "many",
+      "ownership": "host"
+    },
+    {
+      "id": "markdown-table",
+      "selector": ".cb-markdown-table-wrapper > table",
+      "parent": "markdown-table-wrapper",
+      "lifecycle": "message-content",
+      "cardinality": "many",
+      "ownership": "host"
+    },
+    {
+      "id": "detail-panel",
+      "selector": ".detail-panel-container",
+      "parent": "route-content",
+      "lifecycle": "route",
+      "cardinality": "zero-or-one",
+      "ownership": "host"
+    },
+    {
+      "id": "detail-panel-surface",
+      "selector": ".detail-panel-container > .detail-panel",
+      "parent": "detail-panel",
+      "lifecycle": "route",
+      "cardinality": "zero-or-one",
+      "ownership": "host"
+    },
+    {
+      "id": "detail-panel-header",
+      "selector": ".detail-panel > .detail-header",
+      "parent": "detail-panel-surface",
+      "lifecycle": "route",
+      "cardinality": "zero-or-one",
+      "ownership": "host"
+    },
+    {
+      "id": "detail-panel-navigation",
+      "selector": ".detail-panel > .compact-nav-wrapper",
+      "parent": "detail-panel-surface",
+      "lifecycle": "route",
+      "cardinality": "zero-or-one",
+      "ownership": "host"
+    },
+    {
+      "id": "detail-panel-body",
+      "selector": ".detail-panel > .detail-layout",
+      "parent": "detail-panel-surface",
+      "lifecycle": "route",
+      "cardinality": "zero-or-one",
+      "ownership": "host"
+    },
+    {
+      "id": "detail-panel-empty",
+      "selector": ".detail-panel .empty-content",
+      "parent": "detail-panel-body",
+      "lifecycle": "route",
+      "cardinality": "zero-or-one",
+      "ownership": "host"
+    },
+    {
+      "id": "detail-sidebar",
+      "selector": ".detail-sidebar",
+      "parent": "detail-panel",
+      "lifecycle": "route",
+      "cardinality": "zero-or-one",
+      "ownership": "host"
+    },
+    {
+      "id": "floating-portal",
+      "selector": "[data-floating-ui-portal]",
+      "parent": "document",
+      "lifecycle": "portal",
+      "cardinality": "many",
+      "ownership": "host"
+    },
+    {
+      "id": "account-popover",
+      "selector": ".user-menu-popover",
+      "parent": "document",
+      "lifecycle": "portal",
+      "cardinality": "zero-or-one",
+      "ownership": "host"
+    },
+    {
+      "id": "miniprogram-popover",
+      "selector": ".wechatmp-popup-container",
+      "parent": "document",
+      "lifecycle": "portal",
+      "cardinality": "zero-or-one",
+      "ownership": "host"
+    },
+    {
+      "id": "settings-overlay",
+      "selector": ".settings-modal-overlay",
+      "parent": "document",
+      "lifecycle": "portal",
+      "cardinality": "zero-or-one",
+      "ownership": "host"
+    },
+    {
+      "id": "settings-modal",
+      "selector": ".settings-modal",
+      "parent": "settings-overlay",
+      "lifecycle": "portal",
+      "cardinality": "zero-or-one",
+      "ownership": "host"
+    },
+    {
+      "id": "settings-navigation",
+      "selector": ".settings-navigation",
+      "parent": "settings-modal",
+      "lifecycle": "portal",
+      "cardinality": "zero-or-one",
+      "ownership": "host"
+    },
+    {
+      "id": "settings-content",
+      "selector": ".settings-modal__content",
+      "parent": "settings-modal",
+      "lifecycle": "portal",
+      "cardinality": "zero-or-one",
+      "ownership": "host"
+    },
+    {
+      "id": "cc-theme-settings-nav",
+      "selector": "#workbuddy-cc-theme-settings-nav",
+      "parent": "settings-navigation",
+      "lifecycle": "settings-open-and-skin-active",
+      "cardinality": "zero-or-one",
+      "ownership": "skin-owned"
+    },
+    {
+      "id": "cc-theme-settings-panel",
+      "selector": "#workbuddy-cc-theme-settings-panel",
+      "parent": "settings-content",
+      "lifecycle": "settings-open-and-skin-active",
+      "cardinality": "zero-or-one",
+      "ownership": "skin-owned"
+    },
+    {
+      "id": "adapter-background",
+      "selector": "#workbuddy-skin-background",
+      "parent": "document",
+      "lifecycle": "skin-active",
+      "cardinality": "zero-or-one",
+      "ownership": "skin-owned"
+    }
+  ],
+  "runtimeInterpreter": {
+    "kind": "skin.ui-interpreter-config",
+    "version": 2,
+    "styleCatalogId": "mac-workbuddy-theme",
+    "roleAttribute": "data-workbuddy-skin-role",
+    "localeAuthority": {
+      "id": "workbuddy-effective-locale",
+      "supportedLocales": ["zh-CN", "en-US"],
+      "storageKey": "CODEBUDDY_IDE_STORAGE_LANG",
+      "bodyAttribute": "lang",
+      "defaultLocale": "zh-CN",
+      "switchBehavior": "immediate",
+      "evidence": {
+        "source": "WorkBuddy 5.2.6 renderer i18n getSupportedLocales/initLocale/observeBodyLang",
+        "module": "renderer/assets/i18n-BJ9li_ou.js",
+        "selectableApi": "getSupportedLocales",
+        "effectiveApis": ["initLocale", "onLocaleChange", "observeBodyLang"],
+        "storageValues": ["zh-CN", "en-US"],
+        "privacy": "stable host locale state only; no DOM text or user content"
+      }
+    },
+    "identity": {
+      "rendererPathSuffix": "/Contents/Resources/app.asar/renderer/index.html",
+      "bodyDataset": {
+        "applicationName": "workbuddy",
+        "platform": "mac",
+        "productVersion": "5.2.6"
+      },
+      "requiredSelectors": [
+        ".teams-container",
+        "[data-view-id=\"main-content\"]"
+      ]
+    },
+    "anchors": {
+      "videoToggle": {
+        "withinSelectors": [".task-topbar-actions"],
+        "selectors": [":scope > .task-header-btn"],
+        "selection": "first"
+      }
+    },
+    "targets": {
+      "composerEditors": { "selectors": ["[role=\"textbox\"][data-slate-editor=\"true\"]"], "cardinality": "many" },
+      "composerKnownRoot": { "selectors": [".wb-home-composer"], "cardinality": "zero-or-one" },
+      "composerStop": { "selectors": ["[data-view-id=\"main-content\"]"], "cardinality": "zero-or-one" },
+      "composerToolbar": { "selectors": ["[data-cb-chat-input-toolbar-selector=\"true\"]"], "cardinality": "zero-or-one" },
+      "composerFooter": { "selectors": [".wb-input-footer"], "cardinality": "zero-or-one" }
+    },
+    "mounts": {
+      "themeSettings": {
+        "nodes": [
+          { "id": "root", "within": "document", "selectors": [".settings-modal"], "cardinality": "zero-or-one" },
+          { "id": "navigation", "within": "root", "selectors": [".settings-navigation"], "cardinality": "zero-or-one" },
+          { "id": "content", "within": "root", "selectors": [".settings-modal__content"], "cardinality": "zero-or-one" },
+          { "id": "nativePanel", "within": "content", "selectors": [":scope > .settings-modal__panel"], "cardinality": "zero-or-one" },
+          { "id": "navigationItems", "within": "navigation", "selectors": [".settings-navigation__item"], "cardinality": "many", "required": false }
+        ],
+        "insertions": {
+          "navigationItem": { "parent": "navigation", "mode": "before-last" },
+          "ownedPanel": { "parent": "content", "mode": "append" }
+        },
+        "nativeReference": {
+          "slot": "navigationItem",
+          "relative": "before",
+          "copyClass": true,
+          "copyAttributes": ["role", "tabindex"]
+        },
+        "presentation": {
+          "navigationItemClass": "settings-navigation__item cc-theme-settings-nav",
+          "navigationIconClass": "settings-navigation__icon",
+          "navigationLabelClass": "settings-navigation__label",
+          "navigationActiveClass": "settings-navigation__item--active"
+        }
+      }
+    }
+  },
+  "runtimeRoles": [
+    {
+      "role": "shell",
+      "selectors": [".teams-container"],
+      "cardinality": "one"
+    },
+    {
+      "role": "sidebar",
+      "selectors": ["[data-view-id=\"sidebar\"]"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "sidebar-list",
+      "selectors": [".conversation-list"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "sidebar-header",
+      "selectors": [".conversation-list-topbar"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "sidebar-brand",
+      "selectors": [".conversation-list-logo"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "sidebar-tabs",
+      "selectors": [".conversation-list-tabs"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "sidebar-nav-row",
+      "selectors": [".conversation-list-tab-row"],
+      "cardinality": "many"
+    },
+    {
+      "role": "sidebar-nav-item",
+      "selectors": [".conversation-list-tab-button"],
+      "cardinality": "many"
+    },
+    {
+      "role": "sidebar-nav-actions",
+      "selectors": [".conversation-list-tab-actions"],
+      "cardinality": "many"
+    },
+    {
+      "role": "sidebar-nav-action",
+      "selectors": [".conversation-list-tab-action-button"],
+      "cardinality": "many"
+    },
+    {
+      "role": "sidebar-section",
+      "selectors": [".conversation-section"],
+      "cardinality": "many"
+    },
+    {
+      "role": "sidebar-collapsible",
+      "selectors": [".collapsible-section"],
+      "cardinality": "many"
+    },
+    {
+      "role": "sidebar-footer",
+      "selectors": [".conversation-list-footer"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "sidebar-promotion",
+      "selectors": [".daily-checkin"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "main",
+      "selectors": ["[data-view-id=\"main-content\"]"],
+      "cardinality": "one"
+    },
+    {
+      "role": "main-content",
+      "selectors": [".teams-main-content"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "topbar",
+      "selectors": [".workbuddy-topbar"],
+      "cardinality": "one"
+    },
+    {
+      "role": "topbar-actions",
+      "selectors": [".task-topbar-actions"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "flow-action",
+      "selectors": [".task-topbar-actions > .task-header-btn"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "video-playback-control",
+      "selectors": ["#workbuddy-skin-video-toggle"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "topbar-action",
+      "selectors": [".growth-plan-entry"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "page-home",
+      "selectors": [".wb-home-page"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "page-assistant",
+      "selectors": [".claw-workspace"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "page-chat",
+      "selectors": [".main-content--chat"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "page-project",
+      "selectors": [".main-content--projects", ".workbuddy-collab:not(.workbuddy-collab--portal)", ".landing"],
+      "cardinality": "many"
+    },
+    {
+      "role": "page-expert",
+      "selectors": [".expert-center-page", ".ec-main-content"],
+      "cardinality": "many"
+    },
+    {
+      "role": "page-automation",
+      "selectors": [".main-content--automation", ".automation-main-page"],
+      "cardinality": "many"
+    },
+    {
+      "role": "page-automation-editor",
+      "selectors": [".atm-detail-page"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "page-inspiration",
+      "selectors": [".discover-panel-page"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "page-files",
+      "selectors": ["[data-view-id=\"my-files-panel\"]", ".my-files-panel"],
+      "cardinality": "many"
+    },
+    {
+      "role": "page-external-resource",
+      "selectors": ["[data-view-id=\"tencent-lexiang-panel\"]", "[data-view-id=\"ima-panel\"]", "[data-view-id=\"iframe-menu-panel\"]"],
+      "cardinality": "many"
+    },
+    {
+      "role": "home-heading",
+      "selectors": [".wb-home-header"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "scene-tabs",
+      "selectors": [".wb-scene-tabs"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "scene-tab",
+      "selectors": [".wb-scene-tabs__pill"],
+      "cardinality": "many"
+    },
+    {
+      "role": "quick-action",
+      "selectors": [".quick-actions__item"],
+      "cardinality": "many"
+    },
+    {
+      "role": "project-card",
+      "selectors": [".project-grid__card"],
+      "cardinality": "many"
+    },
+    {
+      "role": "project-template-card",
+      "selectors": [".landing-template-card"],
+      "cardinality": "many"
+    },
+    {
+      "role": "project-hero-media",
+      "selectors": [".landing-hero"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "expert-scene-card",
+      "selectors": [".ec-featured-scene-card"],
+      "cardinality": "many"
+    },
+    {
+      "role": "expert-card",
+      "selectors": [".ec-expert-card"],
+      "cardinality": "many"
+    },
+    {
+      "role": "automation-template-card",
+      "selectors": [".atm-template-card"],
+      "cardinality": "many"
+    },
+    {
+      "role": "artifact-card",
+      "selectors": [".artifact-slot-panel__card-main"],
+      "cardinality": "many"
+    },
+    {
+      "role": "markdown-table-wrapper",
+      "selectors": [".cb-markdown-table-wrapper"],
+      "cardinality": "many"
+    },
+    {
+      "role": "markdown-table",
+      "selectors": [".cb-markdown-table-wrapper > table"],
+      "cardinality": "many"
+    },
+    {
+      "role": "markdown-table-header-cell",
+      "selectors": [".cb-markdown-table-wrapper th"],
+      "cardinality": "many"
+    },
+    {
+      "role": "markdown-table-body-cell",
+      "selectors": [".cb-markdown-table-wrapper td"],
+      "cardinality": "many"
+    },
+    {
+      "role": "inspiration-card",
+      "selectors": [".dc-playbook-card"],
+      "cardinality": "many"
+    },
+    {
+      "role": "skill-detail",
+      "selectors": [".skill-detail-content-box"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "composer",
+      "selectors": [".wb-home-composer"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "composer-slot",
+      "selectors": [".wb-home-composer__input-slot"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "composer-input",
+      "selectors": [".wb-home-composer [role=\"textbox\"][data-slate-editor=\"true\"]"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "composer-toolbar",
+      "selectors": ["[data-cb-chat-input-toolbar-selector=\"true\"]"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "composer-footer",
+      "selectors": [".wb-input-footer"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "detail-panel",
+      "selectors": [".detail-panel-container"],
+      "cardinality": "many"
+    },
+    {
+      "role": "detail-panel-surface",
+      "selectors": [".detail-panel-container > .detail-panel"],
+      "cardinality": "many"
+    },
+    {
+      "role": "detail-panel-header",
+      "selectors": [".detail-panel > .detail-header"],
+      "cardinality": "many"
+    },
+    {
+      "role": "detail-panel-tab",
+      "selectors": [".detail-header .cb-tabs__item"],
+      "cardinality": "many"
+    },
+    {
+      "role": "detail-panel-navigation",
+      "selectors": [".detail-panel > .compact-nav-wrapper"],
+      "cardinality": "many"
+    },
+    {
+      "role": "detail-panel-body",
+      "selectors": [".detail-panel > .detail-layout"],
+      "cardinality": "many"
+    },
+    {
+      "role": "detail-panel-empty",
+      "selectors": [".detail-panel .empty-content"],
+      "cardinality": "many"
+    },
+    {
+      "role": "detail-sidebar",
+      "selectors": [".detail-sidebar", ".detail-sidebar__body", ".sidebar-next[data-view=\"artifacts\"]", ".sidebar-next-body"],
+      "cardinality": "many"
+    },
+    {
+      "role": "settings-navigation",
+      "selectors": [".settings-navigation"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "settings-navigation-item",
+      "selectors": [".settings-navigation__item"],
+      "cardinality": "many"
+    },
+    {
+      "role": "settings-content",
+      "selectors": [".settings-modal__content"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "settings-native-panel",
+      "selectors": [".settings-modal__panel"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "overlay-scrim",
+      "selectors": [".conversation-search-modal-overlay", ".settings-modal-overlay", ".collab-modal__overlay", ".ec-modal-overlay"],
+      "cardinality": "many"
+    },
+    {
+      "role": "overlay-detail-scrim",
+      "selectors": [".dc-detail-overlay"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "overlay-search-modal",
+      "selectors": [".conversation-search-modal-overlay [role=\"dialog\"]"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "overlay-settings-modal",
+      "selectors": [".settings-modal"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "overlay-create-modal",
+      "selectors": [".collab-modal__overlay aside[role=\"dialog\"]"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "overlay-transfer-scrim",
+      "selectors": [".task-transfer-overlay .plan-modal-backdrop"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "overlay-transfer-modal",
+      "selectors": [".task-transfer-popover"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "overlay-expert-modal",
+      "selectors": [".ec-modal-overlay [role=\"dialog\"]"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "overlay-detail-modal",
+      "selectors": [".dc-detail-modal"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "overlay-popover",
+      "selectors": [".wb-popover", ".wb-dropdown", ".notification-panel"],
+      "cardinality": "many"
+    },
+    {
+      "role": "overlay-account",
+      "selectors": [".user-menu-popover"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "account-menu-header",
+      "selectors": [".user-menu-header-name"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "account-menu-copy-action",
+      "selectors": [".user-menu-header-copy-uid"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "account-menu-item",
+      "selectors": [".user-menu-item"],
+      "cardinality": "many"
+    },
+    {
+      "role": "account-menu-label",
+      "selectors": [".user-menu-item-label"],
+      "cardinality": "many"
+    },
+    {
+      "role": "account-menu-value",
+      "selectors": [".user-menu-item-value"],
+      "cardinality": "many"
+    },
+    {
+      "role": "account-menu-subtitle",
+      "selectors": [".user-menu-item-subtitle"],
+      "cardinality": "many"
+    },
+    {
+      "role": "account-menu-icon",
+      "selectors": [".user-menu-item-icon"],
+      "cardinality": "many"
+    },
+    {
+      "role": "account-menu-divider",
+      "selectors": [".user-menu-separator"],
+      "cardinality": "many"
+    },
+    {
+      "role": "account-plan-action",
+      "selectors": [".plan-action-btn"],
+      "cardinality": "many"
+    },
+    {
+      "role": "account-theme-switcher",
+      "selectors": [".user-menu-theme-switcher"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "account-theme-thumb",
+      "selectors": [".user-menu-theme-switcher-thumb"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "account-theme-option",
+      "selectors": [".user-menu-theme-option"],
+      "cardinality": "many"
+    },
+    {
+      "role": "overlay-collaboration",
+      "selectors": [".task-collab-popover"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "overlay-qr",
+      "selectors": [".wechatmp-popup-container"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "miniprogram-heading",
+      "selectors": [".wechatmp-popup-header-text"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "miniprogram-description",
+      "selectors": [".wechatmp-popup-description"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "miniprogram-footer",
+      "selectors": [".wechatmp-popup-footer"],
+      "cardinality": "many"
+    },
+    {
+      "role": "miniprogram-footer-text",
+      "selectors": [".wechatmp-popup-footer-text"],
+      "cardinality": "many"
+    },
+    {
+      "role": "miniprogram-toggle",
+      "selectors": [".wechatmp-toggle"],
+      "cardinality": "many"
+    },
+    {
+      "role": "miniprogram-toggle-track",
+      "selectors": [".wechatmp-toggle__slider"],
+      "cardinality": "many"
+    },
+    {
+      "role": "miniprogram-qr-canvas",
+      "selectors": [".wechatmp-popup-qrcode-placeholder"],
+      "cardinality": "zero-or-one"
+    },
+    {
+      "role": "overlay-listbox",
+      "selectors": ["[role=\"listbox\"]"],
+      "cardinality": "many"
+    }
+  ],
+  "surfaces": {
+    "shell": [
+      ".teams-container",
+      "[data-view-id=\"main-content\"]",
+      ".teams-content-wrapper",
+      ".teams-main-content",
+      ".workbuddy-topbar"
+    ],
+    "navigation": [
+      "[data-view-id=\"sidebar\"]",
+      ".conversation-sidebar",
+      ".conversation-list",
+      ".conversation-list-topbar",
+      ".conversation-list-header",
+      ".conversation-list-tabs",
+      ".conversation-list-tab-row",
+      ".conversation-list-tab-button",
+      ".conversation-list-tab-actions",
+      ".conversation-list-tab-action-button",
+      ".collapsible-section",
+      ".conversation-list-content",
+      ".conversation-list-footer"
+    ],
+    "floating": [
+      ".user-menu-popover",
+      ".user-menu-item",
+      ".user-menu-item-label",
+      ".user-menu-item-subtitle",
+      ".plan-action-btn",
+      ".user-menu-theme-switcher",
+      ".user-menu-theme-option",
+      ".wechatmp-popup-container",
+      ".wechatmp-popup-header-text",
+      ".wechatmp-popup-description",
+      ".wechatmp-popup-footer-text",
+      ".wechatmp-toggle",
+      ".wechatmp-toggle__slider"
+    ],
+    "home": [
+      ".main-content--welcome",
+      ".chat-container--welcome",
+      ".wb-cb-chat",
+      ".wb-home-page",
+      ".wb-home-header",
+      ".wb-home-header__title",
+      ".wb-home-header__subtitle",
+      ".wb-scene-tabs",
+      ".wb-scene-tabs__pill",
+      ".quick-actions__item",
+      ".wb-home-composer"
+    ],
+    "assistant": [
+      ".claw-workspace",
+      ".main-content--chat"
+    ],
+    "conversation": [
+      ".main-content--chat",
+      ".task-chat-topbar-breadcrumb__seg",
+      ".artifact-slot-panel__card-main",
+      ".artifact-slot-panel__action-btn",
+      ".task-header-btn"
+    ],
+    "composer": [
+      "[role=\"textbox\"][data-slate-editor=\"true\"]",
+      "[data-cb-chat-input-toolbar-selector=\"true\"]",
+      "[data-cb-chat-input-toolbar-right=\"true\"]",
+      ".wb-input-footer",
+      ".skill-selector__btn"
+    ],
+    "project": [
+      ".main-content--projects",
+      ".workbuddy-collab:not(.workbuddy-collab--portal)",
+      ".landing",
+      ".landing-hero",
+      ".project-grid__card",
+      ".landing-template-card",
+      ".collab-modal__overlay",
+      ".task-collab-popover"
+    ],
+    "automation": [
+      ".main-content--automation",
+      ".automation-main-page",
+      ".atm-template-card",
+      ".atm-toolbar",
+      ".atm-detail-page",
+      ".atm-modal-input",
+      ".atm-time-picker-trigger",
+      ".atm-custom-select-trigger"
+    ],
+    "expert": [
+      ".expert-center-page",
+      ".ec-main-content",
+      ".ec-topbar",
+      ".ec-featured-scenes-next",
+      ".ec-featured-scene-card",
+      ".ec-expert-card",
+      ".ec-category-tabs-next",
+      ".ec-modal-overlay",
+      ".ec-card-summon-btn"
+    ],
+    "skill": [
+      ".skillhub-install-btn",
+      ".skill-detail-content-box"
+    ],
+    "resources": [
+      "[data-view-id=\"my-files-panel\"]",
+      ".my-files-panel",
+      ".my-files-filter-btn",
+      "[data-view-id=\"tencent-lexiang-panel\"]",
+      "[data-view-id=\"ima-panel\"]",
+      "[data-view-id=\"iframe-menu-panel\"]"
+    ],
+    "inspiration": [
+      ".discover-panel-page",
+      ".dc-playbook-card",
+      ".dc-card-cover",
+      ".dc-detail-overlay",
+      ".dc-detail-modal"
+    ],
+    "settings": [
+      ".settings-modal-overlay",
+      ".settings-modal",
+      ".settings-navigation",
+      ".settings-navigation__item",
+      ".settings-modal__content",
+      ".settings-modal__panel",
+      ".settings-modal__close",
+      "#workbuddy-cc-theme-settings-nav",
+      "#workbuddy-cc-theme-settings-panel",
+      ".cb-switch__thumb",
+      ".font-size-slider__track-line"
+    ],
+    "detail": [
+      ".detail-panel-container",
+      ".sidebar-next[data-view=\"artifacts\"]",
+      ".sidebar-next-body",
+      ".detail-panel",
+      ".detail-header",
+      ".detail-header .cb-tabs__item",
+      ".compact-nav-wrapper",
+      ".detail-layout",
+      ".empty-content",
+      ".detail-sidebar",
+      ".detail-sidebar__body"
+    ]
+  },
+  "pageFamilies": [
+    {
+      "id": "home.new-task",
+      "title": "新建任务",
+      "family": "home",
+      "rootSelectors": [".main-content--welcome", ".wb-home-page"],
+      "states": ["default", "model-listbox", "attachment-menu", "workspace-selector", "permission-popover"]
+    },
+    {
+      "id": "assistant.local",
+      "title": "本地助理",
+      "family": "assistant",
+      "rootSelectors": [".claw-workspace", ".main-content--chat"],
+      "states": ["empty", "settings"]
+    },
+    {
+      "id": "project.index",
+      "title": "项目总览",
+      "family": "project",
+      "rootSelectors": [".main-content--projects", ".workbuddy-collab:not(.workbuddy-collab--portal)", ".landing"],
+      "states": ["default", "card-menu", "create-modal", "task-transfer-native-disabled"]
+    },
+    {
+      "id": "project.conversation",
+      "title": "项目会话",
+      "family": "conversation",
+      "rootSelectors": [".task-chat-topbar-breadcrumb__seg", ".artifact-slot-panel__card-main"],
+      "states": ["default", "detail-sidebar", "video-playing", "video-paused", "video-disabled", "table-light", "table-dark", "message-menu", "conversation-search", "member-popover"]
+    },
+    {
+      "id": "catalog.expert",
+      "title": "专家中心",
+      "family": "expert",
+      "rootSelectors": [".expert-center-page", ".ec-main-content"],
+      "states": ["grid", "detail-modal"]
+    },
+    {
+      "id": "catalog.skill",
+      "title": "技能库",
+      "family": "skill",
+      "rootSelectors": [".skillhub-install-btn", ".skill-detail-content-box"],
+      "states": ["grid", "detail-page"]
+    },
+    {
+      "id": "catalog.connector",
+      "title": "连接器",
+      "family": "resources",
+      "rootSelectors": ["[data-view-id=\"main-content\"]"],
+      "states": ["grid"]
+    },
+    {
+      "id": "automation.index",
+      "title": "自动化",
+      "family": "automation",
+      "rootSelectors": [".main-content--automation", ".automation-main-page"],
+      "states": ["empty", "templates", "run-history"]
+    },
+    {
+      "id": "automation.editor",
+      "title": "自动化编辑器",
+      "family": "automation",
+      "rootSelectors": [".atm-detail-page"],
+      "states": ["new"]
+    },
+    {
+      "id": "resources.files",
+      "title": "我的文件",
+      "family": "resources",
+      "rootSelectors": ["[data-view-id=\"my-files-panel\"]", ".my-files-panel"],
+      "states": ["task-results-empty", "cloud-drive"]
+    },
+    {
+      "id": "resources.tencent-docs",
+      "title": "腾讯文档授权",
+      "family": "resources",
+      "rootSelectors": ["[data-view-id=\"tencent-lexiang-panel\"]"],
+      "states": ["authorization"]
+    },
+    {
+      "id": "resources.ima",
+      "title": "ima 知识库授权",
+      "family": "resources",
+      "rootSelectors": ["[data-view-id=\"ima-panel\"]"],
+      "states": ["authorization"]
+    },
+    {
+      "id": "inspiration.index",
+      "title": "灵感",
+      "family": "inspiration",
+      "rootSelectors": [".discover-panel-page", ".dc-playbook-card"],
+      "states": ["masonry-grid", "favorites", "search"]
+    },
+    {
+      "id": "inspiration.detail",
+      "title": "灵感详情",
+      "family": "inspiration",
+      "rootSelectors": [".dc-detail-overlay", ".dc-detail-modal"],
+      "states": ["open"]
+    },
+    {
+      "id": "settings",
+      "title": "设置",
+      "family": "settings",
+      "rootSelectors": [".settings-modal-overlay", ".settings-modal"],
+      "states": ["account", "system", "intelligence", "shortcuts", "memory", "model", "assistant", "personalization", "data", "security", "help", "cc-theme-editor"]
+    }
+  ],
+  "overlayFamilies": [
+    {
+      "id": "global-search",
+      "kind": "modal",
+      "selectors": [".conversation-search-modal-overlay", "[role=\"dialog\"]"],
+      "scrim": "modal",
+      "radius": "modal",
+      "shadow": "popover"
+    },
+    {
+      "id": "settings",
+      "kind": "modal",
+      "selectors": [".settings-modal-overlay", ".settings-modal"],
+      "scrim": "modal",
+      "radius": "xl",
+      "shadow": "settingsModal"
+    },
+    {
+      "id": "create-project",
+      "kind": "modal",
+      "selectors": [".collab-modal__overlay", "aside[role=\"dialog\"]"],
+      "scrim": "modal",
+      "radius": "modal",
+      "shadow": "createProjectModal"
+    },
+    {
+      "id": "task-transfer",
+      "kind": "modal",
+      "selectors": [".task-transfer-overlay .plan-modal-backdrop", ".task-transfer-popover"],
+      "scrim": "modal",
+      "radius": "18px",
+      "shadow": "createProjectModal",
+      "states": ["media-active", "media-disabled-native"]
+    },
+    {
+      "id": "expert-detail",
+      "kind": "modal",
+      "selectors": [".ec-modal-overlay", ".ec-modal-overlay [role=\"dialog\"]"],
+      "scrim": "modal",
+      "radius": "2xl",
+      "shadow": "settingsModal"
+    },
+    {
+      "id": "inspiration-detail",
+      "kind": "detail-overlay",
+      "selectors": [".dc-detail-overlay", ".dc-detail-modal"],
+      "scrim": "detail",
+      "radius": "18px 18px 0 0",
+      "shadow": "inspirationDetail"
+    },
+    {
+      "id": "generic-popover",
+      "kind": "popover",
+      "selectors": [".wb-popover", ".wb-dropdown", "[data-floating-ui-portal]"],
+      "radius": "2xl",
+      "shadow": "popover"
+    },
+    {
+      "id": "task-filter",
+      "kind": "popover",
+      "selectors": [".task-filter-trigger", "[role=\"menu\"]"],
+      "radius": "2xl",
+      "shadow": "menu"
+    },
+    {
+      "id": "account-menu",
+      "kind": "popover",
+      "selectors": [".user-menu-popover"],
+      "radius": "2xl",
+      "shadow": "accountMenu",
+      "states": ["light-native", "dark-native"]
+    },
+    {
+      "id": "collaboration-members",
+      "kind": "popover",
+      "selectors": [".task-collab-popover"],
+      "radius": "2xl",
+      "shadow": "collaborationPopover",
+      "backdropFilter": "collaborationPopover"
+    },
+    {
+      "id": "notification-center",
+      "kind": "popover",
+      "selectors": [".notification-panel"],
+      "radius": "2xl",
+      "shadow": "popover"
+    },
+    {
+      "id": "wechat-mini-program",
+      "kind": "popover",
+      "selectors": [".wechatmp-popup-overlay", ".wechatmp-popup-container"],
+      "radius": "xl",
+      "shadow": "qrPopover"
+    },
+    {
+      "id": "composer-listbox",
+      "kind": "listbox",
+      "selectors": [".wb-home-composer [role=\"listbox\"]", "[data-cb-chat-input-toolbar-selector=\"true\"] [role=\"listbox\"]"],
+      "radius": "2xl",
+      "shadow": "popover"
+    },
+    {
+      "id": "message-more",
+      "kind": "anchored-menu",
+      "anchorSelectors": ["button[aria-label=\"更多操作\"]"],
+      "selectors": ["[role=\"menu\"]"],
+      "radius": "10px",
+      "shadow": "popover"
+    }
+  ],
+  "structuralRoles": {
+    "composer-main-area": {
+      "match": "nearest large non-transparent ancestor of the Slate editor",
+      "reason": "the native surface class is generated and unstable"
+    },
+    "background-art": {
+      "match": "validated local image rendered as an Adapter-owned img element",
+      "reason": "large data URLs are unreliable in Chromium custom properties"
+    },
+    "sidebar-state": {
+      "match": ".teams-container.sidebar-collapsed and sidebar presence",
+      "reason": "collapsed layout removes the sidebar instead of retaining a fixed-width surface"
+    },
+    "anchored-menu": {
+      "match": "semantic anchor plus visible menu/listbox portal",
+      "reason": "some message and composer menus have no stable menu-specific class"
+    }
+  },
+  "nativeVariables": {
+    "background": [
+      "--wb-home-bg-primary",
+      "--wb-home-bg-secondary",
+      "--wb-sidebar-bg",
+      "--wb-bg-primary",
+      "--wb-bg-secondary",
+      "--wb-bg-tertiary",
+      "--wb-bg-hover",
+      "--wb-bg-active",
+      "--cb-main-area-background"
+    ],
+    "text": [
+      "--wb-color-text-primary",
+      "--wb-color-text-secondary",
+      "--wb-color-text-tertiary",
+      "--cb-text-primary",
+      "--cb-text-tertiary"
+    ],
+    "border": [
+      "--wb-border-default",
+      "--wb-border-weak",
+      "--wb-border-strong",
+      "--cb-panel-border-color",
+      "--cb-main-area-border-color"
+    ],
+    "radius": [
+      "--wb-radius-sm",
+      "--wb-radius-md",
+      "--wb-radius-lg",
+      "--wb-radius-xl",
+      "--wb-radius-2xl",
+      "--wb-radius-full",
+      "--cb-border-radius-lg",
+      "--cb-border-radius-xl",
+      "--cb-border-radius-2xl"
+    ],
+    "shadow": [
+      "--wb-shadow-sm",
+      "--wb-shadow-md",
+      "--wb-shadow-lg",
+      "--wb-shadow-xl",
+      "--wb-shadow-popover",
+      "--wb-shadow-input",
+      "--cb-shadow-popover",
+      "--cb-main-area-box-shadow"
+    ]
+  },
+  "selectorPolicy": {
+    "preferred": [
+      "data-view-id attributes",
+      "semantic BEM class names",
+      "ARIA roles and labels used together with an anchor or page root",
+      "Adapter-assigned Skin Surface Roles for content-derived surfaces"
+    ],
+    "forbidden": [
+      "generated Vite or CSS-module class names",
+      "global div/span recoloring",
+      "unscoped role=menu or role=dialog selectors",
+      "text-only matching for destructive or stateful controls"
+    ],
+    "unstableSelectorExamples": [
+      "_grid_48kdk_4",
+      "_gridViewItem_48kdk_14"
+    ]
+  },
+  "presetRules": [
+    "Treat sidebar, canvas, and content surfaces as separate background layers.",
+    "Keep ordinary cards and tables flat; use borders and tonal backgrounds before shadows.",
+    "Reserve elevation shadows for composers, floating surfaces, and blocking overlays.",
+    "Apply one radius scale across controls while preserving modal and full-pill exceptions.",
+    "Theme overlay scrims independently from dialog surfaces.",
+    "Do not enable backdrop blur globally; the native collaboration popover is the only observed blur surface.",
+    "Scope page-family rules under a stable root or Skin Surface Role.",
+    "Test expanded and collapsed sidebar states independently."
+  ],
+  "unsupported": [
+    "guest webview document styling",
+    "iframe document styling",
+    "hero media",
+    "background video",
+    "pet or companion UI"
+  ]
+}

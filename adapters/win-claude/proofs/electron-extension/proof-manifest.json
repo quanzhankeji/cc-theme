@@ -1,0 +1,18 @@
+{
+  "kind": "cc-theme.static-proof-fixture",
+  "schemaVersion": 1,
+  "id": "win-claude-electron-extension-proof",
+  "status": "not-authorized-to-launch",
+  "files": [
+    {
+      "name": "manifest.json",
+      "sha256": "25945f549d3eabf44c97b36d261a336d5cd2da53c6f1800d1a579e6203b107c2"
+    },
+    {
+      "name": "content-script.js",
+      "sha256": "8e5bd8cdd5e11700868ef4ea76f3997332e12f69ac64f072bfbb1435f8fd862b"
+    }
+  ],
+  "launchCommand": null,
+  "reasonCode": "no-supported-electron-or-claude-extension-loader"
+}

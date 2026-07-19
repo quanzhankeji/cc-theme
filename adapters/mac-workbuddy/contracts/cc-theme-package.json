@@ -1,0 +1,20 @@
+{
+  "kind": "cc-theme.package-contract",
+  "revision": 1,
+  "extension": ".cctheme",
+  "mimeType": "application/vnd.cc-theme.theme+zip",
+  "container": "zip",
+  "manifestKind": "skin.package",
+  "documentKind": "skin.document",
+  "themeKind": "skin.theme",
+  "target": {
+    "application": "workbuddy",
+    "platform": "macos",
+    "version": "5.2.6",
+    "adapterId": "mac-workbuddy",
+    "adapterVersion": "5.2.6",
+    "adapterReleaseRevision": 1,
+    "adapterContract": "skin.theme",
+    "targetPath": "targets/macos-workbuddy/theme.json"
+  }
+}

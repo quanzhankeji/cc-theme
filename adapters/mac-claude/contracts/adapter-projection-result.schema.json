@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Mac-Claude Projection Result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "schemaVersion", "adapterId", "status", "pass", "capabilityVersion", "diagnostics"],
+  "properties": {
+    "kind": { "const": "cc-theme.adapter-projection-result" },
+    "schemaVersion": { "const": 1 },
+    "adapterId": { "const": "mac-claude" },
+    "status": { "enum": ["projected", "failed"] },
+    "pass": { "type": "boolean" },
+    "capabilityVersion": { "const": "1.0.0" },
+    "runtimeApplyAvailable": { "type": "boolean" },
+    "skinTheme": { "$ref": "skin-theme.schema.json" },
+    "diagnostics": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["code", "path", "decision", "severity", "message"],
+        "properties": {
+          "code": { "type": "string" },
+          "path": { "type": "string" },
+          "decision": { "enum": ["supported", "approximated", "unsupported"] },
+          "severity": { "enum": ["info", "warning", "error"] },
+          "message": { "type": "string" }
+        }
+      }
+    },
+    "message": { "type": "string" }
+  }
+}

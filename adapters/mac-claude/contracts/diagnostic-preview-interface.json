@@ -1,0 +1,53 @@
+{
+  "kind": "cc-theme.diagnostic-preview-interface",
+  "schemaVersion": 1,
+  "adapterId": "mac-claude",
+  "availability": {
+    "diagnosticPreviewAvailable": true,
+    "runtimeApplyAvailable": false,
+    "mode": "user-confirmed-devtools",
+    "persistence": "renderer-session",
+    "requiresUserAction": true,
+    "userActionKind": "copy-bootstrap-then-paste-in-claude-devtools-console",
+    "reasonCode": "official-cdp-auth-required"
+  },
+  "operations": ["prepare", "status", "stop"],
+  "transport": {
+    "kind": "tokenized-loopback-http",
+    "bindAddress": "127.0.0.1",
+    "remoteAccessAllowed": false,
+    "payloadSource": "fixed-adapter-runtime",
+    "themeCodeAllowed": false,
+    "rendererReceipt": "privacy-safe-structural-summary"
+  },
+  "prepareRequest": {
+    "required": ["userConfirmed", "restartClaude"],
+    "themeSource": "active-validated-external-package-snapshot",
+    "userConfirmed": true,
+    "restartClaude": true
+  },
+  "result": {
+    "kind": "cc-theme.diagnostic-preview-result",
+    "schemaVersion": 1,
+    "statuses": ["awaiting-user-action", "connected", "failed", "stopped"],
+    "diagnosticCodes": [
+      "diagnostic-preview-awaiting-user-action",
+      "diagnostic-preview-connected",
+      "diagnostic-preview-user-confirmation-required",
+      "diagnostic-preview-renderer-receipt-invalid",
+      "diagnostic-preview-server-unavailable",
+      "diagnostic-preview-stopped",
+      "runtime-seam-unverified"
+    ]
+  },
+  "security": {
+    "modifiesOfficialApplication": false,
+    "modifiesAppAsar": false,
+    "modifiesCodeSignature": false,
+    "opensRemoteCdp": false,
+    "collectsUserContent": false,
+    "storesConversationText": false,
+    "allowsThemeCssJsHtmlShaderOrSelectors": false,
+    "cleanup": "stop-loopback-server-and-restart-normal-claude"
+  }
+}

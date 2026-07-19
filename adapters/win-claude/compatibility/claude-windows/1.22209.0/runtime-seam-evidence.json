@@ -1,0 +1,44 @@
+{
+  "kind": "cc-theme.windows-claude-runtime-seam-evidence",
+  "schemaVersion": 1,
+  "adapterId": "win-claude",
+  "clientVersion": "1.22209.0",
+  "evidenceClass": "static-analysis",
+  "extensionLoading": {
+    "loadExtensionOccurrences": 5,
+    "observedFamilies": [
+      "react-devtools",
+      "electron-devtools-installer",
+      "anthropic-dxt-installer"
+    ],
+    "loadExtensionSwitchLiteralObserved": false,
+    "disableExtensionsExceptLiteralObserved": false,
+    "contentScriptsLiteralObserved": false,
+    "genericOfficialExtensionHookObserved": false,
+    "cliUnpackedExtensionDecision": "failed-static-no-supported-loader"
+  },
+  "preload": {
+    "webFrameInsertCssObserved": true,
+    "injectedPurpose": "fixed-scrollbar-css",
+    "externalThemeParameterObserved": false,
+    "genericOfficialPreloadHookObserved": false,
+    "decision": "unreachable-without-forbidden-modification-or-bypass"
+  },
+  "officialDeveloperTools": {
+    "detachPathObserved": true,
+    "decision": "manual-proof-only-not-production-transport"
+  },
+  "rejectedReuse": [
+    "react-devtools-profile-fallback",
+    "anthropic-dxt-installer-permissions",
+    "mcp-permission-reuse",
+    "preload-replacement",
+    "node-inspector"
+  ],
+  "conclusion": {
+    "safeCliExtensionProofAvailable": false,
+    "productionRuntimeSeamVerified": false,
+    "runtimeApplyAvailable": false,
+    "reasonCode": "production-runtime-seam-unverified"
+  }
+}

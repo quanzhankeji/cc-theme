@@ -1,0 +1,142 @@
+{
+  "kind": "ui.surface-catalog",
+  "schemaVersion": 1,
+  "catalogVersion": 1,
+  "catalogId": "workbuddy-windows-5.2.6-live-surfaces-v1",
+  "application": "workbuddy",
+  "platform": "windows",
+  "clientVersion": "5.2.6",
+  "verificationStatus": "partial-live-verified",
+  "scope": "proof-runtime-only",
+  "hostIdentity": {
+    "title": "WorkBuddy",
+    "applicationName": "workbuddy",
+    "electronDesktop": "true",
+    "platform": "windows",
+    "productVersion": "5.2.6",
+    "rootId": "root",
+    "publisher": "Tencent Technology (Shenzhen) Company Limited",
+    "authenticode": "valid"
+  },
+  "transport": {
+    "verificationStatus": "proof-verified",
+    "kind": "electron-cdp-environment-switch",
+    "localOnly": true,
+    "processBinding": "exact-path-version-publisher-owner",
+    "uniqueRendererRequired": true,
+    "domRollbackVerified": true,
+    "listenerCleanupVerified": false
+  },
+  "roles": [
+    {
+      "id": "shell",
+      "selectors": ["body"],
+      "cardinality": "exactly-one",
+      "observedBackground": "rgb(242, 242, 242)",
+      "evidence": "vm-live-surface-probe"
+    },
+    {
+      "id": "root",
+      "selectors": ["#root"],
+      "cardinality": "exactly-one",
+      "evidence": "vm-live-renderer-identity"
+    },
+    {
+      "id": "menubar",
+      "selectors": [".codebuddy-menubar"],
+      "cardinality": "at-least-one",
+      "observedBackground": "rgb(242, 242, 242)",
+      "evidence": "vm-live-surface-probe"
+    },
+    {
+      "id": "teams",
+      "selectors": [".teams-container"],
+      "cardinality": "at-least-one",
+      "observedBackground": "rgb(242, 242, 242)",
+      "evidence": "vm-live-surface-probe"
+    },
+    {
+      "id": "sidebar",
+      "selectors": [".conversation-sidebar", ".conversation-list"],
+      "cardinality": "at-least-one-each-when-visible",
+      "observedBackground": "rgb(242, 242, 242)",
+      "observedBounds": { "x": 0, "y": 30, "width": 264, "height": 771 },
+      "evidence": "vm-live-surface-probe"
+    },
+    {
+      "id": "main-grid-wrapper",
+      "selectors": ["._gridView_48kdk_9 > ._gridViewItem_48kdk_14:has(> .teams-content-wrapper)"],
+      "cardinality": "exactly-one",
+      "observedBackground": "rgb(250, 250, 250)",
+      "observedBounds": { "x": 264, "y": 30, "width": 936, "height": 771 },
+      "hashedClassPolicy": "exact-client-version-only-reprobe-required",
+      "siblingSafety": "same item class is used by sidebar; direct child structure isolates the main item",
+      "evidence": "vm-read-only-layer-probe-2026-07-18"
+    },
+    {
+      "id": "main-grid-content",
+      "selectors": [".teams-content-wrapper", ".teams-main-content"],
+      "cardinality": "at-least-one-each-when-visible",
+      "observedBackground": "rgba(0, 0, 0, 0)",
+      "observedBounds": { "x": 264, "y": 30, "width": 936, "height": 771 },
+      "evidence": "vm-read-only-layer-probe-2026-07-18"
+    },
+    {
+      "id": "main-welcome",
+      "selectors": [".main-content.main-content--welcome"],
+      "cardinality": "zero-or-one",
+      "observedBackground": "rgb(250, 250, 250)",
+      "observedBounds": { "x": 264, "y": 30, "width": 936, "height": 771 },
+      "evidence": "vm-live-surface-probe"
+    },
+    {
+      "id": "chat",
+      "selectors": [".chat-container"],
+      "cardinality": "zero-or-more",
+      "evidence": "vm-live-surface-probe"
+    },
+    {
+      "id": "home",
+      "selectors": [".wb-home-page", ".wb-home-header"],
+      "cardinality": "zero-or-more",
+      "evidence": "vm-live-surface-probe"
+    },
+    {
+      "id": "composer",
+      "selectors": [".wb-home-composer", ".wb-home-composer__chips"],
+      "cardinality": "zero-or-more",
+      "evidence": "vm-live-surface-probe"
+    },
+    {
+      "id": "growth-plan",
+      "selectors": [".growth-plan-entry"],
+      "cardinality": "zero-or-more",
+      "observedBackground": "rgb(255, 255, 255)",
+      "evidence": "vm-live-surface-probe"
+    },
+    {
+      "id": "scene-tabs",
+      "selectors": [".wb-scene-tabs"],
+      "cardinality": "zero-or-more",
+      "observedBackground": "rgb(235, 235, 235)",
+      "evidence": "vm-live-surface-probe"
+    }
+  ],
+  "unsupportedSurfaces": [
+    { "id": "active-conversation-tab", "reason": "selector-not-yet-observed" },
+    { "id": "active-scene-pill", "reason": "selector-not-yet-observed" },
+    { "id": "settings-entry", "reason": "settings-structure-not-yet-observed" }
+  ],
+  "settingsNavigation": {
+    "verificationStatus": "unverified",
+    "adjacentNativeItem": null,
+    "mount": null,
+    "keyboardModel": null
+  },
+  "evidence": {
+    "classification": ["vm-verified", "static-analysis"],
+    "privacy": "no-text-no-accessible-name-no-user-content",
+    "liveUiVerified": true,
+    "layerProbe": "evidence/layer-probe-main-wrapper-2026-07-18.json"
+  }
+}

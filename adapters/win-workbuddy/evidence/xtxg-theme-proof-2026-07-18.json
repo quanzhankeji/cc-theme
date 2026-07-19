@@ -1,0 +1,63 @@
+{
+  "kind": "cc-theme.win-workbuddy-theme-proof-evidence",
+  "schemaVersion": 1,
+  "adapterId": "win-workbuddy-skin",
+  "clientVersion": "5.2.6",
+  "themeId": "xtxg",
+  "classification": "partial-live-verified",
+  "verifiedOn": "windows-11-pro-arm64-build-26100-vm",
+  "transport": {
+    "kind": "official-electron-remote-debugging-environment-switch",
+    "listener": "loopback-only",
+    "owner": "signed-workbuddy-5.2.6",
+    "rendererIdentity": "unique-main-renderer"
+  },
+  "operations": {
+    "revision3Preflight": "success",
+    "revision3Apply": "success",
+    "revision3Verify": "success",
+    "revision3Pause": "success",
+    "revision3Restore": "success",
+    "revision4Apply": "success",
+    "revision4Verify": "success-idempotent"
+  },
+  "visual": {
+    "backgroundImageVisible": true,
+    "mainGridOpaqueLayerCleared": true,
+    "sidebarDarkSurfaceVisible": true,
+    "mainTitleReadable": true,
+    "composerReadable": true,
+    "markerVisible": true,
+    "pauseReturnedNativeAppearance": true,
+    "restoreReturnedNativeAppearance": true
+  },
+  "currentVmState": {
+    "themeId": "xtxg",
+    "rendererGeneration": 4,
+    "markerState": "applied",
+    "artifactHashPrefix": "1911054bc63e"
+  },
+  "catalogEvidence": {
+    "surfaceCatalog": "compatibility/workbuddy-windows/5.2.6/ui-surface-catalog.v1.json",
+    "styleCatalog": "contracts/theme-style-catalog.v2.json",
+    "mainLayerProbe": "compatibility/workbuddy-windows/5.2.6/evidence/layer-probe-main-wrapper-2026-07-18.json"
+  },
+  "notYetVerified": [
+    "production-capability",
+    "debug-listener-shutdown-and-clean-relaunch",
+    "independent-restore-without-theme-catalog-or-surface",
+    "settings-native-entry",
+    "settings-observer-finite-convergence",
+    "long-duration-cpu-stability",
+    "keyboard-and-focus-parity",
+    "contrast-audit",
+    "system-palette-runtime",
+    "adaptive-palette-runtime"
+  ],
+  "runtimeApplyAvailable": false,
+  "privacy": {
+    "containsTextOrAccessibleNames": false,
+    "containsAccountOrUserContent": false,
+    "containsFullPathCommandLineOrEnvironment": false
+  }
+}

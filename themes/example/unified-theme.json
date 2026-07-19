@@ -1,0 +1,64 @@
+{
+  "kind": "cc-theme.unified-theme",
+  "schemaVersion": 1,
+  "id": "example",
+  "name": "Example Theme",
+  "version": "1.0.0",
+  "sharedCore": {
+    "tokens": {
+      "colors": {
+        "surfaceBase": "#10151F",
+        "surfaceRaised": "#18202D",
+        "surfaceElevated": "#202B3B",
+        "text": "#E9EEF7",
+        "textStrong": "#FFFFFF",
+        "textMuted": "#AAB5C5",
+        "placeholder": "#8390A3",
+        "borderSubtle": "#263244",
+        "borderDefault": "#34445B",
+        "action": "#2F7D57",
+        "actionHover": "#398F66",
+        "actionPressed": "#286A4A",
+        "actionForeground": "#FFFFFF",
+        "hoverSurface": "#202B3B",
+        "pressedSurface": "#273548",
+        "selectedSurface": "#294C40",
+        "focusRing": "#7BCFA8",
+        "link": "#8EB1FF",
+        "danger": "#EF7D7D",
+        "success": "#72C79B",
+        "warning": "#F0B96B",
+        "sidebarSurface": "#121925",
+        "headerSurface": "#141C28",
+        "composerSurface": "#1A2432"
+      },
+      "fonts": {
+        "ui": ["SF Pro Text", "system-ui"],
+        "display": ["SF Pro Display", "system-ui"],
+        "code": ["SFMono-Regular", "monospace"]
+      },
+      "appearance": {
+        "shellMode": "dark",
+        "backdropBlurPx": 16,
+        "backdropSaturation": 1,
+        "radiusScale": 1
+      }
+    },
+    "background": {
+      "mode": "media",
+      "image": "background.webp",
+      "position": {
+        "xPercent": 50,
+        "yPercent": 50
+      }
+    },
+    "accessibility": {
+      "reducedMotion": "static",
+      "minimumTextContrast": 4.5,
+      "minimumLargeTextContrast": 3,
+      "preserveSystemFocusRing": true,
+      "transparencyFallback": "increased-scrim"
+    }
+  },
+  "targets": ["mac-codex", "mac-workbuddy"]
+}

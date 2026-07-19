@@ -1,0 +1,6 @@
+interface:
+  display_name: "Repair WorkBuddy Compatibility"
+  short_description: "隐私化诊断 WorkBuddy 客户端更新后的界面兼容问题"
+  default_prompt: "Use $repair-workbuddy-compatibility to classify a WorkBuddy DOM or visual regression without putting selectors in a theme."
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,76 @@
+name: Bug report
+description: 报告一个可复现的问题 / Report a reproducible problem
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢报告。安全漏洞请不要填写此表单，请改用仓库的私密漏洞报告流程。
+  - type: dropdown
+    id: project
+    attributes:
+      label: 影响的项目 / Affected project
+      options:
+        - CC Theme
+        - mac-codex
+        - mac-workbuddy
+        - win-codex
+        - win-workbuddy
+        - .cctheme contract or documentation
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: CC Theme 版本或提交 / Version or commit
+      placeholder: CC Theme 0.1.0, Adapter version, or commit SHA
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: 环境 / Environment
+      description: 操作系统和桌面客户端版本；不要包含用户名和私人路径。
+      placeholder: macOS 15.x, client 26.x
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: 复现步骤 / Steps to reproduce
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望行为 / Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为 / Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: 已脱敏的诊断信息 / Redacted diagnostics
+      description: 不要粘贴令牌、账户、任务内容、私人路径或用户媒体。
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: 提交确认 / Checklist
+      options:
+        - label: 我已搜索现有 Issue，并确认这不是安全漏洞。
+          required: true
+        - label: 我已删除账户信息、令牌、私人路径、日志隐私内容和用户媒体。
+          required: true

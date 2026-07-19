@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cc-theme.local/win-claude/compile-context.schema.json",
+  "title": "Win-Claude Adapter compile context",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "kind",
+    "schemaVersion",
+    "adapterId",
+    "client",
+    "surfaceCatalogVersion",
+    "probeStatus",
+    "compileAllowed",
+    "applyAllowed",
+    "reasonCode",
+    "localRuntimeOverrides"
+    ,
+    "artifactProvenance"
+  ],
+  "properties": {
+    "kind": { "const": "cc-theme.adapter-compile-context" },
+    "schemaVersion": { "const": 1 },
+    "adapterId": { "const": "win-claude" },
+    "client": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "publisherStatus", "packageForm", "architecture", "binarySha256"],
+      "properties": {
+        "version": { "type": ["string", "null"], "maxLength": 80 },
+        "publisherStatus": { "enum": ["not-run", "trusted", "untrusted"] },
+        "packageForm": { "enum": ["exe", "msix", "appx", "store", "unknown"] },
+        "architecture": { "enum": ["arm64", "x64", "x86", "unknown"] },
+        "binarySha256": { "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$" }
+      }
+    },
+    "surfaceCatalogVersion": { "type": ["integer", "null"], "minimum": 1 },
+    "probeStatus": { "enum": ["passed", "failed", "not-run", "unavailable"] },
+    "compileAllowed": { "type": "boolean" },
+    "applyAllowed": { "type": "boolean" },
+    "reasonCode": { "type": ["string", "null"], "maxLength": 120 },
+    "localRuntimeOverrides": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["baseThemeHash", "entries", "decision"],
+      "properties": {
+        "baseThemeHash": { "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$" },
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["tokenId", "baseHash", "value", "runtimeOrdering"],
+            "properties": {
+              "tokenId": { "type": "string", "pattern": "^[a-z][A-Za-z0-9.-]{0,119}$" },
+              "baseHash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+              "value": { "type": ["string", "number", "boolean", "array"] },
+              "runtimeOrdering": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["sessionNonce", "generation", "revision"],
+                "properties": {
+                  "sessionNonce": { "type": "string", "pattern": "^[A-Za-z0-9_-]{16,80}$" },
+                  "generation": { "type": "integer", "minimum": 0 },
+                  "revision": { "type": "integer", "minimum": 0 }
+                }
+              }
+            }
+          }
+        },
+        "decision": { "enum": ["preserve", "replay", "quarantine", "not-evaluated"] }
+      }
+    },
+    "artifactProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fileSha256", "manifestSha256", "archiveSha256"],
+      "properties": {
+        "fileSha256": { "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$" },
+        "manifestSha256": { "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$" },
+        "archiveSha256": { "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$" }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "probeStatus": { "enum": ["failed", "not-run", "unavailable"] } }, "required": ["probeStatus"] },
+      "then": { "properties": { "applyAllowed": { "const": false } } }
+    },
+    {
+      "if": { "properties": { "client": { "properties": { "publisherStatus": { "enum": ["not-run", "untrusted"] } } } } },
+      "then": { "properties": { "compileAllowed": { "const": false }, "applyAllowed": { "const": false } } }
+    }
+  ]
+}

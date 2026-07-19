@@ -1,0 +1,89 @@
+{
+  "kind": "cc-theme.unified-theme",
+  "schemaVersion": 2,
+  "id": "win_fixture",
+  "name": "Windows fixture",
+  "version": "1.2.3",
+  "sharedCore": {
+    "tokens": {
+      "colors": {
+        "surfaceBase": "#111111",
+        "surfaceRaised": "#222222",
+        "surfaceElevated": "#333333",
+        "surfaceCode": "#181818",
+        "text": "#F8F8F8",
+        "textStrong": "#FFFFFF",
+        "textMuted": "#BBBBBB",
+        "placeholder": "#999999",
+        "borderSubtle": "#444444",
+        "borderDefault": "#555555",
+        "borderStrong": "#666666",
+        "action": "#AA3377",
+        "actionHover": "#BB4488",
+        "actionPressed": "#882255",
+        "actionForeground": "#FFFFFF",
+        "hoverSurface": "#292929",
+        "pressedSurface": "#303030",
+        "selectedSurface": "#3A2130",
+        "selectedHoverSurface": "#4A2940",
+        "focusRing": "#FF66BB",
+        "link": "#66AAFF",
+        "danger": "#FF5555",
+        "success": "#55CC88",
+        "warning": "#FFBB44",
+        "sidebarSurface": "#151515",
+        "headerSurface": "#191919",
+        "mainScrimStart": "rgba(0, 0, 0, 0.2)",
+        "mainScrimMid": "rgba(0, 0, 0, 0.1)",
+        "mainScrimEnd": "rgba(0, 0, 0, 0.3)",
+        "composerSurface": "#202020"
+      },
+      "fonts": {
+        "ui": ["Segoe UI"],
+        "display": ["Segoe UI Variable"],
+        "code": ["Cascadia Code"]
+      },
+      "appearance": {
+        "shellMode": "dark",
+        "backdropBlurPx": 12,
+        "backdropSaturation": 1.1,
+        "radiusScale": 1,
+        "backgroundPosition": { "xPercent": 50, "yPercent": 50 },
+        "homeHeroPosition": { "xPercent": 40, "yPercent": 30 }
+      }
+    },
+    "background": {
+      "mode": "directional",
+      "image": "fallback.png",
+      "homeHeroImage": "hero.png",
+      "atlas": "directions.webp",
+      "directions": 16,
+      "columns": 4,
+      "rows": 4,
+      "firstDirectionDegrees": -90,
+      "idleFrame": 0,
+      "origin": { "xPercent": 50, "yPercent": 50 },
+      "scrimOpacity": 0.2,
+      "position": { "xPercent": 50, "yPercent": 50 }
+    },
+    "accessibility": {
+      "reducedMotion": "static",
+      "minimumTextContrast": 4.5,
+      "minimumLargeTextContrast": 3,
+      "preserveSystemFocusRing": true,
+      "transparencyFallback": "opaque"
+    }
+  },
+  "targets": ["win-workbuddy-skin"],
+  "targetProfiles": {
+    "win-workbuddy-skin": {
+      "kind": "cc-theme.target-profile",
+      "schemaVersion": 1,
+      "adapterId": "win-workbuddy-skin",
+      "values": {
+        "paletteStrategy": "custom",
+        "backgroundVideoPosition": { "xPercent": 60, "yPercent": 40 }
+      }
+    }
+  }
+}

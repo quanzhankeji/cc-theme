@@ -1,0 +1,63 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "CC Theme",
+  "version": "0.1.0",
+  "identifier": "com.quanzhankeji.cc-theme",
+  "build": {
+    "beforeDevCommand": "npm run prepare:resources && npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run prepare:resources && npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "CC Theme",
+        "width": 1280,
+        "height": 820,
+        "minWidth": 1040,
+        "minHeight": 680,
+        "center": true,
+        "dragDropEnabled": true
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; img-src 'self' asset: data: cc-theme-preview:; style-src 'self' 'unsafe-inline'; connect-src ipc: http://ipc.localhost"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "icon": ["icons/icon.icns"],
+    "category": "Utility",
+    "copyright": "Copyright © 2026 CC Theme contributors",
+    "shortDescription": "Manage themes for Codex and WorkBuddy",
+    "fileAssociations": [
+      {
+        "ext": ["cctheme"],
+        "name": "CC Theme Package",
+        "description": "ZIP-compatible CC Theme package",
+        "role": "Viewer",
+        "rank": "Owner",
+        "mimeType": "application/vnd.cc-theme.theme+zip",
+        "exportedType": {
+          "identifier": "com.quanzhankeji.cc-theme-package",
+          "conformsTo": ["public.zip-archive", "public.data"]
+        }
+      }
+    ],
+    "resources": {
+      "../.runtime-resources/.cc-theme-workspace.json": ".cc-theme-workspace.json",
+      "../.runtime-resources/adapter-sdk": "adapter-sdk",
+      "../.runtime-resources/adapters": "adapters",
+      "../.runtime-resources/capabilities": "capabilities",
+      "../.runtime-resources/contracts": "contracts",
+      "../.runtime-resources/theme-core": "theme-core",
+      "../.runtime-cache/node-current": "runtime/node",
+      "../.runtime-resources/artifact-manifest.json": "artifact-manifest.json"
+    },
+    "targets": ["app", "dmg"],
+    "macOS": {
+      "minimumSystemVersion": "13.5"
+    }
+  }
+}

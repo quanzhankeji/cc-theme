@@ -1,0 +1,48 @@
+{
+  "kind": "cc-theme.theme-editor-locales",
+  "schemaVersion": 1,
+  "adapterId": "win-claude",
+  "supportedLocales": ["en", "zh-CN"],
+  "messages": {
+    "en": {
+      "groups": {
+        "foundation": "Foundation",
+        "text": "Text",
+        "interaction": "Interaction",
+        "typography": "Typography"
+      },
+      "tokens": {
+        "foundation.surfaceBase": "Base surface",
+        "text.primary": "Primary text",
+        "action.background": "Primary action",
+        "font.ui": "Interface font"
+      },
+      "status": {
+        "saved": "Saved automatically",
+        "saving": "Saving",
+        "rolledBack": "Restored the last valid settings",
+        "quarantined": "Some settings need review"
+      }
+    },
+    "zh-CN": {
+      "groups": {
+        "foundation": "基础表面",
+        "text": "文字",
+        "interaction": "交互",
+        "typography": "字体"
+      },
+      "tokens": {
+        "foundation.surfaceBase": "基础表面",
+        "text.primary": "主要文字",
+        "action.background": "主要操作",
+        "font.ui": "界面字体"
+      },
+      "status": {
+        "saved": "已自动保存",
+        "saving": "正在保存",
+        "rolledBack": "已恢复上一次有效设置",
+        "quarantined": "部分设置需要检查"
+      }
+    }
+  }
+}

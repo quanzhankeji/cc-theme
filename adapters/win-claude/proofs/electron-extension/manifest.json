@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "CC Theme Win-Claude extension proof",
+  "version": "0.0.1",
+  "description": "Disposable local proof for Claude 1.22209.0; not a production adapter.",
+  "permissions": [],
+  "content_scripts": [
+    {
+      "matches": ["https://claude.ai/*"],
+      "js": ["content-script.js"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ]
+}

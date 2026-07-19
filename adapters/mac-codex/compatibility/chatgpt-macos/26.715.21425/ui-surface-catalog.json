@@ -1,0 +1,131 @@
+{
+  "kind": "skin.ui-surface-catalog",
+  "schemaVersion": "1.0.0",
+  "catalogId": "chatgpt-macos-26.715.21425-2026-07-17",
+  "client": {
+    "product": "Codex Desktop",
+    "bundleId": "com.openai.codex",
+    "platform": "macOS",
+    "version": "26.715.21425",
+    "build": "5488",
+    "chromium": "150.0.7871.124",
+    "rendererUrl": "app://-/index.html",
+    "capturedAt": "2026-07-17",
+    "captureScope": "installed application bundle and packaged renderer resources"
+  },
+  "bundleEvidence": {
+    "application": "/Applications/ChatGPT.app",
+    "asarSha256": "5db4c67090c0521fa717e83e46cb0a6175cb6c16fb89064223753bdf05cff0aa",
+    "asarFileCount": 6094,
+    "rendererResourcesInspected": [
+      "webview/assets/app-DdRwcpIN.css",
+      "webview/assets/app-initial~avatarOverlayCompositionSurface~artifact-tab-content.electron~app-main~appgen-s~j5d6n91g-1TuewZWG.js",
+      "webview/assets/app-initial~app-main~settings-command-menu-section-items~new-thread-panel-page~settings-pag~unq8yzli-CVtArHfL.js",
+      "webview/assets/app-initial~app-main~appgen-settings-page~page~appgen-library-page~appgen-page~appgen-setti~ogh9jurw-3B_QTMVW.js",
+      "webview/assets/app-initial~artifact-tab-content.electron~notebook-preview-panel~app-main~pull-request-rout~jvsvjxtt-DQ2QSQ8Z.js"
+    ]
+  },
+  "sources": [
+    {
+      "method": "info-plist-readonly",
+      "scope": "version, build, bundle id and Chromium version",
+      "confidence": 1
+    },
+    {
+      "method": "codesign-readonly",
+      "scope": "installed bundle identity and notarized signature",
+      "confidence": 1
+    },
+    {
+      "method": "bundle-js-css-inspection",
+      "scope": "renderer element creation and surface styling",
+      "confidence": 0.96
+    },
+    {
+      "method": "skin-source-audit",
+      "scope": "runtime selector migration and transparent-surface rules",
+      "confidence": 1
+    }
+  ],
+  "surfaceTargets": [
+    {
+      "targetId": "target.shell-main",
+      "primarySelector": "[data-app-shell-main-content-layout]",
+      "fallbackSelector": "main.main-surface",
+      "runtimeRole": "main-content",
+      "policy": "transparent structural viewport above translucent main scrim"
+    },
+    {
+      "targetId": "target.shell-top-fade",
+      "primarySelector": "[data-app-shell-main-content-top-fade]",
+      "runtimeRole": "main-top-fade",
+      "policy": "remove native opaque gradient so background media remains visible"
+    },
+    {
+      "targetId": "target.sidebar",
+      "primarySelector": "aside.app-shell-left-panel",
+      "fallbackSelector": ".app-shell-left-panel",
+      "runtimeRole": "sidebar",
+      "policy": "bounded translucent pseudo-surface with clear layout container"
+    },
+    {
+      "targetId": "target.composer",
+      "primarySelector": "[data-codex-composer-root]",
+      "fallbackSelector": ".composer-surface-chrome",
+      "runtimeRole": "composer-root/composer",
+      "policy": "clear root container and retain a translucent readable input surface"
+    },
+    {
+      "targetId": "target.home-suggestions",
+      "primarySelector": "[data-home-ambient-suggestions]",
+      "fallbackSelector": ".group/home-suggestions",
+      "runtimeRole": "home-suggestions",
+      "policy": "retain native cards and apply bounded translucent card surfaces"
+    },
+    {
+      "targetId": "target.writing-block",
+      "primarySelector": "[data-oai-writing-block-surface]",
+      "runtimeRole": "writing-block-surface",
+      "policy": "map native writing-block variables to translucent Skin semantic colors"
+    },
+    {
+      "targetId": "target.thread-footer",
+      "primarySelector": "[data-thread-scroll-footer='true']",
+      "runtimeRole": "native",
+      "policy": "remove only decorative footer fade; preserve layout and interaction"
+    },
+    {
+      "targetId": "target.above-composer",
+      "primarySelector": "[data-above-composer-portal]",
+      "runtimeRole": "native",
+      "policy": "remove decorative local fade/blur; preserve status content"
+    },
+    {
+      "targetId": "target.bottom-panel",
+      "primarySelector": "[data-app-shell-focus-area='bottom-panel']",
+      "runtimeRole": "bottom-panel-shell",
+      "policy": "preserve native terminal semantics while mapping panel and xterm tokens"
+    }
+  ],
+  "migrationFromPreviousCatalog": {
+    "newPrimarySelectors": [
+      "[data-app-shell-main-content-layout]",
+      "[data-app-shell-main-content-top-fade]",
+      "[data-codex-composer-root]",
+      "[data-home-ambient-suggestions]",
+      "[data-oai-writing-block-surface]"
+    ],
+    "retainedFallbacks": [
+      "main.main-surface",
+      ".app-shell-left-panel",
+      ".composer-surface-chrome"
+    ],
+    "strategy": "prefer stable data attributes and use retained class names only as compatibility fallbacks"
+  },
+  "limitations": [
+    "The currently running Codex process was not launched with a remote-debugging port, so this catalog does not claim a live DOM or computed-style capture.",
+    "The application was not restarted because the active development task is running inside that client.",
+    "Hashed asset file names are evidence references only and are never used as runtime selectors.",
+    "Lazy routes and transient overlays still require a post-launch smoke test when a safely separate client session is available."
+  ]
+}

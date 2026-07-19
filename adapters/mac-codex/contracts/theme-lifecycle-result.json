@@ -1,0 +1,20 @@
+{
+  "kind": "cc-theme.lifecycle-interface",
+  "revision": 1,
+  "operations": ["detect", "preflight", "apply", "verify", "restore"],
+  "resultKind": "cc-theme.lifecycle-result",
+  "statuses": ["success", "failed"],
+  "failureCodes": [
+    "invalid-request",
+    "app-not-found",
+    "runtime-invalid",
+    "theme-invalid",
+    "adapter-landmark-missing",
+    "transport-unavailable",
+    "apply-failed",
+    "cleanup-incomplete",
+    "unexpected-failure"
+  ],
+  "clientVersionPolicy": "always-latest",
+  "reportPrivacy": "no-user-content"
+}

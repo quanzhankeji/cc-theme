@@ -1,0 +1,32 @@
+{
+  "kind": "cc-theme.settings-wysiwyg-interface",
+  "schemaVersion": 1,
+  "adapterId": "win-claude",
+  "entry": {
+    "label": "CC Theme",
+    "placement": "adjacent-native-entry-unverified",
+    "geometry": "match-adjacent-native",
+    "properties": "match-adjacent-native",
+    "states": ["default", "hover", "pressed", "selected", "selected-hover", "focus-visible", "disabled"],
+    "animation": "match-adjacent-native-and-respect-reduced-motion",
+    "keyboard": ["tab", "shift-tab", "directional-navigation", "enter", "space", "escape"],
+    "uia": "match-adjacent-native-control-type-and-supported-patterns"
+  },
+  "editor": {
+    "preview": "immediate",
+    "debounceMs": 180,
+    "saveButton": false,
+    "autosave": true,
+    "runtimeOrdering": {
+      "scope": "renderer-session",
+      "sessionNonce": "required",
+      "generation": "monotonic-within-session",
+      "revision": "monotonic-within-session-and-theme-nonce",
+      "crossProcessComparable": false
+    },
+    "ordering": "latest-write-wins",
+    "persistence": "atomic",
+    "failure": "rollback-ui-renderer-disk-to-last-valid-state"
+  },
+  "verificationStatus": "unverified"
+}

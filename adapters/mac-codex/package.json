@@ -1,0 +1,65 @@
+{
+  "name": "mac-codex",
+  "version": "26.715.31925",
+  "ccThemeAdapter": {
+    "adapterId": "mac-codex",
+    "adapterVersion": "26.715.31925",
+    "adapterReleaseRevision": 1,
+    "os": "macos",
+    "arch": "arm64",
+    "assetIdentity": "mac-codex-26.715.31925-r1-macos-arm64"
+  },
+  "description": "A reversible always-latest macOS Theme Adapter for Codex Desktop backgrounds and local style authoring.",
+  "keywords": [
+    "codex",
+    "chatgpt-desktop",
+    "macos",
+    "theme",
+    "theme-manager",
+    "theme-editor",
+    "desktop-customization",
+    "local-first",
+    "image-background",
+    "video-background",
+    "cc-theme"
+  ],
+  "homepage": "https://github.com/quanzhankeji/cc-theme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/quanzhankeji/cc-theme.git",
+    "directory": "adapters/mac-codex"
+  },
+  "bugs": {
+    "url": "https://github.com/quanzhankeji/cc-theme/issues"
+  },
+  "license": "MIT",
+  "private": false,
+  "type": "module",
+  "files": [
+    "assets",
+    "compatibility",
+    "contracts",
+    "docs",
+    "scripts",
+    "*.command",
+    "CHANGELOG.md",
+    "CLIENT_DEPLOY_PROMPT.md",
+    "CONTEXT.md",
+    "MIGRATION.md",
+    "PROJECT_MANIFEST.json",
+    "README.md",
+    "RELEASE_CHECKLIST.md",
+    "SECURITY.md",
+    "SOURCE_ATTRIBUTION.md",
+    "VERSION"
+  ],
+  "scripts": {
+    "test": "./tests/run-tests.sh",
+    "doctor": "./scripts/doctor-macos.sh",
+    "build": "./scripts/build-release.sh",
+    "apply:cc-theme": "./scripts/apply-cc-theme-macos.sh"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

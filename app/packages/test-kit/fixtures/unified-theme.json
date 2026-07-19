@@ -1,0 +1,63 @@
+{
+  "kind": "cc-theme.unified-theme",
+  "schemaVersion": 1,
+  "id": "neutral-fixture",
+  "name": "Neutral Fixture",
+  "version": "2.0.0",
+  "sharedCore": {
+    "tokens": {
+      "colors": {
+        "surfaceBase": "#10151F",
+        "surfaceRaised": "rgba(24, 31, 44, 0.86)",
+        "text": "#E9EEF7",
+        "textMuted": "#AAB5C5",
+        "action": "#6699FF",
+        "actionForeground": "#FFFFFF",
+        "focusRing": "#8EB1FF"
+      },
+      "fonts": {
+        "ui": ["SF Pro Text", "system-ui"],
+        "display": ["SF Pro Display", "system-ui"],
+        "code": ["SFMono-Regular", "monospace"]
+      },
+      "appearance": {
+        "shellMode": "dark",
+        "backdropBlurPx": 18,
+        "backdropSaturation": 1.1,
+        "radiusScale": 1
+      }
+    },
+    "background": {
+      "mode": "ripple",
+      "image": "background.webp",
+      "intensity": 0.35,
+      "radiusPx": 24,
+      "quality": "auto",
+      "scrimOpacity": 0.16,
+      "position": { "xPercent": 50, "yPercent": 50 }
+    },
+    "accessibility": {
+      "reducedMotion": "static",
+      "minimumTextContrast": 4.5,
+      "minimumLargeTextContrast": 3,
+      "preserveSystemFocusRing": true,
+      "transparencyFallback": "increased-scrim"
+    }
+  },
+  "targets": ["mac-codex", "mac-workbuddy"],
+  "targetProfiles": {
+    "mac-codex": {
+      "kind": "cc-theme.target-profile",
+      "adapterId": "mac-codex",
+      "revision": 1,
+      "copy": { "brandSubtitle": "CC THEME", "tagline": "One family, adapter-owned surfaces" },
+      "appearance": { "backdropBlurPx": 18, "backdropSaturation": 1.1, "radiusScale": 1 }
+    },
+    "mac-workbuddy": {
+      "kind": "cc-theme.target-profile",
+      "schemaVersion": 1,
+      "adapterId": "mac-workbuddy",
+      "values": { "paletteStrategy": "custom" }
+    }
+  }
+}

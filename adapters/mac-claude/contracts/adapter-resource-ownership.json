@@ -1,0 +1,57 @@
+{
+  "kind": "cc-theme.adapter-resource-ownership",
+  "schemaVersion": 1,
+  "adapterId": "mac-claude",
+  "productionThemeOwner": "independent-cc-theme-resource-layer",
+  "acceptedExternalInputs": ["cc-theme.unified-theme", "skin.package"],
+  "activeThemeModel": "single-validated-atomic-snapshot",
+  "failureFallback": "restore-native-host-state",
+  "repository": {
+    "forbiddenTopLevelDirectories": ["presets", "themes", "theme-sources", "generator", "skills"],
+    "testOnlyFixtureRoot": "tests/fixtures",
+    "productionThemeDiscovery": false,
+    "productionThemeAuthoring": false
+  },
+  "release": {
+    "allowedTopLevelDirectories": ["assets", "compatibility", "contracts", "docs", "scripts"],
+    "forbiddenPathSegments": ["presets", "themes", "theme-sources", "tests", "fixtures", "generator", "skills"],
+    "allowedExtensions": ["", ".css", ".js", ".json", ".md", ".mjs", ".sh", ".txt"],
+    "forbiddenExtensions": [
+      ".cctheme", ".zip", ".tar", ".tgz", ".gz", ".bz2", ".xz", ".7z", ".rar",
+      ".mp4", ".mov", ".webm", ".m4v", ".gif", ".png", ".jpg", ".jpeg", ".webp",
+      ".heic", ".tif", ".tiff", ".avif", ".bmp", ".mp3", ".m4a", ".wav", ".aac",
+      ".flac", ".ogg", ".opus", ".wasm", ".bin", ".glsl", ".wgsl", ".metal"
+    ],
+    "forbiddenThemeFiles": ["theme.json", "skin.document"],
+    "allowedAdapterAssets": [
+      "assets/background-effects.js",
+      "assets/renderer-inject.js",
+      "assets/skin.css",
+      "assets/ui-interpreter.js"
+    ]
+  },
+  "runtimeRelease": {
+    "manifest": "contracts/adapter-release-manifest.json",
+    "builder": "scripts/adapter-release.mjs",
+    "allowedRootFiles": ["LICENSE", "VERSION", "package.json"],
+    "allowedTopLevelDirectories": ["assets", "compatibility", "contracts", "scripts"],
+    "forbiddenPathSegments": [
+      "docs", "fixtures", "generator", "presets", "release", "runtime", "skills",
+      "tests", "theme-sources", "themes"
+    ],
+    "productionMediaAllowed": false,
+    "symbolicLinksAllowed": false,
+    "runtimeApplyAvailable": false
+  },
+  "retainedImplementation": [
+    "capability",
+    "projector",
+    "schema-normalizer",
+    "style-catalog",
+    "ui-surface-catalog",
+    "media-safety-validation",
+    "local-runtime-overrides",
+    "settings-wysiwyg",
+    "apply-verify-pause-restore-rollback-cleanup"
+  ]
+}

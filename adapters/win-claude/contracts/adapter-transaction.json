@@ -1,0 +1,37 @@
+{
+  "kind": "cc-theme.adapter-transaction-interface",
+  "schemaVersion": 1,
+  "adapterId": "win-claude",
+  "operations": [
+    "project",
+    "install-base",
+    "save-local-overrides",
+    "rebase-local-overrides",
+    "switch-theme",
+    "apply",
+    "pause",
+    "restore"
+  ],
+  "serialization": "single-adapter-cross-process-lock",
+  "lockLocation": "adapter-owned-runtime-location-unverified",
+  "atomicWrite": "same-volume-temporary-write-flush-replace",
+  "reparsePointPolicy": "reject",
+  "runtimeOrdering": {
+    "scope": "renderer-session",
+    "sessionNonce": "new-unpredictable-value-per-renderer-session",
+    "generation": "monotonic-within-renderer-session",
+    "revision": "monotonic-within-renderer-session-and-theme-nonce",
+    "crossProcessRule": "never-compare-without-matching-session-nonce",
+    "releaseIdentityUse": "forbidden"
+  },
+  "artifactProvenance": {
+    "algorithm": "sha256",
+    "fileSha256": "exact-installed-or-staged-file-bytes",
+    "manifestSha256": "canonical-release-manifest-bytes",
+    "archiveSha256": "exact-release-archive-bytes",
+    "runtimeOrderingUse": "forbidden"
+  },
+  "themeSwitch": "flush-current-then-change-theme-nonce-and-base-hash-within-renderer-session",
+  "failure": "rollback-ui-renderer-disk-to-last-valid-snapshot",
+  "implementationStatus": "unverified"
+}

@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cc-theme.local/contracts/win-workbuddy-runtime-settings.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "schemaVersion", "adapterId", "themeId", "baseHash", "revision", "overrides", "quarantined"],
+  "properties": {
+    "kind": { "const": "theme.runtime-settings" },
+    "schemaVersion": { "const": 1 },
+    "adapterId": { "const": "win-workbuddy-skin" },
+    "themeId": { "type": "string", "pattern": "^[A-Za-z0-9_-]{1,80}$" },
+    "baseHash": { "type": "string", "pattern": "^[a-f0-9]{64}$", "description": "Deterministic base-theme content identity; never a settings or renderer ordering counter." },
+    "revision": { "type": "integer", "minimum": 0, "description": "Strictly monotonic persisted settings-lineage revision; not renderer generation and not artifact identity." },
+    "overrides": { "type": "array", "maxItems": 128, "items": { "$ref": "#/$defs/entry" } },
+    "quarantined": { "type": "array", "maxItems": 128, "items": { "$ref": "#/$defs/quarantine" } }
+  },
+  "$defs": {
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tokenId", "controlFingerprint", "revision", "value"],
+      "properties": {
+        "tokenId": { "type": "string", "pattern": "^[a-z][A-Za-z0-9.-]{2,79}$" },
+        "controlFingerprint": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "revision": { "type": "integer", "minimum": 1 },
+        "value": {
+          "oneOf": [
+            { "type": "number", "minimum": 0, "maximum": 100 },
+            { "type": "boolean" },
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80,
+              "pattern": "^(?!.*(?:[<>/{}`;]|://|\\\\|\\$\\(|[Uu][Rr][Ll]\\s*\\(|[Ee][Xx][Pp][Rr][Ee][Ss][Ss][Ii][Oo][Nn]\\s*\\(|@[Ii][Mm][Pp][Oo][Rr][Tt]|[Jj][Aa][Vv][Aa][Ss][Cc][Rr][Ii][Pp][Tt]\\s*:|[Vv][Oo][Ii][Dd]\\s+[Mm][Aa][Ii][Nn]\\s*\\()).{1,80}$"
+            },
+            {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 8,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80,
+                "pattern": "^(?!.*(?:[<>/{}`;]|://|\\\\|\\$\\(|[Uu][Rr][Ll]\\s*\\(|[Ee][Xx][Pp][Rr][Ee][Ss][Ss][Ii][Oo][Nn]\\s*\\(|@[Ii][Mm][Pp][Oo][Rr][Tt]|[Jj][Aa][Vv][Aa][Ss][Cc][Rr][Ii][Pp][Tt]\\s*:|[Vv][Oo][Ii][Dd]\\s+[Mm][Aa][Ii][Nn]\\s*\\()).{1,80}$"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "quarantine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["entry", "code"],
+      "properties": {
+        "entry": { "$ref": "#/$defs/entry" },
+        "code": { "enum": ["base-hash-changed", "token-removed", "control-changed", "value-invalid"] }
+      }
+    }
+  }
+}

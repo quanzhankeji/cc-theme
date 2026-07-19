@@ -1,0 +1,49 @@
+{
+  "kind": "cc-theme.win-workbuddy-transaction-identity",
+  "schemaVersion": 1,
+  "adapterId": "win-workbuddy-skin",
+  "runtimeOrdering": {
+    "field": "rendererGeneration",
+    "type": "integer",
+    "scope": "renderer-session",
+    "ordering": "strictly-monotonic",
+    "reset": "new-renderer-session",
+    "purpose": "latest-write-wins-and-stale-operation-rejection",
+    "notArtifactIdentity": true
+  },
+  "settingsOrdering": {
+    "field": "revision",
+    "type": "integer",
+    "scope": "persisted-theme-runtime-settings-lineage",
+    "ordering": "strictly-monotonic",
+    "purpose": "settings-latest-write-wins",
+    "notArtifactIdentity": true
+  },
+  "artifactIdentity": {
+    "field": "artifactManifestSha256",
+    "algorithm": "sha256",
+    "scope": "deterministic-runtime-manifest",
+    "members": [
+      "unified-theme-file-sha256",
+      "normalized-target-sha256",
+      "background-image-file-sha256",
+      "ui-surface-catalog-file-sha256",
+      "theme-style-catalog-file-sha256",
+      "compiled-style-sha256"
+    ],
+    "purpose": "release-provenance-and-runtime-content-identity",
+    "notRuntimeOrdering": true
+  },
+  "archiveProvenance": {
+    "field": "archiveSha256",
+    "algorithm": "sha256",
+    "scope": "optional-published-adapter-archive",
+    "requiredForProofRuntime": false,
+    "requiredBeforePublishedRelease": true
+  },
+  "forbiddenEquivalences": [
+    "rendererGeneration-is-artifactManifestSha256",
+    "settings-revision-is-artifactManifestSha256",
+    "session-nonce-is-release-digest"
+  ]
+}

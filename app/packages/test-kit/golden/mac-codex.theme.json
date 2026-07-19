@@ -1,0 +1,12 @@
+{
+  "appearance": { "backdropBlurPx": 18, "backdropSaturation": 1.1, "backgroundPosition": { "xPercent": 50, "yPercent": 50 }, "radiusScale": 1, "shellMode": "dark" },
+  "brandSubtitle": "CC THEME",
+  "colors": { "muted": "#AAB5C5", "text": "#E9EEF7" },
+  "fonts": { "display": ["SF Pro Display", "system-ui"], "ui": ["SF Pro Text", "system-ui"] },
+  "id": "neutral-fixture",
+  "image": "background.webp",
+  "interactiveBackground": { "intensity": 0.35, "quality": "auto", "radiusPx": 24, "scrimOpacity": 0.16, "type": "ripple" },
+  "kind": "skin.theme",
+  "name": "Neutral Fixture",
+  "semanticColors": { "action": "#6699FF", "actionForeground": "#FFFFFF", "focusRing": "#8EB1FF", "surfaceBase": "#10151F", "surfaceRaised": "rgba(24, 31, 44, 0.86)" }
+}

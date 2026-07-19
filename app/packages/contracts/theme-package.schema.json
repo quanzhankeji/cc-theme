@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cc-theme.local/contracts/theme-package.schema.json",
+  "title": "CC Theme .cctheme package manifest",
+  "description": "Manifest stored as family.json at the root of a ZIP-compatible .cctheme package.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "schemaVersion", "id", "version", "minimumManagerVersion", "metadata", "source", "assets"],
+  "properties": {
+    "kind": { "const": "cc-theme.theme-family-package" },
+    "schemaVersion": { "const": 1 },
+    "id": { "$ref": "unified-theme-v1.schema.json#/$defs/safeId" },
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[A-Za-z0-9.-]+)?$", "maxLength": 40 },
+    "minimumManagerVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[A-Za-z0-9.-]+)?$", "maxLength": 40 },
+    "metadata": { "$ref": "#/$defs/metadata" },
+    "source": {
+      "allOf": [
+        { "$ref": "#/$defs/file" },
+        { "properties": { "path": { "const": "unified-theme.json" } } }
+      ]
+    },
+    "assets": { "type": "array", "minItems": 1, "maxItems": 64, "items": { "$ref": "#/$defs/asset" } },
+    "signatures": { "type": "array", "maxItems": 8, "items": { "$ref": "#/$defs/signature" } }
+  },
+  "$defs": {
+    "locale": { "type": "string", "pattern": "^[a-z]{2,3}(?:-[A-Z]{2})?$", "maxLength": 16 },
+    "localizedDisplay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "description"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "description": { "type": "string", "minLength": 1, "maxLength": 500 }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["author", "defaultLocale", "locales", "previewAsset", "license", "assetLicense"],
+      "properties": {
+        "author": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "defaultLocale": { "$ref": "#/$defs/locale" },
+        "locales": {
+          "type": "object",
+          "required": ["zh-CN", "en-US"],
+          "minProperties": 2,
+          "maxProperties": 24,
+          "propertyNames": { "$ref": "#/$defs/locale" },
+          "additionalProperties": { "$ref": "#/$defs/localizedDisplay" }
+        },
+        "previewAsset": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*\\.(png|jpe?g|webp)$", "maxLength": 255 },
+        "license": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "assetLicense": { "type": "string", "minLength": 1, "maxLength": 80 }
+      }
+    },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1, "maxLength": 255 },
+        "bytes": { "type": "integer", "minimum": 1, "maximum": 134217728 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256", "contentType", "roles"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^assets/[A-Za-z0-9][A-Za-z0-9._-]*\\.(png|jpe?g|webp|mp4)$", "maxLength": 262 },
+        "bytes": { "type": "integer", "minimum": 1, "maximum": 134217728 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "contentType": { "enum": ["image/png", "image/jpeg", "image/webp", "video/mp4"] },
+        "roles": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": { "enum": ["background", "home-hero", "video", "atlas", "preview", "supporting"] }
+        }
+      }
+    },
+    "signature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "keyId", "value"],
+      "properties": {
+        "algorithm": { "const": "Ed25519" },
+        "keyId": { "type": "string", "pattern": "^[A-Za-z0-9._-]{1,80}$" },
+        "value": { "type": "string", "pattern": "^[A-Za-z0-9+/]{86}==$" }
+      }
+    }
+  }
+}

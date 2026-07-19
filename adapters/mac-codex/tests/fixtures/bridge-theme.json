@@ -1,0 +1,40 @@
+{
+  "kind": "skin.theme",
+  "id": "bridge-fixture",
+  "name": "Bridge Fixture",
+  "image": "background.png",
+  "colors": {
+    "background": "#0d0906",
+    "panel": "#19110b",
+    "panelAlt": "#2b1d13",
+    "accent": "#d7b585",
+    "accentAlt": "#e9c79c",
+    "secondary": "#9c3f24",
+    "highlight": "#862119",
+    "text": "#f7e9cb",
+    "muted": "#c0aa88",
+    "line": "rgba(90, 66, 43, .72)"
+  },
+  "semanticColors": {
+    "surfaceBase": "#19110b",
+    "action": "#862119",
+    "actionForeground": "#fbf6e8",
+    "focusRing": "#d7b585",
+    "sidebarSurface": "rgba(13, 9, 6, .90)"
+  },
+  "fonts": {
+    "ui": ["Avenir Next", "PingFang SC", "system-ui", "sans-serif"],
+    "display": ["Songti SC", "STSong", "serif"],
+    "code": ["Menlo", "monospace"]
+  },
+  "appearance": {
+    "backgroundPosition": {
+      "xPercent": 52,
+      "yPercent": 38
+    },
+    "backdropBlurPx": 18,
+    "backdropSaturation": 0.85,
+    "radiusScale": 1.05,
+    "reduceParticles": true
+  }
+}

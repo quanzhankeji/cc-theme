@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cc-theme.local/win-claude/runtime-seam-candidates.schema.json",
+  "title": "Win-Claude runtime Seam candidates",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "schemaVersion", "adapterId", "assessedClientVersion", "productionRuntimeApplyAvailable", "candidates", "permanentlyRejected"],
+  "properties": {
+    "kind": { "const": "cc-theme.runtime-seam-candidates" },
+    "schemaVersion": { "const": 1 },
+    "adapterId": { "const": "win-claude" },
+    "assessedClientVersion": { "const": "1.22209.0" },
+    "productionRuntimeApplyAvailable": { "const": false },
+    "candidates": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "priority", "evidenceClass", "status", "mechanism"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+          "priority": { "enum": ["A", "B", "C"] },
+          "evidenceClass": { "type": "string", "minLength": 1 },
+          "status": { "type": "string", "minLength": 1 },
+          "mechanism": { "type": "string", "minLength": 1 },
+          "officialEvidence": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "claudeStaticEvidence": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["loadExtensionOccurrences", "observedUses", "loadExtensionSwitchLiteralObserved", "disableExtensionsExceptLiteralObserved", "contentScriptsLiteralObserved", "genericOfficialExtensionHookObserved"],
+            "properties": {
+              "loadExtensionOccurrences": { "type": "integer", "minimum": 0 },
+              "observedUses": { "type": "array", "uniqueItems": true, "items": { "type": "string" } },
+              "loadExtensionSwitchLiteralObserved": { "type": "boolean" },
+              "disableExtensionsExceptLiteralObserved": { "type": "boolean" },
+              "contentScriptsLiteralObserved": { "type": "boolean" },
+              "genericOfficialExtensionHookObserved": { "type": "boolean" }
+            }
+          },
+          "claudeReachability": { "type": "string", "minLength": 1 },
+          "proof": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["extensionDirectory", "status", "matchPattern", "permissions", "readsAccountContent", "writesOnlyOwnedNodes", "usesTemporaryUserDataDirectory", "expectedMarkerId", "expectedDataset"],
+            "properties": {
+              "extensionDirectory": { "const": "proofs/electron-extension" },
+              "status": { "const": "static-security-fixture-not-authorized-to-launch" },
+              "matchPattern": { "const": "https://claude.ai/*" },
+              "permissions": { "const": [] },
+              "readsAccountContent": { "const": false },
+              "writesOnlyOwnedNodes": { "const": true },
+              "usesTemporaryUserDataDirectory": { "const": true },
+              "expectedMarkerId": { "const": "cc-theme-extension-proof-marker" },
+              "expectedDataset": { "const": "data-cc-theme-extension-proof=1.22209.0" }
+            }
+          },
+          "cleanup": { "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }] },
+          "minimumVmCommand": { "type": ["string", "null"] },
+          "minimumVmCommandTemplate": { "type": "string" },
+          "expectedMarker": { "type": ["string", "null"] },
+          "decision": { "type": "string" },
+          "capabilityEffect": { "type": "string" },
+          "productionLimitation": { "type": "string" },
+          "capability": { "type": "string" },
+          "limitations": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "permanentlyRejected": { "type": "array", "minItems": 9, "uniqueItems": true, "items": { "type": "string", "pattern": "^[a-z0-9-]+$" } }
+  }
+}

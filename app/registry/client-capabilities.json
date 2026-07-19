@@ -1,0 +1,88 @@
+{
+  "kind": "cc-theme.client-capabilities",
+  "revision": 5,
+  "auditedAt": "2026-07-19",
+  "backgroundContract": "app/packages/contracts/background/background-capability.schema.json",
+  "statuses": [
+    "verified",
+    "projection-only",
+    "paused-by-user",
+    "not-applicable"
+  ],
+  "projects": [
+    {
+      "id": "mac-codex",
+      "adapterId": "mac-codex",
+      "role": "client-adapter",
+      "platform": "macos",
+      "application": "codex",
+      "verifiedClientVersion": "26.715.31925 (5551)",
+      "clientRuntimeBaseline": true,
+      "runtimeApplyAvailable": true,
+      "capabilities": {
+        "media": "verified",
+        "ripple": "verified",
+        "directional": "verified",
+        "reduceMotionForceStatic": "verified"
+      },
+      "evidence": [
+        "adapters/mac-codex/compatibility/chatgpt-macos/26.715.31925/ui-surface-catalog.json",
+        "adapters/mac-codex/tests/background-effects-runtime.test.mjs",
+        "adapters/mac-codex/tests/interactive-background.test.mjs"
+      ]
+    },
+    {
+      "id": "mac-workbuddy",
+      "adapterId": "mac-workbuddy",
+      "role": "client-adapter",
+      "platform": "macos",
+      "application": "workbuddy",
+      "verifiedClientVersion": "5.2.6",
+      "clientRuntimeBaseline": true,
+      "runtimeApplyAvailable": true,
+      "capabilities": {
+        "media": "verified",
+        "ripple": "verified",
+        "directional": "verified",
+        "reduceMotionForceStatic": "verified"
+      },
+      "evidence": [
+        "adapters/mac-workbuddy/compatibility/workbuddy-macos/5.2.6/ui-surface-catalog.json",
+        "adapters/mac-workbuddy/tests/background-effects-runtime.test.mjs",
+        "adapters/mac-workbuddy/tests/interactive-background.test.mjs"
+      ]
+    },
+    {
+      "id": "win-codex",
+      "adapterId": null,
+      "role": "paused-client-adapter",
+      "platform": "windows",
+      "application": "codex",
+      "clientRuntimeBaseline": false,
+      "runtimeApplyAvailable": false,
+      "capabilities": {
+        "media": "paused-by-user",
+        "ripple": "paused-by-user",
+        "directional": "paused-by-user",
+        "reduceMotionForceStatic": "paused-by-user"
+      },
+      "evidence": []
+    },
+    {
+      "id": "win-workbuddy",
+      "adapterId": null,
+      "role": "paused-client-adapter",
+      "platform": "windows",
+      "application": "workbuddy",
+      "clientRuntimeBaseline": false,
+      "runtimeApplyAvailable": false,
+      "capabilities": {
+        "media": "paused-by-user",
+        "ripple": "paused-by-user",
+        "directional": "paused-by-user",
+        "reduceMotionForceStatic": "paused-by-user"
+      },
+      "evidence": []
+    }
+  ]
+}

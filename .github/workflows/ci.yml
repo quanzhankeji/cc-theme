@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  repository-contracts:
+    name: Repository and shared Interface checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          package-manager-cache: false
+      - name: Reject generated Adapter and Manager artifacts
+        run: node --test --test-name-pattern="Git candidate tree contains source inputs only" tests/repository-layout.test.mjs
+      - name: Validate shared contracts and capability claims
+        run: npm run test:repository && npm run test:shared-core
+
+  theme-manager:
+    name: CC Theme checks
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          package-manager-cache: false
+      - name: Install Manager dependencies
+        run: npm ci
+      - name: Validate Manager UI, contracts, and staged Adapter Engines
+        run: npm test
+        working-directory: app
+      - name: Prepare verified bundled Node runtime
+        run: npm --prefix app run prepare:runtime
+      - name: Validate Manager Rust backend
+        run: cargo test --manifest-path app/src-tauri/Cargo.toml
+
+  mac-codex:
+    name: mac-codex checks
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          package-manager-cache: false
+      - name: Validate scripts, contracts, and runtime
+        env:
+          # GitHub-hosted runners do not include the official signed Codex.app.
+          # The default local test path still runs these app-bound doctor checks.
+          CC_THEME_SKIP_APP_BOUND_DOCTOR_TESTS: "1"
+        run: NODE="$(command -v node)" ./adapters/mac-codex/tests/run-tests.sh
+  mac-workbuddy:
+    name: mac-workbuddy checks
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          package-manager-cache: false
+      - name: Validate scripts, catalog, preset, and runtime
+        run: npm test
+        working-directory: adapters/mac-workbuddy

@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/quanzhankeji/cc-theme/main/adapters/mac-claude/contracts/claude-target-profile.schema.json",
+  "title": "Mac-Claude Target Profile",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "art": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "focusX": { "type": "number", "minimum": 0, "maximum": 1 },
+        "focusY": { "type": "number", "minimum": 0, "maximum": 1 },
+        "safeArea": { "enum": ["auto", "left", "right", "center", "none"] },
+        "taskMode": { "enum": ["auto", "ambient", "banner", "off"] },
+        "paletteMode": { "enum": ["system", "media"] }
+      }
+    },
+    "appearance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "backgroundVideoPosition": { "$ref": "#/$defs/position" },
+        "backgroundVideoPosterMode": { "enum": ["none", "image"] },
+        "backgroundVideoScrimOpacity": { "type": "number", "minimum": 0, "maximum": 0.8 }
+      }
+    },
+    "effects": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ripple": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "intensity": { "type": "number", "minimum": 0, "maximum": 1 },
+            "radiusPx": { "type": "number", "minimum": 8, "maximum": 96 },
+            "quality": { "enum": ["auto", "low", "high"] },
+            "scrimOpacity": { "type": "number", "minimum": 0, "maximum": 0.8 }
+          }
+        },
+        "directional": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["atlas", "directions", "columns", "rows"],
+          "properties": {
+            "atlas": { "type": "string", "pattern": "^[A-Za-z0-9_.-]+\\.webp$" },
+            "directions": { "enum": [8, 16, 32] },
+            "columns": { "type": "integer", "minimum": 1, "maximum": 8 },
+            "rows": { "type": "integer", "minimum": 1, "maximum": 8 },
+            "firstDirectionDegrees": { "type": "number", "minimum": -180, "maximum": 180 },
+            "idleFrame": { "type": "integer", "minimum": 0, "maximum": 31 },
+            "origin": { "$ref": "#/$defs/position" },
+            "scrimOpacity": { "type": "number", "minimum": 0, "maximum": 0.8 }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "position": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["xPercent", "yPercent"],
+      "properties": {
+        "xPercent": { "type": "number", "minimum": 0, "maximum": 100 },
+        "yPercent": { "type": "number", "minimum": 0, "maximum": 100 }
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "kind": "cc-theme.compile-context",
+  "schemaVersion": 1,
+  "adapters": {
+    "mac-codex": {
+      "detectedClientVersion": "26.715.31925",
+      "detectedClientBuild": "5551",
+      "surfaceCatalogId": "chatgpt-macos-26.715.31925",
+      "surfaceCatalogVersion": 1,
+      "probeStatus": "passed",
+      "compileAllowed": true,
+      "applyAllowed": true,
+      "reasonCode": null,
+      "localRuntimeOverrides": { "baseThemeHash": null, "entries": [] }
+    },
+    "mac-workbuddy": {
+      "detectedClientVersion": "5.2.6",
+      "detectedClientBuild": null,
+      "surfaceCatalogId": null,
+      "surfaceCatalogVersion": 2,
+      "probeStatus": "passed",
+      "compileAllowed": true,
+      "applyAllowed": true,
+      "reasonCode": null,
+      "localRuntimeOverrides": { "baseThemeHash": null, "entries": [] }
+    }
+  }
+}

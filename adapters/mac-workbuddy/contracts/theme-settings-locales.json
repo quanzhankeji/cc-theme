@@ -1,0 +1,341 @@
+{
+  "kind": "theme.settings-locales",
+  "schemaVersion": 2,
+  "catalogVersion": 3,
+  "adapter": "mac-workbuddy",
+  "adapterVersion": "5.2.6",
+  "adapterReleaseRevision": 1,
+  "host": {
+    "application": "WorkBuddy",
+    "version": "5.2.6",
+    "selectableLocaleSource": "renderer getSupportedLocales()",
+    "effectiveLocaleSource": "runtimeInterpreter.localeAuthority",
+    "switchBehavior": "immediate"
+  },
+  "defaultLocale": "zh-CN",
+  "locales": [
+    "zh-CN",
+    "en-US"
+  ],
+  "localeMetadata": {
+    "zh-CN": {
+      "direction": "ltr",
+      "numberFormat": "zh-CN",
+      "languageRange": "zh",
+      "aliases": [
+        "zh",
+        "zh-CN",
+        "zh-Hans",
+        "zh-SG"
+      ]
+    },
+    "en-US": {
+      "direction": "ltr",
+      "numberFormat": "en-US",
+      "languageRange": "en",
+      "aliases": [
+        "en",
+        "en-US",
+        "en-GB"
+      ]
+    }
+  },
+  "fallback": {
+    "unknownLocale": "zh-CN",
+    "diagnosticCode": "host-locale-fallback"
+  },
+  "messages": {
+    "settingsAria": [
+      "CC-Theme 设置",
+      "CC-Theme settings"
+    ],
+    "settingsIntro": [
+      "修改会立即预览并自动保存在这台 Mac 上。",
+      "Changes preview immediately and save automatically on this Mac."
+    ],
+    "settingsReady": [
+      "修改会即时预览并自动保存。",
+      "Changes preview immediately and save automatically."
+    ],
+    "updateApplying": [
+      "正在应用修改…",
+      "Applying changes…"
+    ],
+    "updateApplied": [
+      "修改已自动保存。",
+      "Changes saved automatically."
+    ],
+    "updateRolledBack": [
+      "修改无法保存，已恢复到上次有效状态。",
+      "The change could not be saved and was rolled back."
+    ],
+    "updatePending": [
+      "正在预览修改…",
+      "Previewing changes…"
+    ],
+    "overridesRebased": [
+      "主题更新后，兼容的本地设置已保留。",
+      "Compatible local settings were kept for this updated theme."
+    ],
+    "overridesQuarantined": [
+      "已隔离 {count} 项不兼容的本地设置，未将其应用。",
+      "{count} incompatible local setting(s) were isolated and not applied."
+    ],
+    "backgroundPositionMigrated": [
+      "旧的图片/视频位置已合并为统一的背景位置。",
+      "Legacy image/video positions were merged into one background position."
+    ],
+    "backgroundPositionMigrationConflict": [
+      "旧的图片与视频位置冲突，已保留上次有效的背景位置。",
+      "Legacy image and video positions conflict; the last valid background position was kept."
+    ],
+    "currentTheme": [
+      "当前主题",
+      "Current theme"
+    ],
+    "activeTheme": [
+      "使用中",
+      "Active"
+    ],
+    "paletteSystem": [
+      "跟随 WorkBuddy 亮色/深色",
+      "Follows WorkBuddy light/dark appearance"
+    ],
+    "paletteAdaptive": [
+      "媒体自适应配色",
+      "Media-adaptive colors"
+    ],
+    "paletteCustom": [
+      "主题自定义配色",
+      "Theme-defined colors"
+    ],
+    "backgroundEffect": [
+      "背景效果",
+      "Background effect"
+    ],
+    "settingsAppearance": [
+      "外观",
+      "Appearance"
+    ],
+    "groupColor": [
+      "颜色",
+      "Colors"
+    ],
+    "groupTypography": [
+      "字体",
+      "Typography"
+    ],
+    "groupOpacity": [
+      "透明度",
+      "Transparency"
+    ],
+    "groupBackground": [
+      "背景",
+      "Background"
+    ],
+    "controlTheme": [
+      "主题",
+      "Theme"
+    ],
+    "controlPalette": [
+      "配色策略",
+      "Color strategy"
+    ],
+    "controlSurfaceBase": [
+      "主内容表面",
+      "Main surface"
+    ],
+    "controlSurfaceRaised": [
+      "控件表面",
+      "Raised surface"
+    ],
+    "controlSurfaceElevated": [
+      "弹窗表面",
+      "Overlay surface"
+    ],
+    "controlTextPrimary": [
+      "主要文字",
+      "Primary text"
+    ],
+    "controlTextSecondary": [
+      "次要文字",
+      "Secondary text"
+    ],
+    "colorPickerAria": [
+      "选择“{control}”颜色",
+      "Choose the {control} color"
+    ],
+    "colorValueAria": [
+      "输入“{control}”颜色值",
+      "Enter the {control} color value"
+    ],
+    "colorValuePlaceholder": [
+      "#RRGGBB、rgb() 或 rgba()",
+      "#RRGGBB, rgb(), or rgba()"
+    ],
+    "colorValueInvalid": [
+      "请输入有效颜色，例如 #1A2B3C、rgb() 或 rgba()。按 Esc 恢复上次有效值。",
+      "Enter a valid color such as #1A2B3C, rgb(), or rgba(). Press Escape to restore the last valid value."
+    ],
+    "controlAccent": [
+      "强调色",
+      "Accent"
+    ],
+    "controlBorder": [
+      "边框",
+      "Border"
+    ],
+    "controlFontUi": [
+      "界面字体",
+      "Interface font"
+    ],
+    "controlFontDisplay": [
+      "标题字体",
+      "Heading font"
+    ],
+    "controlFontCode": [
+      "代码字体",
+      "Code font"
+    ],
+    "controlScrimOpacity": [
+      "背景遮罩透明度",
+      "Background scrim opacity"
+    ],
+    "controlBackgroundOpacity": [
+      "背景叠层透明度",
+      "Background overlay opacity"
+    ],
+    "controlBackgroundPosition": [
+      "背景位置",
+      "Background position"
+    ],
+    "backgroundPositionXAria": [
+      "背景水平位置（百分比）",
+      "Background horizontal position (percent)"
+    ],
+    "backgroundPositionYAria": [
+      "背景垂直位置（百分比）",
+      "Background vertical position (percent)"
+    ],
+    "controlBlur": [
+      "背景模糊",
+      "Backdrop blur"
+    ],
+    "controlSaturation": [
+      "背景饱和度",
+      "Backdrop saturation"
+    ],
+    "restoreDefault": [
+      "恢复默认",
+      "Restore"
+    ],
+    "restoreControlAria": [
+      "恢复“{control}”的默认值",
+      "Restore the default value for {control}"
+    ],
+    "rippleBackground": [
+      "水波背景",
+      "Ripple background"
+    ],
+    "directionalBackground": [
+      "方向背景",
+      "Directional background"
+    ],
+    "reduceMotionStatic": [
+      "减少动态效果（静态）",
+      "Reduce Motion (static)"
+    ],
+    "running": [
+      "运行中",
+      "Running"
+    ],
+    "paused": [
+      "已暂停",
+      "Paused"
+    ],
+    "pause": [
+      "暂停",
+      "Pause"
+    ],
+    "enable": [
+      "启用",
+      "Enable"
+    ],
+    "disable": [
+      "禁用",
+      "Disable"
+    ],
+    "staticImage": [
+      "静态图片背景",
+      "Static image background"
+    ],
+    "notSwitchable": [
+      "不可切换",
+      "Unavailable"
+    ],
+    "visualsDisabled": [
+      "动态背景已禁用（原生外观）",
+      "Dynamic background disabled (native appearance)"
+    ],
+    "videoPlaying": [
+      "动态背景播放中",
+      "Dynamic background playing"
+    ],
+    "videoReduced": [
+      "减少动态效果（已暂停）",
+      "Reduce Motion (paused)"
+    ],
+    "videoUnavailable": [
+      "动态背景暂不可用",
+      "Dynamic background unavailable"
+    ],
+    "videoPaused": [
+      "动态背景已暂停",
+      "Dynamic background paused"
+    ],
+    "interactiveUnavailableAria": [
+      "互动背景暂不可用，已显示静态背景",
+      "Interactive background unavailable; showing the static background"
+    ],
+    "interactiveReducedAria": [
+      "系统已开启减少动态效果，当前显示静态背景",
+      "Reduce Motion is enabled; showing the static background"
+    ],
+    "pauseInteractiveAria": [
+      "暂停互动背景",
+      "Pause interactive background"
+    ],
+    "enableInteractiveAria": [
+      "启用互动背景",
+      "Enable interactive background"
+    ],
+    "videoUnavailableAria": [
+      "动态背景暂不可用",
+      "Dynamic background unavailable"
+    ],
+    "enableVideoAria": [
+      "启用并播放动态背景",
+      "Enable and play dynamic background"
+    ],
+    "videoReducedAria": [
+      "播放动态背景（系统已开启减少动态效果）",
+      "Play dynamic background (Reduce Motion is enabled)"
+    ],
+    "pauseVideoAria": [
+      "暂停动态背景",
+      "Pause dynamic background"
+    ],
+    "disableVideoAria": [
+      "禁用动态背景",
+      "Disable dynamic background"
+    ],
+    "navigationTitle": [
+      "CC-Theme",
+      "CC-Theme"
+    ],
+    "pageTitle": [
+      "CC-Theme",
+      "CC-Theme"
+    ]
+  }
+}

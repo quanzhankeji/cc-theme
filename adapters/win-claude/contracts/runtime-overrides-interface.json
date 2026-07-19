@@ -1,0 +1,42 @@
+{
+  "kind": "cc-theme.runtime-overrides-interface",
+  "schemaVersion": 1,
+  "adapterId": "win-claude",
+  "precedence": [
+    "shared-core",
+    "target-profile",
+    "local-runtime-overrides",
+    "runtime-accessibility-and-host-safety"
+  ],
+  "recordKind": "theme.runtime-style-overrides",
+  "stableTokenSource": "contracts/theme-style-catalog.json",
+  "binding": ["themeId", "baseThemeSha256"],
+  "baseChangePolicy": {
+    "sameHash": "preserve",
+    "compatible": "validate-rebase-replay-with-visible-diagnostic",
+    "incompatible": "quarantine-without-application",
+    "missingDecision": "quarantine-with-visible-diagnostic",
+    "silentDrop": false
+  },
+  "persistence": {
+    "preview": "immediate",
+    "debounceMs": 180,
+    "runtimeOrdering": {
+      "scope": "renderer-session",
+      "sessionNonce": "required",
+      "generation": "monotonic-within-session",
+      "revision": "monotonic-within-session-and-theme-nonce",
+      "crossProcessComparable": false
+    },
+    "artifactBinding": {
+      "baseThemeSha256": "normalized-theme-file-or-manifest-digest",
+      "sessionNonceIsDigest": false,
+      "generationIsDigest": false
+    },
+    "ordering": "latest-write-wins",
+    "atomic": true,
+    "crossProcessCoordination": "single-adapter-lock",
+    "saveButton": false,
+    "failure": "restore-last-valid-ui-renderer-disk-state"
+  }
+}

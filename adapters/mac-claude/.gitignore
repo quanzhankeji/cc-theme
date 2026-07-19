@@ -1,0 +1,15 @@
+.DS_Store
+._*
+release/
+runtime/
+*.log
+*.pid
+*.tmp
+.env
+.env.*
+node_modules/
+coverage/
+reports/
+screenshots/
+themes/private/
+*.user.json

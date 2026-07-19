@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cc-theme.local/contracts/win-workbuddy-operation-result.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "schemaVersion", "adapterId", "operation", "ok", "status", "code", "phase", "cleanupComplete", "details"],
+  "properties": {
+    "kind": { "const": "cc-theme.adapter-result" },
+    "schemaVersion": { "const": 1 },
+    "adapterId": { "const": "win-workbuddy-skin" },
+    "operation": { "enum": ["detect", "preflight", "install", "apply", "launch", "verify", "pause", "restore"] },
+    "ok": { "type": "boolean" },
+    "status": { "enum": ["success", "failed", "partial"] },
+    "code": { "type": "string", "pattern": "^[a-z][a-z0-9-]{1,79}$" },
+    "phase": { "enum": ["detect", "preflight", "stage", "apply", "launch", "verify", "cleanup"] },
+    "cleanupComplete": { "type": "boolean" },
+    "details": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "application": { "const": "workbuddy" },
+        "clientVersion": { "type": "string", "maxLength": 40 },
+        "themeId": { "type": "string", "maxLength": 80 },
+        "rendererGeneration": { "type": "integer", "minimum": 0, "maximum": 2147483647 },
+        "rendererGenerationScope": { "const": "renderer-session" },
+        "artifactManifestSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "artifactDigestScope": { "const": "deterministic-runtime-manifest" },
+        "archiveSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "processRunning": { "type": "boolean" },
+        "transportStatus": { "enum": ["unverified", "unavailable", "verified"] },
+        "verificationStatus": { "enum": ["unverified", "failed", "verified"] },
+        "warnings": { "type": "array", "maxItems": 20, "items": { "type": "string", "maxLength": 160 } }
+      }
+    }
+  }
+}

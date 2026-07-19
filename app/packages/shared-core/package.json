@@ -1,0 +1,13 @@
+{
+  "name": "@cc-theme/shared-core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./compiler.mjs",
+    "./runtime-overrides": "./runtime-overrides.mjs"
+  },
+  "dependencies": {
+    "@cc-theme/adapter-sdk": "0.1.0"
+  }
+}

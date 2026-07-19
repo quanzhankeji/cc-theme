@@ -1,0 +1,15 @@
+{
+  "kind": "cc-theme.lifecycle-interface",
+  "schemaVersion": 1,
+  "phases": ["detect", "preflight", "apply", "verify", "pause", "restore"],
+  "resultKind": "cc-theme.lifecycle-result",
+  "statuses": ["passed", "failed"],
+  "failureCategories": ["adapter-landmark", "theme-contract", "visual"],
+  "failureCodes": [
+    "ok", "invalid-request", "app-not-found", "runtime-invalid", "theme-invalid",
+    "adapter-landmark-missing", "transport-unavailable", "apply-failed",
+    "cleanup-incomplete", "visual-regression", "unexpected-failure"
+  ],
+  "targetPolicy": "verified-exact-build-with-runtime-landmarks",
+  "reportPrivacy": "structure-only-no-user-content"
+}

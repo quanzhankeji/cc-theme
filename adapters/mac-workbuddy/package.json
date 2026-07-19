@@ -1,0 +1,56 @@
+{
+  "name": "mac-workbuddy",
+  "version": "5.2.6",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "description": "A reversible WorkBuddy Desktop theme adapter with localized native Settings, a fixed UI interpreter, and validated external media, ripple, or directional backgrounds.",
+  "keywords": [
+    "workbuddy",
+    "macos",
+    "theme",
+    "theme-manager",
+    "desktop-customization",
+    "local-first",
+    "image-background",
+    "video-background",
+    "interactive-background",
+    "webgl-ripple",
+    "directional-atlas",
+    "cc-theme"
+  ],
+  "homepage": "https://github.com/quanzhankeji/cc-theme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/quanzhankeji/cc-theme.git",
+    "directory": "adapters/mac-workbuddy"
+  },
+  "bugs": {
+    "url": "https://github.com/quanzhankeji/cc-theme/issues"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "ccThemeAdapter": {
+    "adapterId": "mac-workbuddy",
+    "adapterVersion": "5.2.6",
+    "adapterReleaseRevision": 1,
+    "platform": "macos",
+    "architecture": "arm64"
+  },
+  "scripts": {
+    "check": "node scripts/adapter-capability.mjs",
+    "catalog:check": "node scripts/ui-surface-catalog.mjs --check",
+    "catalog:write": "node scripts/ui-surface-catalog.mjs --write",
+    "apply:cc-theme": "bash scripts/apply-cc-theme-macos.sh",
+    "test": "bash tests/run-tests.sh",
+    "doctor": "bash scripts/doctor-macos.sh",
+    "start": "bash scripts/start-skin-macos.sh",
+    "pause": "bash scripts/pause-skin-macos.sh",
+    "restore": "bash scripts/restore-skin-macos.sh",
+    "status": "bash scripts/status-skin-macos.sh",
+    "build": "npm run build:source",
+    "build:source": "bash scripts/build-release.sh",
+    "build:client": "bash scripts/build-client-release.sh"
+  }
+}

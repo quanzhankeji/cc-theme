@@ -1,0 +1,28 @@
+{
+  "kind": "cc-theme.live-surface-evidence-policy",
+  "revision": 1,
+  "maximumNodesPerTarget": 512,
+  "allowedData": [
+    "tag",
+    "stable-role",
+    "stable-class-token",
+    "stable-state-attribute",
+    "parent-index",
+    "element-child-count",
+    "geometry",
+    "visibility-state",
+    "necessary-computed-style",
+    "aggregate-count"
+  ],
+  "forbiddenData": [
+    "innerText",
+    "textContent",
+    "input-value",
+    "accessible-name",
+    "url-query-hash",
+    "link-target",
+    "media-source",
+    "chat-content"
+  ],
+  "admissionPolicy": "privacy-preserving-current-evidence-required-for-apply"
+}

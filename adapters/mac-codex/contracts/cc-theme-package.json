@@ -1,0 +1,18 @@
+{
+  "kind": "cc-theme.package-contract",
+  "revision": 1,
+  "extension": ".cctheme",
+  "mimeType": "application/vnd.cc-theme.theme+zip",
+  "container": "zip",
+  "manifestKind": "skin.package",
+  "documentKind": "skin.document",
+  "themeKind": "skin.theme",
+  "target": {
+    "application": "codex",
+    "platform": "macos",
+    "version": "26.715.31925",
+    "adapterId": "mac-codex",
+    "adapterContract": "skin.theme",
+    "targetPath": "targets/macos/theme.json"
+  }
+}

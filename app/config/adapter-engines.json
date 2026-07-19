@@ -1,0 +1,28 @@
+{
+  "kind": "cc-theme.manager-adapter-engine-sources",
+  "schemaVersion": 1,
+  "adapters": [
+    {
+      "adapterId": "mac-codex",
+      "bundleDirectory": "mac-codex",
+      "normalizerModule": "mac-codex/scripts/skin-theme.mjs",
+      "normalizerExport": "normalizeSkinTheme",
+      "source": {
+        "kind": "release-builder",
+        "workspaceModule": "adapters/mac-codex/scripts/adapter-release.mjs",
+        "releaseManifest": "adapters/mac-codex/contracts/adapter-release-manifest.json"
+      }
+    },
+    {
+      "adapterId": "mac-workbuddy",
+      "bundleDirectory": "mac-workbuddy",
+      "normalizerModule": "mac-workbuddy/scripts/skin-theme.mjs",
+      "normalizerExport": "normalizeSkinTheme",
+      "source": {
+        "kind": "release-builder",
+        "workspaceModule": "adapters/mac-workbuddy/scripts/adapter-release.mjs",
+        "releaseManifest": "adapters/mac-workbuddy/contracts/adapter-release-manifest.json"
+      }
+    }
+  ]
+}

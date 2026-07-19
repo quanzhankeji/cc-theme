@@ -1,0 +1,54 @@
+{
+  "kind": "cc-theme.runtime-proof-evidence",
+  "schemaVersion": 1,
+  "capturedDate": "2026-07-18",
+  "adapterId": "win-workbuddy-skin",
+  "classification": "vm-verified",
+  "client": {
+    "application": "workbuddy",
+    "version": "5.2.6",
+    "publisher": "Tencent Technology (Shenzhen) Company Limited",
+    "signatureStatus": "valid"
+  },
+  "transport": {
+    "kind": "electron-cdp-official-environment-switch",
+    "switch": "WORKBUDDY_REMOTE_DEBUGGING_PORT",
+    "listener": "loopback",
+    "processBound": true,
+    "targetIdentity": "workbuddy-windows-main-renderer"
+  },
+  "targetConditions": {
+    "pageType": "page",
+    "productionRendererSuffix": "/resources/app.asar/renderer/index.html",
+    "title": "WorkBuddy",
+    "applicationName": "workbuddy",
+    "electronDesktop": "true",
+    "platform": "windows",
+    "productVersion": "5.2.6",
+    "rootCount": 1,
+    "cardinality": "exactly-one"
+  },
+  "operations": {
+    "launch": "success",
+    "preflight": "success",
+    "apply": "success",
+    "verify": "success",
+    "pause": "success",
+    "restore": "success"
+  },
+  "visual": {
+    "apply": "magenta-inset-border-and-proof-badge-observed",
+    "pause": "border-removed-and-paused-badge-observed",
+    "restore": "all-adapter-markers-absent-observed"
+  },
+  "cleanupComplete": false,
+  "privacy": "bounded-no-paths-no-command-lines-no-tokens",
+  "limitations": [
+    "proof-canary-only",
+    "full-theme-projection-not-live-verified",
+    "settings-navigation-not-live-verified",
+    "ui-surface-catalog-still-identity-only",
+    "debug-listener-cleanup-not-yet-verified",
+    "production-runtime-apply-remains-disabled"
+  ]
+}

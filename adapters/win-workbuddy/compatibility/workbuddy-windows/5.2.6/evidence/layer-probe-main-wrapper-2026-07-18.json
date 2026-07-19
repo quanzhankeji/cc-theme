@@ -1,0 +1,27 @@
+{
+  "kind": "cc-theme.win-workbuddy-layer-evidence",
+  "schemaVersion": 1,
+  "adapterId": "win-workbuddy-skin",
+  "clientVersion": "5.2.6",
+  "classification": "vm-read-only",
+  "privacy": "structure-and-computed-background-only",
+  "targetBounds": { "x": 264, "y": 30, "width": 936, "height": 771 },
+  "scannedNodeCount": 396,
+  "opaqueLayer": {
+    "tag": "div",
+    "id": null,
+    "classes": ["_gridViewItem_48kdk_14"],
+    "parentClasses": ["_gridView_48kdk_9"],
+    "bounds": { "x": 264, "y": 30, "width": 936, "height": 771 },
+    "computedBackground": { "color": "rgb(250, 250, 250)", "imagePresent": false }
+  },
+  "transparentDescendants": [
+    { "classes": ["teams-content-wrapper"], "computedBackground": "rgba(0, 0, 0, 0)" },
+    { "classes": ["teams-main-content"], "computedBackground": "rgba(0, 0, 0, 0)" },
+    { "classes": ["main-content", "main-content--welcome"], "computedBackground": "rgba(0, 0, 0, 0)" }
+  ],
+  "siblingRisk": "_gridViewItem_48kdk_14 is also used by the sidebar",
+  "selectorDecision": "require exact parent and direct teams-content-wrapper child",
+  "hashedClassPolicy": "valid only for exact WorkBuddy 5.2.6; re-probe on every client version",
+  "excluded": ["text", "accessible-name", "account", "user-content", "full-path", "command-line", "environment"]
+}

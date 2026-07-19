@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cc-theme.local/win-claude/operation-result.schema.json",
+  "title": "Win-Claude lifecycle operation result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "schemaVersion", "adapterId", "requestId", "operation", "phase", "status", "ok", "changed", "code", "message", "timestamp", "durationMs"],
+  "properties": {
+    "kind": { "const": "cc-theme.lifecycle-result" },
+    "schemaVersion": { "const": 1 },
+    "adapterId": { "const": "win-claude" },
+    "requestId": { "type": "string", "pattern": "^[A-Za-z0-9_-]{8,80}$" },
+    "operation": { "enum": ["detect", "preflight", "install", "apply", "launch", "apply-and-launch", "verify", "pause", "restore"] },
+    "phase": { "enum": ["detect", "preflight", "stage", "install", "apply", "launch", "verify", "cleanup", "complete"] },
+    "status": { "enum": ["success", "failed", "partial", "skipped"] },
+    "ok": { "type": "boolean" },
+    "changed": { "type": "boolean" },
+    "code": { "enum": ["ok", "invalid-request", "app-not-found", "client-identity-untrusted", "client-version-unsupported", "runtime-invalid", "theme-invalid", "adapter-landmark-missing", "transport-unavailable", "install-failed", "apply-failed", "launch-failed", "verification-failed", "cleanup-incomplete", "operation-cancelled", "unexpected-failure"] },
+    "message": { "type": "string", "minLength": 1, "maxLength": 320 },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "durationMs": { "type": "integer", "minimum": 0 },
+    "details": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "clientVersion": { "type": ["string", "null"], "maxLength": 80 },
+        "packageIdentityStatus": { "enum": ["not-run", "passed", "failed"] },
+        "processRunning": { "type": "boolean" },
+        "transportAvailable": { "type": "boolean" },
+        "verification": { "enum": ["not-run", "passed", "failed"] },
+        "runtimeOrdering": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["sessionNonce", "generation", "revision"],
+          "properties": {
+            "sessionNonce": { "type": "string", "pattern": "^[A-Za-z0-9_-]{16,80}$" },
+            "generation": { "type": "integer", "minimum": 0 },
+            "revision": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "artifactProvenance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["fileSha256", "manifestSha256", "archiveSha256"],
+          "properties": {
+            "fileSha256": { "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$" },
+            "manifestSha256": { "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$" },
+            "archiveSha256": { "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$" }
+          }
+        },
+        "warnings": { "type": "array", "maxItems": 20, "items": { "type": "string", "minLength": 1, "maxLength": 240 } }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "success" } }, "required": ["status"] },
+      "then": { "properties": { "ok": { "const": true }, "code": { "const": "ok" } } }
+    },
+    {
+      "if": { "properties": { "status": { "const": "failed" } }, "required": ["status"] },
+      "then": { "properties": { "ok": { "const": false } }, "not": { "properties": { "code": { "const": "ok" } }, "required": ["code"] } }
+    }
+  ]
+}

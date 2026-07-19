@@ -1,0 +1,72 @@
+{
+  "kind": "cc-theme.adapter-capability",
+  "revision": 2,
+  "adapterId": "mac-codex",
+  "adapterVersion": "26.715.31925",
+  "adapterReleaseRevision": 1,
+  "releaseTarget": {
+    "os": "macos",
+    "arch": "arm64",
+    "assetIdentity": "mac-codex-26.715.31925-r1-macos-arm64"
+  },
+  "displayName": "Mac Codex",
+  "availability": "available",
+  "capabilityVersion": "2.0.0",
+  "runtimeApplyAvailable": true,
+  "targetTheme": {
+    "kind": "skin.theme",
+    "schema": "skin-theme.schema.json",
+    "versionPolicy": "versionless"
+  },
+  "catalogs": {
+    "styleCatalogId": "mac-codex-theme",
+    "styleCatalogRevision": 1,
+    "projection": "adapter-projection.json",
+    "targetProfileSchema": "target-profile.schema.json",
+    "localeCatalog": "theme-editor-locales.json",
+    "localeAuthority": "document.documentElement.lang",
+    "uiSurfaceCatalogPolicy": "current-evidence-required",
+    "uiSurfaceCatalog": "../compatibility/chatgpt-macos/26.715.31925/ui-surface-catalog.json"
+  },
+  "interfaces": {
+    "compile": "scripts/adapter-capability.mjs",
+    "lifecycle": "scripts/theme-lifecycle.mjs",
+    "runtimeOverrides": "scripts/runtime-override-transaction.mjs"
+  },
+  "compatibility": {
+    "clientVersionPolicy": "always-latest",
+    "applyAdmission": "official-signature-plus-current-surface-evidence-plus-live-adapter-verification",
+    "surfaceEvidenceIsGate": true,
+    "currentEvidence": {
+      "clientVersion": "26.715.31925",
+      "clientBuild": "5551",
+      "surfaceCatalogId": "chatgpt-macos-26.715.31925",
+      "verifiedAt": "2026-07-18"
+    }
+  },
+  "semanticContractStatus": "blocked-pending-manager-cross-validation",
+  "sharedCoreFieldDecisions": { "source": "adapter-projection.json", "singleSourceOfTruth": true },
+  "targetProfile": {
+    "namespace": "mac-codex",
+    "schemaKind": "cc-theme.target-profile",
+    "revision": 1,
+    "unknownFieldPolicy": "reject",
+    "fieldDecisions": { "source": "adapter-projection.json", "selector": "targetProfileFields" }
+  },
+  "localRuntimeOverrides": {
+    "catalog": "theme-style-catalog.json",
+    "editableTokens": { "source": "theme-style-catalog.json", "selector": "tokens[].id" },
+    "runtimeControls": { "source": "theme-style-catalog.json", "selector": "runtimeControls[].id" },
+    "stableTokenIds": true,
+    "baseHash": true,
+    "incompatibleValuePolicy": "quarantine-and-notify",
+    "transactionPolicy": "single-file-lock-serialized-merge",
+    "previewPolicy": "immediate-preview-debounced-atomic-persist",
+    "saveButton": false
+  },
+  "security": {
+    "forbiddenPayloads": ["css", "javascript", "html", "shader", "selector", "command", "url", "absolute-path", "path-traversal", "host-version-fact"],
+    "officialApplicationReadOnly": true,
+    "reducedMotionOwner": "host-runtime"
+  }
+}

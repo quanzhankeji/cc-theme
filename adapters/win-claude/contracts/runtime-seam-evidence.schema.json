@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cc-theme.local/win-claude/runtime-seam-evidence.schema.json",
+  "title": "Win-Claude runtime Seam static evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "schemaVersion", "adapterId", "clientVersion", "evidenceClass", "extensionLoading", "preload", "officialDeveloperTools", "rejectedReuse", "conclusion"],
+  "properties": {
+    "kind": { "const": "cc-theme.windows-claude-runtime-seam-evidence" },
+    "schemaVersion": { "const": 1 },
+    "adapterId": { "const": "win-claude" },
+    "clientVersion": { "const": "1.22209.0" },
+    "evidenceClass": { "const": "static-analysis" },
+    "extensionLoading": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["loadExtensionOccurrences", "observedFamilies", "loadExtensionSwitchLiteralObserved", "disableExtensionsExceptLiteralObserved", "contentScriptsLiteralObserved", "genericOfficialExtensionHookObserved", "cliUnpackedExtensionDecision"],
+      "properties": {
+        "loadExtensionOccurrences": { "const": 5 },
+        "observedFamilies": { "type": "array", "minItems": 3, "uniqueItems": true, "items": { "type": "string" } },
+        "loadExtensionSwitchLiteralObserved": { "const": false },
+        "disableExtensionsExceptLiteralObserved": { "const": false },
+        "contentScriptsLiteralObserved": { "const": false },
+        "genericOfficialExtensionHookObserved": { "const": false },
+        "cliUnpackedExtensionDecision": { "const": "failed-static-no-supported-loader" }
+      }
+    },
+    "preload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["webFrameInsertCssObserved", "injectedPurpose", "externalThemeParameterObserved", "genericOfficialPreloadHookObserved", "decision"],
+      "properties": {
+        "webFrameInsertCssObserved": { "const": true },
+        "injectedPurpose": { "const": "fixed-scrollbar-css" },
+        "externalThemeParameterObserved": { "const": false },
+        "genericOfficialPreloadHookObserved": { "const": false },
+        "decision": { "const": "unreachable-without-forbidden-modification-or-bypass" }
+      }
+    },
+    "officialDeveloperTools": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["detachPathObserved", "decision"],
+      "properties": {
+        "detachPathObserved": { "const": true },
+        "decision": { "const": "manual-proof-only-not-production-transport" }
+      }
+    },
+    "rejectedReuse": { "type": "array", "minItems": 5, "uniqueItems": true, "items": { "type": "string" } },
+    "conclusion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["safeCliExtensionProofAvailable", "productionRuntimeSeamVerified", "runtimeApplyAvailable", "reasonCode"],
+      "properties": {
+        "safeCliExtensionProofAvailable": { "const": false },
+        "productionRuntimeSeamVerified": { "const": false },
+        "runtimeApplyAvailable": { "const": false },
+        "reasonCode": { "const": "production-runtime-seam-unverified" }
+      }
+    }
+  }
+}

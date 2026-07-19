@@ -1,0 +1,7 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cc-theme.local/contracts/unified-theme.schema.json",
+  "title": "CC Theme unified theme family",
+  "description": "The single public authoring contract for Shared Core and Adapter-owned Target Profiles.",
+  "$ref": "unified-theme-v1.schema.json"
+}

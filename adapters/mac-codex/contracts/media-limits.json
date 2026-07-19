@@ -1,0 +1,15 @@
+{
+  "contract": "cc-theme.media-limits",
+  "revision": 1,
+  "imageBytes": 16777216,
+  "directionalAtlasBytes": 33554432,
+  "directionalAtlasPixels": 32000000,
+  "directionalAtlasDimension": 16384,
+  "standardVideoBytes": 268435456,
+  "largeVideoBytes": 268435456,
+  "inlineVideoBytes": 16777216,
+  "totalThemeMediaBytes": 550502400,
+  "packageBytes": 576716800,
+  "maxEntries": 20,
+  "largeVideoWarningBytes": 157286400
+}

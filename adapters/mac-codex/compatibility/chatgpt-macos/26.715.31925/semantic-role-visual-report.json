@@ -1,0 +1,143 @@
+{
+  "kind": "skin.semantic-role-visual-report",
+  "schemaVersion": "1.0.0",
+  "adapterId": "mac-codex",
+  "catalogId": "chatgpt-macos-26.715.31925",
+  "capturedAt": "2026-07-18",
+  "client": {
+    "product": "Codex Desktop",
+    "version": "26.715.31925",
+    "build": "5551",
+    "bundleTeamId": "2DC432GLL2",
+    "asarSha256": "0c9dd677134340cb944e7642b8bc2504c7b73c7dc334d9d756547858171eea41"
+  },
+  "privacy": {
+    "profile": "structural-computed-style-only-v1",
+    "excluded": [
+      "innerText",
+      "textContent",
+      "input values",
+      "accessible names",
+      "URL",
+      "query",
+      "hash",
+      "link targets",
+      "media sources"
+    ]
+  },
+  "applyAdmission": {
+    "allowed": true,
+    "policy": "official-signature-plus-current-surface-evidence-plus-live-adapter-verification",
+    "surfaceEvidenceIsGate": true,
+    "diagnostics": []
+  },
+  "theme": {
+    "id": "external-evidence-theme",
+    "backgroundMode": "video",
+    "semanticTokens": {
+      "colors.text": "#1d1d1f",
+      "colors.muted": "#5f6368",
+      "semanticColors.textStrong": "#000000",
+      "semanticColors.focusRing": "#007aff",
+      "semanticColors.surfaceBase": "rgba(255, 255, 255, .68)",
+      "semanticColors.surfaceRaised": "rgba(255, 255, 255, .76)",
+      "semanticColors.sidebarSurface": "rgba(255, 255, 255, .48)",
+      "semanticColors.composerSurface": "rgba(255, 255, 255, .78)",
+      "fonts.display": "Kaiti SC, STKaiti, PingFang SC, serif",
+      "fonts.ui": "PingFang SC, Avenir Next, system-ui, sans-serif",
+      "appearance.backgroundPosition": "64% 51.57%"
+    }
+  },
+  "semanticRoles": {
+    "main": {
+      "native": true,
+      "ownedMarker": true,
+      "visible": true,
+      "backgroundColor": "transparent",
+      "pass": true
+    },
+    "sidebar": {
+      "native": true,
+      "ownedMarker": true,
+      "visible": true,
+      "backgroundColor": "transparent",
+      "ownedLayerBackgroundColor": "rgba(255, 255, 255, 0.48)",
+      "pass": true
+    },
+    "composer": {
+      "native": true,
+      "ownedMarker": true,
+      "visible": true,
+      "backgroundColor": "rgba(255, 255, 255, 0.78)",
+      "pass": true
+    },
+    "text": {
+      "consumerCandidates": 49,
+      "colorMatches": 49,
+      "pass": true
+    },
+    "textMuted": {
+      "boundedConsumerCandidates": 427,
+      "observedMatches": 1,
+      "routeDependent": true,
+      "pass": true
+    },
+    "focus": {
+      "observed": true,
+      "resolvedColor": "rgb(0, 122, 255)",
+      "pass": true
+    },
+    "background": {
+      "resolvedObjectPosition": "64% 51.57%",
+      "positionMatches": true,
+      "videoPreference": "playing",
+      "videoState": "playing",
+      "videoPaused": false,
+      "readyState": 4,
+      "sourceKind": "local-blob",
+      "pass": true
+    }
+  },
+  "homeAcceptance": {
+    "movingBackgroundPolicy": "preserve-current-native-layout",
+    "required": ["home-root-visible", "heading-visible", "composer-visible"],
+    "forbiddenAssumption": "exactly-four-demo-cards",
+    "observedVisibleCardCount": 0,
+    "observedHeading": true,
+    "observedComposer": true,
+    "displayFontConsumerObserved": true,
+    "pass": true
+  },
+  "accessibility": {
+    "reducedMotionRuntimeOwner": "host",
+    "reducedMotionStaticStateVerified": true,
+    "keyboardFocusObserved": true,
+    "pass": true
+  },
+  "lifecycle": {
+    "apply": "passed",
+    "verify": "passed",
+    "pause": "passed",
+    "rollbackOnInvalidRuntimeOverride": "passed",
+    "restoreCleanup": "passed",
+    "restoreThenSwitch": {
+      "watcherActive": true,
+      "semanticVerification": "passed",
+      "videoActuallyPlaying": true,
+      "persistenceMechanism": "user-launchd-job",
+      "independentWaitSeconds": [15, 5],
+      "status": "independently-verified",
+      "pass": true
+    }
+  },
+  "result": {
+    "semanticStyleEvidencePass": true,
+    "diagnostics": [],
+    "pass": true
+  },
+  "limitations": [
+    "This report is valid only for the exact signed client and ASAR hash above.",
+    "It contains no user-visible copy, account data, conversation data, URL, accessible name, or media source.",
+    "Manager semantic equivalence remains blocked until independent Manager cross-validation accepts this Adapter revision."
+  ]
+}

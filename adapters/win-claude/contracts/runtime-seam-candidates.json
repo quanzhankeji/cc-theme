@@ -1,0 +1,107 @@
+{
+  "kind": "cc-theme.runtime-seam-candidates",
+  "schemaVersion": 1,
+  "adapterId": "win-claude",
+  "assessedClientVersion": "1.22209.0",
+  "productionRuntimeApplyAvailable": false,
+  "candidates": [
+    {
+      "id": "electron-unpacked-extension-command-line",
+      "priority": "A",
+      "evidenceClass": "static-analysis",
+      "status": "failed-static-no-supported-loader",
+      "mechanism": "chromium-load-extension-switch-with-isolated-temporary-profile",
+      "officialEvidence": [
+        "Chromium defines and loads unpacked extensions from --load-extension",
+        "Electron officially supports unpacked extensions through the main-process Session extensions API rather than a documented CLI loader",
+        "Electron documents that unsupported command-line switches have no effect",
+        "Chrome content scripts support exact HTTPS match patterns and an isolated world"
+      ],
+      "claudeStaticEvidence": {
+        "loadExtensionOccurrences": 5,
+        "observedUses": ["react-devtools", "electron-devtools-installer", "anthropic-dxt-installer"],
+        "loadExtensionSwitchLiteralObserved": false,
+        "disableExtensionsExceptLiteralObserved": false,
+        "contentScriptsLiteralObserved": false,
+        "genericOfficialExtensionHookObserved": false
+      },
+      "claudeReachability": "no-supported-cli-loader-and-no-generic-main-process-hook",
+      "proof": {
+        "extensionDirectory": "proofs/electron-extension",
+        "status": "static-security-fixture-not-authorized-to-launch",
+        "matchPattern": "https://claude.ai/*",
+        "permissions": [],
+        "readsAccountContent": false,
+        "writesOnlyOwnedNodes": true,
+        "usesTemporaryUserDataDirectory": true,
+        "expectedMarkerId": "cc-theme-extension-proof-marker",
+        "expectedDataset": "data-cc-theme-extension-proof=1.22209.0"
+      },
+      "cleanup": [
+        "activate-owned-remove-button",
+        "exit-claude",
+        "cold-start-without-proof-switches",
+        "verify-marker-absent",
+        "delete-owned-temporary-root-after-reparse-check"
+      ],
+      "minimumVmCommand": null,
+      "decision": "do-not-run-load-extension-command",
+      "capabilityEffect": "none-production-gate-remains-closed"
+    },
+    {
+      "id": "official-devtools-detach",
+      "priority": "B",
+      "evidenceClass": "vm-verified-host-static-analysis-runtime-proof-pending",
+      "status": "manual-proof-only",
+      "mechanism": "CLAUDE_DEV_TOOLS=detach",
+      "claudeReachability": "official-code-path-observed",
+      "productionLimitation": "interactive-console-is-not-an-automated-serialized-transport"
+    },
+    {
+      "id": "electron-session-extension-api",
+      "priority": "B",
+      "evidenceClass": "static-analysis",
+      "status": "unreachable-without-official-main-process-hook",
+      "mechanism": "session.extensions.loadExtension",
+      "productionLimitation": "requires-Claude-main-process-cooperation; React-DevTools-and-DXT-specific-callers-are-not-general-hooks; patching-app.asar-is-forbidden"
+    },
+    {
+      "id": "electron-preload-api",
+      "priority": "B",
+      "evidenceClass": "static-analysis",
+      "status": "unreachable-without-official-main-process-hook",
+      "mechanism": "BrowserWindow-preload-or-session-registerPreloadScript",
+      "productionLimitation": "observed-preload-webFrame-insertCSS-is-fixed-scrollbar-CSS-with-no-external-theme-parameter; requires-Claude-main-process-cooperation; Node-inspector-and-preload-replacement-are-forbidden"
+    },
+    {
+      "id": "system-or-forced-dark-mode",
+      "priority": "C",
+      "evidenceClass": "static-analysis",
+      "status": "limited-proof-candidate",
+      "mechanism": "process-scoped-force-dark-mode-or-existing-system-appearance",
+      "capability": "approximated-dark-only",
+      "limitations": [
+        "no-CC-Theme-owned-marker",
+        "no-custom-colors-fonts-background-or-settings-entry",
+        "host-may-ignore-switch-or-system-preference",
+        "cannot-satisfy-production-theme-acceptance"
+      ],
+      "minimumVmCommandTemplate": "& $VerifiedClaudeExecutable '--force-dark-mode' \"--user-data-dir=$OwnedTemporaryProfile\"",
+      "expectedMarker": null,
+      "cleanup": "exit-client-delete-owned-temporary-profile-after-reparse-check-cold-start-normally"
+    }
+  ],
+  "permanentlyRejected": [
+    "modify-app-asar",
+    "modify-windowsapps-package-files",
+    "break-or-replace-package-certificate-or-signature",
+    "forge-copy-replay-or-bypass-cdp-auth-token",
+    "dll-injection",
+    "node-inspector-bypass",
+    "preload-replacement-without-official-hook",
+    "https-proxy-or-tls-interception",
+    "ignore-certificate-errors",
+    "react-devtools-profile-fallback",
+    "dxt-or-mcp-permission-reuse"
+  ]
+}

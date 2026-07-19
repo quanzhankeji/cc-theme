@@ -1,0 +1,19 @@
+{
+  "kind": "cc-theme.package-contract",
+  "revision": 2,
+  "extension": ".cctheme",
+  "mimeType": "application/vnd.cc-theme.theme+zip",
+  "container": "zip",
+  "manifestKind": "skin.package",
+  "documentKind": "skin.document",
+  "themeKind": "skin.theme",
+  "target": {
+    "application": "claude",
+    "platform": "macos",
+    "adapterId": "mac-claude",
+    "capabilityVersion": "1.0.0",
+    "adapterContract": "skin.theme",
+    "targetProfileSchema": "claude-target-profile.schema.json",
+    "targetPath": "targets/macos/theme.json"
+  }
+}
