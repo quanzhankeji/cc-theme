@@ -1,0 +1,20 @@
+{
+  "kind": "cc-theme.adapter-project-manifest",
+  "schemaVersion": 1,
+  "adapterId": "mac-doubao",
+  "adapterVersion": "2.19.9",
+  "adapterReleaseRevision": 1,
+  "platform": "macos",
+  "architecture": "arm64",
+  "clientBundleId": "com.bot.pc.doubao",
+  "verifiedClientVersion": "2.19.9",
+  "runtimeTransport": "loopback-cdp",
+  "officialApplicationReadOnly": true,
+  "release": {
+    "assetIdentity": "mac-doubao-2.19.9-r1-macos-arm64",
+    "sourceArchive": "mac-doubao-2.19.9-r1-macos-arm64.zip",
+    "clientArchive": "cc-theme-mac-doubao-2.19.9-r1-macos-arm64.zip",
+    "publicationStatus": "unpublished-development",
+    "overwritePolicy": "replace-unpublished-development-revision"
+  }
+}

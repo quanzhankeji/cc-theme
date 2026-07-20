@@ -1,0 +1,25 @@
+{
+  "name": "mac-doubao",
+  "version": "2.19.9",
+  "ccThemeAdapter": {
+    "adapterId": "mac-doubao",
+    "adapterVersion": "2.19.9",
+    "adapterReleaseRevision": 1,
+    "platform": "macos",
+    "architecture": "arm64",
+    "assetIdentity": "mac-doubao-2.19.9-r1-macos-arm64"
+  },
+  "private": true,
+  "type": "module",
+  "homepage": "https://github.com/quanzhankeji/cc-theme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/quanzhankeji/cc-theme.git",
+    "directory": "adapters/mac-doubao"
+  },
+  "bugs": { "url": "https://github.com/quanzhankeji/cc-theme/issues" },
+  "scripts": {
+    "test": "node --test tests/*.test.mjs"
+  },
+  "engines": { "node": ">=22" }
+}

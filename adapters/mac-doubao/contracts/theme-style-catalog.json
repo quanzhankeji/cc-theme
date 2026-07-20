@@ -1,0 +1,149 @@
+{
+  "kind": "theme.style-catalog",
+  "schemaVersion": 1,
+  "catalogVersion": 1,
+  "adapterId": "mac-doubao",
+  "adapterVersion": "2.19.9",
+  "adapterReleaseRevision": 1,
+  "catalogId": "mac-doubao-theme",
+  "geometryPolicy": "native",
+  "description": "Verified paint-only Doubao consumers. Static image presentation is the only admitted background mode; local deep settings are not exposed.",
+  "groups": [
+    { "id": "foundation" },
+    { "id": "text" },
+    { "id": "navigation" },
+    { "id": "content" },
+    { "id": "interaction" },
+    { "id": "typography" },
+    { "id": "media" }
+  ],
+  "settingsControls": [],
+  "bindings": [
+    {
+      "id": "foundation.surfaceBase",
+      "group": "foundation",
+      "cssVariable": "--cc-doubao-surface-base",
+      "source": "semanticColors.surfaceBase",
+      "roles": ["background"]
+    },
+    {
+      "id": "text.primary",
+      "group": "text",
+      "cssVariable": "--cc-doubao-text",
+      "source": "colors.text",
+      "roles": ["shell", "composer"]
+    },
+    {
+      "id": "text.muted",
+      "group": "text",
+      "cssVariable": "--cc-doubao-muted",
+      "source": "colors.muted",
+      "roles": ["conversation-tip"]
+    },
+    {
+      "id": "text.placeholder",
+      "group": "text",
+      "cssVariable": "--cc-doubao-placeholder",
+      "source": "semanticColors.placeholder",
+      "roles": ["composer-input"]
+    },
+    {
+      "id": "navigation.sidebar",
+      "group": "navigation",
+      "cssVariable": "--cc-doubao-sidebar-surface",
+      "source": "semanticColors.sidebarSurface",
+      "roles": ["sidebar", "right-side"]
+    },
+    {
+      "id": "content.composer",
+      "group": "content",
+      "cssVariable": "--cc-doubao-composer-surface",
+      "source": "semanticColors.composerSurface",
+      "roles": ["composer"]
+    },
+    {
+      "id": "content.border",
+      "group": "content",
+      "cssVariable": "--cc-doubao-border",
+      "source": "semanticColors.borderDefault",
+      "roles": ["sidebar", "composer", "right-side"]
+    },
+    {
+      "id": "interaction.action",
+      "group": "interaction",
+      "cssVariable": "--cc-doubao-action",
+      "source": "semanticColors.action",
+      "roles": ["create-conversation", "composer-caret"]
+    },
+    {
+      "id": "interaction.actionForeground",
+      "group": "interaction",
+      "cssVariable": "--cc-doubao-action-foreground",
+      "source": "semanticColors.actionForeground",
+      "roles": ["create-conversation"]
+    },
+    {
+      "id": "interaction.focusRing",
+      "group": "interaction",
+      "cssVariable": "--cc-doubao-focus-ring",
+      "source": "semanticColors.focusRing",
+      "roles": ["focus-visible"]
+    },
+    {
+      "id": "interaction.link",
+      "group": "interaction",
+      "cssVariable": "--cc-doubao-link",
+      "source": "semanticColors.link",
+      "roles": ["link"]
+    },
+    {
+      "id": "content.scrimStart",
+      "group": "content",
+      "cssVariable": "--cc-doubao-main-scrim-start",
+      "source": "semanticColors.mainScrimStart",
+      "roles": ["shell"]
+    },
+    {
+      "id": "content.scrimMid",
+      "group": "content",
+      "cssVariable": "--cc-doubao-main-scrim-mid",
+      "source": "semanticColors.mainScrimMid",
+      "roles": ["shell"]
+    },
+    {
+      "id": "content.scrimEnd",
+      "group": "content",
+      "cssVariable": "--cc-doubao-main-scrim-end",
+      "source": "semanticColors.mainScrimEnd",
+      "roles": ["shell"]
+    },
+    {
+      "id": "typography.ui",
+      "group": "typography",
+      "cssVariable": "--cc-doubao-font-ui",
+      "source": "fonts.ui",
+      "roles": ["shell"]
+    },
+    {
+      "id": "media.blur",
+      "group": "media",
+      "cssVariable": "--cc-doubao-backdrop-blur",
+      "source": "appearance.backdropBlurPx",
+      "roles": ["sidebar", "composer", "right-side"]
+    },
+    {
+      "id": "media.saturation",
+      "group": "media",
+      "cssVariable": "--cc-doubao-saturation",
+      "source": "appearance.backdropSaturation",
+      "roles": ["sidebar", "composer", "right-side"]
+    },
+    {
+      "id": "content.radius",
+      "group": "content",
+      "cssVariable": "--cc-doubao-radius-scale",
+      "source": "appearance.radiusScale",
+      "roles": ["composer"]
+    }
+  ]
+}

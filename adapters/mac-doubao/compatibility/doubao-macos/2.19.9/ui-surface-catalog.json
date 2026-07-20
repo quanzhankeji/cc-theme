@@ -1,0 +1,94 @@
+{
+  "kind": "cc-theme.ui-surface-catalog",
+  "schemaVersion": 1,
+  "id": "doubao-macos-2.19.9",
+  "revision": 1,
+  "client": {
+    "bundleId": "com.bot.pc.doubao",
+    "version": "2.19.9",
+    "build": "2.19.9",
+    "teamId": "96L78H6LMH",
+    "architecture": "arm64",
+    "hardenedRuntime": true,
+    "notarized": true,
+    "mainExecutableSha256": "3f0c9e057bc0a65ae9a678fb3486e9cbbe24f8cd40d97c3865ae47b8e456ac00",
+    "mainCdHash": "d253e4d81b463aa3269156e32dbdbc161b99b01e",
+    "chromium": "135.0.7049.72",
+    "userAgentProduct": "SamanthaDoubao/2.19.9",
+    "browser": {
+      "bundleId": "com.bot.pc.doubao.browser",
+      "teamId": "96L78H6LMH",
+      "architecture": "arm64",
+      "cdHash": "853c671fc6413efe8ba5cece9ad87a305671f09e",
+      "executableSha256": "3ae362fc11fdd9775c683380a69e72f8a62455b4722c53427b44fa259d3a664e"
+    },
+    "renderer": {
+      "bundleId": "com.bot.pc.doubao.browser.helper.renderer",
+      "teamId": "96L78H6LMH",
+      "architecture": "arm64",
+      "cdHash": "83d7de66b5a1c00c499c82ee4fce6e3ef6bb3296",
+      "executableSha256": "c084062d2bd4af34d9f4c4b25894f3ed8e869184c6bfbf7c2cbe56e127536e9f"
+    }
+  },
+  "transport": {
+    "kind": "loopback-cdp",
+    "address": "127.0.0.1",
+    "defaultPort": 9343,
+    "pageUrlPrefix": "doubao://doubao-chat/"
+  },
+  "surface": {
+    "protocol": "chrome:",
+    "host": "doubao-chat",
+    "requiredLandmarks": [
+      { "role": "shell", "selector": "[data-testid=\"chat-route-layout\"]" },
+      { "role": "sidebar", "selector": "[data-testid=\"chat_route_layout_leftside_nav\"]" },
+      { "role": "composer", "selector": "[data-testid=\"chat_input\"]" }
+    ],
+    "optionalLandmarks": [
+      { "role": "main-surface", "selector": "#chat-route-main > main" },
+      { "role": "sidebar-inner-surface", "selector": "#flow_chat_sidebar" },
+      { "role": "right-side", "selector": "[data-testid=\"samantha_layout_right_side\"]" },
+      { "role": "chat-list", "selector": "[data-testid=\"chat_list_wrapper\"]" },
+      { "role": "chat-input", "selector": "[data-testid=\"chat_input_input\"]" },
+      { "role": "guidance-suggestion", "selector": "[data-testid=\"onboarding_sug_item\"]" },
+      { "role": "muted-conversation-tip", "selector": "[data-testid=\"conversation_header_tip_text\"]" },
+      { "role": "create-action", "selector": "[data-testid=\"create_conversation_button\"]" }
+    ],
+    "verifiedConsumers": [
+      "static-background",
+      "shell-text",
+      "main-surface-transparency",
+      "conversation-tip-muted-text",
+      "composer-input-placeholder",
+      "create-action-background-and-foreground",
+      "sidebar-surface",
+      "sidebar-inner-surface",
+      "composer-surface",
+      "composer-inner-surface",
+      "guidance-suggestion-surface-and-text",
+      "focus-visible-outline",
+      "ui-font",
+      "backdrop-blur-saturation",
+      "composer-radius"
+    ],
+    "explicitlyUnverified": [
+      "video-playback",
+      "ripple-interaction",
+      "directional-interaction",
+      "display-font",
+      "code-font",
+      "shell-color-scheme-override",
+      "runtime-contrast-audit"
+    ]
+  },
+  "evidence": {
+    "verifiedAt": "2026-07-21",
+    "probe": "signed-host-identity-process-tree-surface-consumer-apply-inspect-remove",
+    "listenerOwnership": "127.0.0.1:9343 listener is the signed Doubao Browser child of the verified Doubao main process",
+    "trustedPageCount": 1,
+    "requiredRolesApplied": 3,
+    "rolesAppliedDuringProbe": 4,
+    "restoreState": { "roles": 0, "style": false, "background": false, "version": null, "generation": null },
+    "privacy": "structural-landmarks-only-no-chat-content"
+  }
+}
