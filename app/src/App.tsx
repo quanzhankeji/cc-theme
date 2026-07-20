@@ -18,6 +18,8 @@ import { themePackagePicker, type ThemePackagePicker } from "./theme-package-pic
 import { themePackageDropTarget, type ThemePackageDropTarget } from "./theme-package-drop";
 import type {
   AdapterCapability,
+  AdapterCatalogStatus,
+  AdapterUpdateState,
   ClientId,
   ClientOperation,
   ClientState,
@@ -198,7 +200,10 @@ function ClientCard({
   onNormalStart,
   onAction,
   installingAdapter,
-  onInstallAdapter,
+  checkingAdapterCatalog,
+  adapterUpdate,
+  onDownloadAdapter,
+  onImportAdapter,
 }: {
   client: ClientState;
   capability: AdapterCapability;
@@ -211,7 +216,10 @@ function ClientCard({
   onNormalStart: (client: ClientState) => void;
   onAction: (client: ClientState, operation: Extract<ClientOperation, "apply">) => void;
   installingAdapter: boolean;
-  onInstallAdapter: (client: ClientState) => void;
+  checkingAdapterCatalog: boolean;
+  adapterUpdate?: AdapterUpdateState;
+  onDownloadAdapter: (client: ClientState) => void;
+  onImportAdapter: (client: ClientState) => void;
 }) {
   const busy = Boolean(pending) || blocked || installingAdapter;
   const pendingOperation = pending?.clientId === client.id ? pending.operation : null;
@@ -225,6 +233,8 @@ function ClientCard({
   const canLaunch = launchAvailable && stopped;
   const diagnosticPreviewOnly = capability.availability === "contract-only" && !capability.runtimeApplyAvailable;
   const compatibilityCandidate = client.adapterStatus === "compatibility-candidate";
+  const onlineUpdateAvailable = adapterUpdate?.status === "update-available";
+  const onlineCurrent = adapterUpdate?.status === "current";
   const applyLabel = running
     ? t("client.alreadyRunning")
     : diagnosticPreviewOnly
@@ -286,19 +296,46 @@ function ClientCard({
       {client.adapterSource === "local" && running && (
         <p className="adapter-status">{t("adapter.activeNextUse")}</p>
       )}
-      {client.adapterReady && (
-        <button className="adapter-update-button" type="button" disabled={busy || !client.discovered} onClick={() => onInstallAdapter(client)}>
-          <Icon name="download" />{installingAdapter ? t("adapter.installing") : t("adapter.importUpdate")}
+      <div className="adapter-management">
+        {client.adapterReady && (
+          <button
+            className="adapter-update-button"
+            type="button"
+            disabled={busy || !client.discovered || checkingAdapterCatalog || !onlineUpdateAvailable}
+            onClick={() => onDownloadAdapter(client)}
+            aria-label={onlineUpdateAvailable ? t("adapter.downloadUpdateNamed", { name: client.name }) : undefined}
+          >
+            {checkingAdapterCatalog || installingAdapter ? <span className="spinner" /> : <Icon name={onlineCurrent ? "check" : "download"} />}
+            {installingAdapter
+              ? t("adapter.installing")
+              : checkingAdapterCatalog
+                ? t("adapter.checking")
+                : onlineCurrent
+                  ? t("adapter.current")
+                  : onlineUpdateAvailable
+                    ? t("adapter.downloadUpdate")
+                    : t("adapter.onlineUnavailable")}
+          </button>
+        )}
+        <button className="adapter-update-button" type="button" disabled={busy || !client.discovered} onClick={() => onImportAdapter(client)} aria-label={t("adapter.importLocalNamed", { name: client.name })}>
+          <Icon name="download" />{t("adapter.importLocal")}
         </button>
-      )}
+      </div>
 
       <div className="client-actions">
         <button className="button button--secondary" type="button" disabled={!canLaunch || busy} onClick={() => onNormalStart(client)} aria-label={running ? t("client.alreadyRunningNamed", { name: client.name }) : t("client.normalLaunchNamed", { name: client.name })}>
           <Icon name="launch" />{running ? t("client.alreadyRunning") : t("client.normalLaunch")}
         </button>
         {!client.adapterReady ? (
-          <button className="button button--primary" type="button" disabled={busy || !client.discovered} onClick={() => onInstallAdapter(client)} aria-label={t("adapter.installNamed", { name: client.name })}>
-            {installingAdapter ? <span className="spinner" /> : <Icon name="download" />}{installingAdapter ? t("adapter.installing") : t("adapter.install")}
+          <button className="button button--primary" type="button" disabled={busy || !client.discovered || checkingAdapterCatalog} onClick={() => onlineUpdateAvailable ? onDownloadAdapter(client) : onImportAdapter(client)} aria-label={onlineUpdateAvailable ? t("adapter.downloadNamed", { name: client.name }) : t("adapter.installNamed", { name: client.name })}>
+            {installingAdapter || checkingAdapterCatalog ? <span className="spinner" /> : <Icon name="download" />}
+            {installingAdapter
+              ? t("adapter.installing")
+              : checkingAdapterCatalog
+                ? t("adapter.checking")
+                : onlineUpdateAvailable
+                  ? t("adapter.download")
+                  : t("adapter.install")}
           </button>
         ) : (
           <button className="button button--primary" type="button" disabled={!canInject || busy} onClick={() => onAction(client, "apply")} aria-label={running ? t("client.alreadyRunningNamed", { name: client.name }) : t(compatibilityCandidate ? "adapter.compatibilityLaunchNamed" : "client.injectLaunchNamed", { name: client.name })}>
@@ -370,6 +407,8 @@ export default function App({ api = desktopApi, windowApi = managerWindowApi, pa
   const [scanning, setScanning] = useState(false);
   const [importingTheme, setImportingTheme] = useState(false);
   const [installingAdapterId, setInstallingAdapterId] = useState<ClientId | null>(null);
+  const [adapterCatalog, setAdapterCatalog] = useState<AdapterCatalogStatus | null>(null);
+  const [checkingAdapterCatalog, setCheckingAdapterCatalog] = useState(true);
   const [dragActive, setDragActive] = useState(false);
   const [themeToDelete, setThemeToDelete] = useState<ThemeFamily | null>(null);
   const [deletingThemeId, setDeletingThemeId] = useState<string | null>(null);
@@ -436,6 +475,22 @@ export default function App({ api = desktopApi, windowApi = managerWindowApi, pa
       })
       .catch((reason: unknown) => active && setError(reason instanceof Error ? reason.message : String(reason)))
       .finally(() => active && setLoading(false));
+    return () => { active = false; };
+  }, [api]);
+
+  useEffect(() => {
+    let active = true;
+    setCheckingAdapterCatalog(true);
+    api.checkAdapterUpdates(false)
+      .then((result) => {
+        if (active && result.status === "success" && result.details) {
+          setAdapterCatalog(result.details);
+        }
+      })
+      .catch(() => {
+        // A missing network or catalog never blocks bundled/local Adapters or native launch.
+      })
+      .finally(() => active && setCheckingAdapterCatalog(false));
     return () => { active = false; };
   }, [api]);
 
@@ -766,7 +821,23 @@ export default function App({ api = desktopApi, windowApi = managerWindowApi, pa
     }
   }
 
-  async function installAdapter(client: ClientState) {
+  async function refreshAdapterCatalog(force: boolean, reportFailure: boolean) {
+    setCheckingAdapterCatalog(true);
+    try {
+      const result = await api.checkAdapterUpdates(force);
+      if (result.status === "failed" || !result.details) {
+        if (reportFailure) throw new Error(t("adapter.checkFailedWithCode", { code: result.code }));
+        return;
+      }
+      setAdapterCatalog(result.details);
+    } catch (reason: unknown) {
+      if (reportFailure) setError(reason instanceof Error ? reason.message : t("adapter.checkFailed"));
+    } finally {
+      setCheckingAdapterCatalog(false);
+    }
+  }
+
+  async function importAdapter(client: ClientState) {
     if (adapterInstallPending.current || installingAdapterId || pending || deletingThemeId) return;
     adapterInstallPending.current = true;
     operationPending.current = true;
@@ -779,8 +850,30 @@ export default function App({ api = desktopApi, windowApi = managerWindowApi, pa
       if (result.status === "failed") throw new Error(t("adapter.installFailedWithCode", { code: result.code }));
       const fresh = await api.getDashboardState();
       setDashboard((current) => ({ ...fresh, activities: current?.activities ?? fresh.activities }));
+      await refreshAdapterCatalog(false, false);
     } catch (reason: unknown) {
       setError(reason instanceof Error ? reason.message : t("adapter.installFailed"));
+    } finally {
+      adapterInstallPending.current = false;
+      operationPending.current = false;
+      setInstallingAdapterId(null);
+    }
+  }
+
+  async function downloadAdapter(client: ClientState) {
+    if (adapterInstallPending.current || installingAdapterId || pending || deletingThemeId) return;
+    adapterInstallPending.current = true;
+    operationPending.current = true;
+    setInstallingAdapterId(client.id);
+    setError(null);
+    try {
+      const result = await api.downloadLatestAdapter(client.id);
+      if (result.status === "failed") throw new Error(t("adapter.downloadFailedWithCode", { code: result.code }));
+      const fresh = await api.getDashboardState();
+      setDashboard((current) => ({ ...fresh, activities: current?.activities ?? fresh.activities }));
+      await refreshAdapterCatalog(false, false);
+    } catch (reason: unknown) {
+      setError(reason instanceof Error ? reason.message : t("adapter.downloadFailed"));
     } finally {
       adapterInstallPending.current = false;
       operationPending.current = false;
@@ -909,7 +1002,7 @@ export default function App({ api = desktopApi, windowApi = managerWindowApi, pa
           <section className="clients-section">
             <div className="section-heading"><div><span className="eyebrow">{t("clients.eyebrow")}</span><h2>{t("clients.title")}</h2></div></div>
             <div className="client-grid">
-              {adapters.map(({ capability, client }) => <ClientCard key={capability.adapterId} capability={capability} client={client} theme={themeForClient(client.id)} currentTheme={dashboard.themes.find((theme) => theme.id === client.currentThemeId)} pending={pending} blocked={Boolean(deletingThemeId) || Boolean(installingAdapterId)} locale={locale} t={t} onNormalStart={startNormally} onAction={(target, operation) => void perform(target, operation)} installingAdapter={installingAdapterId === client.id} onInstallAdapter={(target) => void installAdapter(target)} />)}
+              {adapters.map(({ capability, client }) => <ClientCard key={capability.adapterId} capability={capability} client={client} theme={themeForClient(client.id)} currentTheme={dashboard.themes.find((theme) => theme.id === client.currentThemeId)} pending={pending} blocked={Boolean(deletingThemeId) || Boolean(installingAdapterId)} locale={locale} t={t} onNormalStart={startNormally} onAction={(target, operation) => void perform(target, operation)} installingAdapter={installingAdapterId === client.id} checkingAdapterCatalog={checkingAdapterCatalog} adapterUpdate={adapterCatalog?.adapters.find((entry) => entry.adapterId === client.id)} onDownloadAdapter={(target) => void downloadAdapter(target)} onImportAdapter={(target) => void importAdapter(target)} />)}
             </div>
           </section>
         </main>

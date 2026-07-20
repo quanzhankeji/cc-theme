@@ -30,6 +30,38 @@ function makeApi(overrides: Partial<DesktopApi> = {}): DesktopApi {
     restoreTheme: vi.fn(() => success("已恢复原生外观")),
     importThemePackage: vi.fn(() => Promise.resolve({ status: "success" as const, code: "theme-imported", message: "主题包已安全导入", details: { themeId: "example" } })),
     installLocalAdapter: vi.fn((clientId) => Promise.resolve({ status: "success" as const, code: "adapter-installed", message: "Adapter 已完成校验并安全安装", details: { adapterId: clientId, adapterVersion: "1.0.0", adapterReleaseRevision: 1, replacedLocalAdapter: false } })),
+    checkAdapterUpdates: vi.fn(() => Promise.resolve({
+      status: "success" as const,
+      code: "adapter-catalog-ready",
+      message: "已通过官方签名清单检查 Adapter",
+      details: {
+        sequence: 1,
+        source: "cache" as const,
+        checkedAt: "2026-07-20T15:40:00Z",
+        adapters: cloneDemoDashboard().clients.map((client) => ({
+          adapterId: client.id,
+          status: "current" as const,
+          latestVersion: client.adapterVersion ?? null,
+          latestReleaseRevision: client.adapterReleaseRevision ?? null,
+          source: "cache" as const,
+          message: "已安装签名清单中的最新 Adapter",
+        })),
+      },
+    })),
+    downloadLatestAdapter: vi.fn((clientId) => Promise.resolve({
+      status: "success" as const,
+      code: "adapter-downloaded-installed",
+      message: "已从官方签名清单下载并安全安装 Adapter",
+      details: {
+        adapterId: clientId,
+        adapterVersion: clientId === "mac-codex" ? "26.715.31925" : "5.2.6",
+        adapterReleaseRevision: 1,
+        assetIdentity: `${clientId}-test-r1-macos-arm64`,
+        archiveSha256: "0".repeat(64),
+        replacedLocalAdapter: false,
+        catalogSequence: 1,
+      },
+    })),
     deleteLocalTheme: vi.fn(() => Promise.resolve({ status: "success" as const, code: "theme-deleted", message: "本地主题及其关联数据已删除", details: { removedEntries: 3 } })),
     runDiagnostics: vi.fn(() => Promise.resolve({ status: "success" as const, code: "ok", message: "诊断完成", details: structuredClone(DEMO_DIAGNOSTICS) })),
     ...overrides,
@@ -737,13 +769,33 @@ describe("CC Theme desktop dashboard", () => {
     expect(screen.queryByTestId("tool-status")).not.toBeInTheDocument();
   });
 
-  it("本地 Adapter 缺失时可从 .ccadapter 安全安装，并替代主题应用按钮", async () => {
+  it("本地 Adapter 缺失时优先从官方签名清单一键下载，并保留本地导入入口", async () => {
     const dashboard = cloneDemoDashboard();
     const workbuddy = dashboard.clients.find((client) => client.id === "mac-workbuddy")!;
     workbuddy.adapterReady = false;
     workbuddy.adapterStatus = "missing";
     workbuddy.runState = "stopped";
-    const api = makeApi({ getDashboardState: vi.fn(() => Promise.resolve(dashboard)) });
+    const api = makeApi({
+      getDashboardState: vi.fn(() => Promise.resolve(dashboard)),
+      checkAdapterUpdates: vi.fn(() => Promise.resolve({
+        status: "success" as const,
+        code: "adapter-catalog-ready",
+        message: "已通过官方签名清单检查 Adapter",
+        details: {
+          sequence: 1,
+          source: "network" as const,
+          checkedAt: "2026-07-20T15:40:00Z",
+          adapters: [{
+            adapterId: "mac-workbuddy",
+            status: "update-available" as const,
+            latestVersion: "5.2.6",
+            latestReleaseRevision: 1,
+            source: "network" as const,
+            message: "可从官方签名清单安全下载",
+          }],
+        },
+      })),
+    });
     const adapterPicker: AdapterPackagePicker = {
       chooseAdapterPackage: vi.fn(() => Promise.resolve("/Downloads/mac-workbuddy.ccadapter")),
     };
@@ -752,9 +804,13 @@ describe("CC Theme desktop dashboard", () => {
 
     const card = await screen.findByTestId("client-mac-workbuddy");
     expect(within(card).queryByRole("button", { name: "注入主题并启动 WorkBuddy" })).not.toBeInTheDocument();
-    const install = within(card).getByRole("button", { name: "为 WorkBuddy 安装 Adapter" });
-    expect(install).toBeEnabled();
-    await user.click(install);
+    const download = await within(card).findByRole("button", { name: "下载 WorkBuddy Adapter" });
+    expect(download).toBeEnabled();
+    await user.click(download);
+    await waitFor(() => expect(api.downloadLatestAdapter).toHaveBeenCalledWith("mac-workbuddy"));
+
+    const importLocal = within(card).getByRole("button", { name: "为 WorkBuddy 导入本地 Adapter 包" });
+    await user.click(importLocal);
     await waitFor(() => expect(api.installLocalAdapter).toHaveBeenCalledWith(
       "mac-workbuddy",
       "/Downloads/mac-workbuddy.ccadapter",
@@ -774,7 +830,8 @@ describe("CC Theme desktop dashboard", () => {
     const card = await screen.findByTestId("client-mac-workbuddy");
     expect(card).toHaveTextContent("5.2.6 · r1");
     expect(card).toHaveTextContent("应用内置");
-    await user.click(within(card).getByRole("button", { name: "导入更新" }));
+    expect(within(card).getByRole("button", { name: "已是最新版" })).toBeDisabled();
+    await user.click(within(card).getByRole("button", { name: "为 WorkBuddy 导入本地 Adapter 包" }));
     await waitFor(() => expect(api.installLocalAdapter).toHaveBeenCalledWith(
       "mac-workbuddy",
       "/Downloads/mac-workbuddy-5.2.6-r1.ccadapter",

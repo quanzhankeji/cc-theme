@@ -20,6 +20,14 @@ const workspaceRoot = path.dirname(managerRoot);
 const schemaPath = path.join(managerRoot, "contracts", "adapter-version-catalog.schema.json");
 const registryPath = path.join(managerRoot, "registry", "adapter-versions.json");
 const generatorPath = path.join(managerRoot, "scripts", "generate-adapter-version-catalog.mjs");
+const publishedMetadata = Object.freeze({
+  channel: "stable",
+  sequence: 1,
+  publishedAt: "2026-07-20T15:33:54Z",
+  expiresAt: "2027-01-16T15:33:54Z",
+  keyId: "cc-theme-adapter-root-2026-07",
+  revokedSha256: [],
+});
 
 function digest(bytes) {
   return createHash("sha256").update(bytes).digest("hex");
@@ -124,7 +132,7 @@ test("catalog Schema closes every public object and keeps identity, OS, architec
     "unifiedThemeSchemaVersion",
     "adapterPackageSchemaVersion",
   ]);
-  assert.equal(new RegExp(schema.$defs.package.properties.downloadUrl.pattern).test("https://releases.example/a.ccadapter"), true);
+  assert.equal(new RegExp(schema.$defs.package.properties.downloadUrl.pattern).test("https://github.com/quanzhankeji/cc-theme/releases/download/cc-theme-v0.2.0/mac-codex-26.715.31925-r1-macos-arm64.ccadapter"), true);
   assert.equal(new RegExp(schema.$defs.package.properties.downloadUrl.pattern).test("http://releases.example/a.ccadapter"), false);
 });
 
@@ -171,7 +179,8 @@ test("published generation binds exact adjacent package bytes, hashes, manifest 
       workspaceRoot,
       packageDirectory,
       publicationStatus: "published",
-      downloadBaseUrl: "https://releases.example/cc-theme",
+      downloadBaseUrl: "https://github.com/quanzhankeji/cc-theme/releases/download/cc-theme-v0.2.0",
+      ...publishedMetadata,
     });
     for (const adapter of published.adapters) {
       const packageRecord = adapter.releases[0].packages[0];
@@ -181,7 +190,8 @@ test("published generation binds exact adjacent package bytes, hashes, manifest 
       assert.equal(packageRecord.bytes, archive.byteLength);
       assert.equal(packageRecord.sha256, digest(archive));
       assert.match(packageRecord.manifestSha256, /^[0-9a-f]{64}$/);
-      assert.equal(packageRecord.downloadUrl, `https://releases.example/cc-theme/${packageRecord.assetName}`);
+      assert.equal(packageRecord.releaseTag, "cc-theme-v0.2.0");
+      assert.equal(packageRecord.downloadUrl, `https://github.com/quanzhankeji/cc-theme/releases/download/cc-theme-v0.2.0/${packageRecord.assetName}`);
     }
   });
 });
@@ -195,7 +205,8 @@ test("published mode requires an HTTPS origin, refuses missing packages, and rej
     generateAdapterVersionCatalog({
       workspaceRoot,
       publicationStatus: "published",
-      downloadBaseUrl: "https://releases.example/cc-theme",
+      downloadBaseUrl: "https://github.com/quanzhankeji/cc-theme/releases/download/cc-theme-v0.2.0",
+      ...publishedMetadata,
     }),
     /mac-codex has no verified package/,
   );

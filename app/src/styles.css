@@ -139,7 +139,8 @@ svg { width: 18px; height: 18px; flex: 0 0 auto; }
 .adapter-status { margin: -2px 0 9px; color: var(--faint); font-size: 11px; }
 .adapter-status--waiting { color: var(--warning, #a86b16); }
 .adapter-status--compatibility { color: var(--warning, #a86b16); line-height: 1.45; }
-.adapter-update-button { display: flex; width: max-content; align-items: center; gap: 5px; margin: -2px 0 9px auto; padding: 0; border: 0; color: var(--accent); background: transparent; font: inherit; font-size: 11px; cursor: pointer; }
+.adapter-management { display: flex; justify-content: flex-end; align-items: center; gap: 12px; min-height: 20px; margin: -2px 0 9px; }
+.adapter-update-button { display: flex; width: max-content; align-items: center; gap: 5px; margin: 0; padding: 0; border: 0; color: var(--accent); background: transparent; font: inherit; font-size: 11px; cursor: pointer; }
 .adapter-update-button:disabled { opacity: .48; cursor: default; }
 .adapter-update-button .icon { width: 13px; height: 13px; }
 .paused-tag { margin-left: 5px; padding: 2px 4px; color: var(--amber); border-radius: 4px; background: rgba(239,183,99,.1); font-size: 8px; }

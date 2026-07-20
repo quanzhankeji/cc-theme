@@ -1,6 +1,9 @@
 import { invoke } from "@tauri-apps/api/core";
 import { cloneDemoDashboard, DEMO_DIAGNOSTICS, demoResult } from "./demo-data";
 import type {
+  AdapterCatalogStatus,
+  AdapterDownloadDetails,
+  AdapterInstallDetails,
   ClientId,
   ClientRuntimeState,
   DashboardState,
@@ -63,12 +66,7 @@ export const desktopApi = {
     }));
   },
 
-  installLocalAdapter(clientId: ClientId, packagePath: string): Promise<OperationResult<{
-    adapterId: string;
-    adapterVersion: string;
-    adapterReleaseRevision: number;
-    replacedLocalAdapter: boolean;
-  }>> {
+  installLocalAdapter(clientId: ClientId, packagePath: string): Promise<OperationResult<AdapterInstallDetails>> {
     return call("install_local_adapter", { clientId, packagePath }, () => ({
       status: "success",
       code: "adapter-installed",
@@ -78,6 +76,44 @@ export const desktopApi = {
         adapterVersion: "0.0.0",
         adapterReleaseRevision: 1,
         replacedLocalAdapter: false,
+      },
+    }));
+  },
+
+  checkAdapterUpdates(force = false): Promise<OperationResult<AdapterCatalogStatus>> {
+    return call("check_adapter_updates", { force }, () => ({
+      status: "success",
+      code: "adapter-catalog-ready",
+      message: "已通过官方签名清单检查 Adapter",
+      details: {
+        sequence: 1,
+        source: "cache",
+        checkedAt: new Date().toISOString(),
+        adapters: cloneDemoDashboard().clients.map((client) => ({
+          adapterId: client.id,
+          status: "current" as const,
+          latestVersion: client.adapterVersion ?? null,
+          latestReleaseRevision: client.adapterReleaseRevision ?? null,
+          source: "cache" as const,
+          message: "已安装签名清单中的最新 Adapter",
+        })),
+      },
+    }));
+  },
+
+  downloadLatestAdapter(clientId: ClientId): Promise<OperationResult<AdapterDownloadDetails>> {
+    return call("download_latest_adapter", { clientId }, () => ({
+      status: "success",
+      code: "adapter-downloaded-installed",
+      message: "已从官方签名清单下载并安全安装 Adapter",
+      details: {
+        adapterId: clientId,
+        adapterVersion: "0.0.0",
+        adapterReleaseRevision: 1,
+        assetIdentity: `${clientId}-0.0.0-r1-macos-arm64`,
+        archiveSha256: "0".repeat(64),
+        replacedLocalAdapter: false,
+        catalogSequence: 1,
       },
     }));
   },

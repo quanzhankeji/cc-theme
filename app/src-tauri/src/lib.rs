@@ -1,3 +1,4 @@
+mod adapter_catalog;
 mod adapter_installer;
 mod capabilities;
 mod compiler;
@@ -231,6 +232,55 @@ async fn install_local_adapter(client_id: ClientId, package_path: String) -> Ope
 }
 
 #[tauri::command(rename_all = "camelCase")]
+async fn check_adapter_updates(force: bool) -> OperationResult {
+    tauri::async_runtime::spawn_blocking(move || {
+        match adapter_catalog::check_adapter_updates(force) {
+            Ok(status) => OperationResult::success(
+                "adapter-catalog-ready",
+                "已通过官方签名清单检查 Adapter",
+                serde_json::to_value(status).unwrap_or_else(|_| json!({})),
+            ),
+            Err(code) => OperationResult::failed(code, "暂时无法获取可信的 Adapter 版本清单"),
+        }
+    })
+    .await
+    .unwrap_or_else(|_| {
+        OperationResult::failed("adapter-catalog-check-failed", "Adapter 版本检查异常结束")
+    })
+}
+
+#[tauri::command(rename_all = "camelCase")]
+async fn download_latest_adapter(client_id: ClientId) -> OperationResult {
+    tauri::async_runtime::spawn_blocking(move || {
+        let client = discovery::client_state(client_id);
+        if !client.discovered {
+            return OperationResult::failed(
+                "adapter-host-not-installed",
+                "请先安装对应的桌面客户端",
+            );
+        }
+        match adapter_catalog::download_and_install_latest_adapter(
+            client_id,
+            client.version.as_deref(),
+        ) {
+            Ok(receipt) => OperationResult::success(
+                "adapter-downloaded-installed",
+                "已从官方签名清单下载并安全安装 Adapter",
+                serde_json::to_value(receipt).unwrap_or_else(|_| json!({})),
+            ),
+            Err(code) => OperationResult::failed(
+                code,
+                "Adapter 下载、校验或安装未完成；现有 Adapter 保持不变",
+            ),
+        }
+    })
+    .await
+    .unwrap_or_else(|_| {
+        OperationResult::failed("adapter-download-failed", "Adapter 下载任务异常结束")
+    })
+}
+
+#[tauri::command(rename_all = "camelCase")]
 async fn delete_local_theme(app: AppHandle, theme_id: String) -> OperationResult {
     if !themes::valid_theme_id(&theme_id) {
         return OperationResult::failed("theme-delete-id-invalid", "主题标识不符合安全规则");
@@ -353,6 +403,8 @@ pub fn run() {
             run_diagnostics,
             import_theme_package,
             install_local_adapter,
+            check_adapter_updates,
+            download_latest_adapter,
             delete_local_theme,
             set_manager_locale,
             minimize_to_menu_bar,

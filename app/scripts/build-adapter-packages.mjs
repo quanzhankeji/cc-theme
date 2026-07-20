@@ -30,6 +30,12 @@ export async function buildAdapterDistribution({
   architecture = nativeArchitecture(),
   publicationStatus = "development-local",
   downloadBaseUrl,
+  channel,
+  sequence,
+  publishedAt,
+  expiresAt,
+  keyId,
+  revokedSha256,
 } = {}) {
   if (typeof outputDirectory !== "string" || outputDirectory.length === 0) fail("outputDirectory is required");
   if (!ARCHITECTURES.has(architecture)) fail("architecture is unsupported");
@@ -89,6 +95,12 @@ export async function buildAdapterDistribution({
       packageDirectory: staging,
       publicationStatus,
       downloadBaseUrl,
+      channel,
+      sequence,
+      publishedAt,
+      expiresAt,
+      keyId,
+      revokedSha256,
     });
     await fs.writeFile(path.join(staging, "adapter-versions.json"), serializeCatalog(catalog), { mode: 0o600, flag: "wx" });
     try {
@@ -117,7 +129,7 @@ function parseArguments(argv) {
     const value = argv[index + 1];
     if (!key?.startsWith("--") || value === undefined) fail("options must be --name value pairs");
     const name = key.slice(2);
-    if (!new Set(["architecture", "download-base-url", "out", "status"]).has(name)) fail(`unknown option --${name}`);
+    if (!new Set(["architecture", "download-base-url", "out", "status", "channel", "sequence", "published-at", "expires-at", "key-id", "revoked-sha256"]).has(name)) fail(`unknown option --${name}`);
     if (Object.hasOwn(options, name)) fail(`duplicate option --${name}`);
     options[name] = value;
   }
@@ -132,6 +144,12 @@ async function main() {
     architecture: options.architecture ?? nativeArchitecture(),
     publicationStatus: options.status ?? "development-local",
     downloadBaseUrl: options["download-base-url"],
+    channel: options.channel,
+    sequence: options.sequence === undefined ? undefined : Number(options.sequence),
+    publishedAt: options["published-at"],
+    expiresAt: options["expires-at"],
+    keyId: options["key-id"],
+    revokedSha256: options["revoked-sha256"] ? options["revoked-sha256"].split(",").filter(Boolean) : undefined,
   });
   process.stdout.write(`${JSON.stringify({
     kind: "cc-theme.adapter-distribution-build",
