@@ -35,7 +35,8 @@ test("formal Release workflow is manual, tag-pinned, non-overwriting, and exact"
   assert.doesNotMatch(workflow, /^\s{2}(?:push|release|pull_request):/m);
   assert.match(workflow, /ref: refs\/tags\/\$\{\{ inputs\.tag \}\}/);
   assert.match(workflow, /EXPECTED_TAG="cc-theme-v\$\{VERSION\}"/);
-  assert.match(workflow, /CC Theme_\$\{VERSION\}_aarch64\.dmg/);
+  assert.match(workflow, /CC\.Theme_\$\{VERSION\}_aarch64\.dmg/);
+  assert.match(workflow, /GitHub normalizes spaces/);
   assert.match(workflow, /git rev-list -n 1 "\$RELEASE_TAG"/);
   assert.match(workflow, /npm --prefix app run adapter:build/);
   assert.match(workflow, /mac-codex-26\.715\.31925-r1-macos-arm64\.ccadapter/);

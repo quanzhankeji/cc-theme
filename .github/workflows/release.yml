@@ -8,7 +8,7 @@ on:
         required: true
         type: string
       dmg_asset_name:
-        description: Exact notarized DMG asset already attached to the draft Release
+        description: Exact GitHub-normalized DMG asset already attached to the draft Release
         required: true
         type: string
       dmg_sha256:
@@ -59,7 +59,8 @@ jobs:
           set -euo pipefail
           VERSION="$(node -p "require('./app/package.json').version")"
           EXPECTED_TAG="cc-theme-v${VERSION}"
-          EXPECTED_DMG="CC Theme_${VERSION}_aarch64.dmg"
+          # GitHub normalizes spaces in uploaded Release asset names to periods.
+          EXPECTED_DMG="CC.Theme_${VERSION}_aarch64.dmg"
           [[ "$RELEASE_TAG" == "$EXPECTED_TAG" ]]
           [[ "$DMG_ASSET_NAME" == "$EXPECTED_DMG" ]]
           [[ "$DMG_SHA256" =~ ^[0-9a-f]{64}$ ]]

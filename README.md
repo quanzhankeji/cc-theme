@@ -46,8 +46,8 @@ CC Theme distributes the actual declarative package—prepared assets, semantic 
 
 The `0.2.0` source line is being prepared for its first public `CC Theme` application Release. The
 earlier notarized `CC Theme Manager` image predates this rename and must not be presented as the
-current application. The formal build will use `CC Theme.app` / `CC Theme_0.2.0_aarch64.dmg`, receive
-new hashes, and complete a new notarization before publication.
+current application. The formal build uses `CC Theme.app`; GitHub exposes the notarized DMG as
+`CC.Theme_0.2.0_aarch64.dmg` after normalizing the local filename's space to a period.
 
 ## Current client support
 
