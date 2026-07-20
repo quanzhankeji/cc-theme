@@ -38,10 +38,13 @@ try {
     assert.match(report.revision, /^[a-f0-9]{20}$/);
     assert.equal(report.revisionScope, "renderer-session-generation");
     assert.equal(report.releaseTraceability, "file-manifest-sha256");
+    assert.match(report.runtimeInputFingerprint, /^[a-f0-9]{64}$/);
   }
 
   assert.notEqual(first.revision, second.revision,
     "separate injector processes must not expose renderer revision as a deterministic source digest");
+  assert.equal(first.runtimeInputFingerprint, second.runtimeInputFingerprint,
+    "the same validated runtime inputs need a deterministic identity for safe Watcher reuse");
 
   const source = await fs.readFile(injector, "utf8");
   assert.match(source, /RENDERER_SESSION_NONCE = randomBytes\(18\)/,

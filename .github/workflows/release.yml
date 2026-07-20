@@ -1,0 +1,195 @@
+name: Publish CC Theme release assets
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Exact immutable release tag (for example, cc-theme-v0.2.0)
+        required: true
+        type: string
+      dmg_asset_name:
+        description: Exact notarized DMG asset already attached to the draft Release
+        required: true
+        type: string
+      dmg_sha256:
+        description: Lowercase SHA-256 of the notarized and stapled DMG
+        required: true
+        type: string
+      notarization_id:
+        description: Apple notarytool submission UUID
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  verify-and-stage:
+    name: Verify DMG and stage exact Adapter assets
+    runs-on: macos-15
+    timeout-minutes: 35
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: ${{ inputs.tag }}
+      DMG_ASSET_NAME: ${{ inputs.dmg_asset_name }}
+      DMG_SHA256: ${{ inputs.dmg_sha256 }}
+      NOTARIZATION_ID: ${{ inputs.notarization_id }}
+      CC_THEME_SKIP_APP_BOUND_DOCTOR_TESTS: "1"
+    steps:
+      - name: Check out the exact tag
+        uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ inputs.tag }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          package-manager-cache: false
+
+      - name: Validate immutable release identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "require('./app/package.json').version")"
+          EXPECTED_TAG="cc-theme-v${VERSION}"
+          EXPECTED_DMG="CC Theme_${VERSION}_aarch64.dmg"
+          [[ "$RELEASE_TAG" == "$EXPECTED_TAG" ]]
+          [[ "$DMG_ASSET_NAME" == "$EXPECTED_DMG" ]]
+          [[ "$DMG_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$NOTARIZATION_ID" =~ ^[0-9A-Fa-f-]{36}$ ]]
+          [[ "$(git rev-list -n 1 "$RELEASE_TAG")" == "$(git rev-parse HEAD)" ]]
+          [[ "$(node -p "require('./package.json').version")" == "$VERSION" ]]
+          [[ "$(node -p "require('./app/src-tauri/tauri.conf.json').version")" == "$VERSION" ]]
+          grep -Fq "version = \"${VERSION}\"" app/src-tauri/Cargo.toml
+          {
+            echo "VERSION=$VERSION"
+            echo "CODEX_ASSET=mac-codex-26.715.31925-r1-macos-arm64.ccadapter"
+            echo "WORKBUDDY_ASSET=mac-workbuddy-5.2.6-r1-macos-arm64.ccadapter"
+          } >> "$GITHUB_ENV"
+
+      - name: Install source dependencies
+        run: npm ci
+
+      - name: Run source-only release gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm test
+          npm run typecheck
+          npm run build:manager
+          npm --prefix app run adapter:catalog:check
+          npm --prefix app run prepare:runtime
+          cargo test --manifest-path app/src-tauri/Cargo.toml
+          cargo fmt --manifest-path app/src-tauri/Cargo.toml --check
+
+      - name: Rebuild exactly two Adapter packages from the tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          ADAPTER_OUT="$RUNNER_TEMP/adapter-assets"
+          npm --prefix app run adapter:build -- \
+            --out "$ADAPTER_OUT" \
+            --architecture arm64 \
+            --status published \
+            --download-base-url "https://github.com/${GITHUB_REPOSITORY}/releases/download/${RELEASE_TAG}"
+          [[ -f "$ADAPTER_OUT/$CODEX_ASSET" ]]
+          [[ -f "$ADAPTER_OUT/$WORKBUDDY_ASSET" ]]
+          [[ "$(find "$ADAPTER_OUT" -maxdepth 1 -type f -name '*.ccadapter' -print | wc -l | tr -d ' ')" -eq 2 ]]
+          echo "ADAPTER_OUT=$ADAPTER_OUT" >> "$GITHUB_ENV"
+
+      - name: Require a draft Release with only the expected DMG or resumable assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          RELEASE_JSON="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,assets)"
+          [[ "$(jq -r '.isDraft' <<<"$RELEASE_JSON")" == "true" ]]
+          EXISTING_FILE="$RUNNER_TEMP/existing-release-assets.txt"
+          jq -r '.assets[].name' <<<"$RELEASE_JSON" | sort > "$EXISTING_FILE"
+          while IFS= read -r NAME; do
+            case "$NAME" in
+              "$DMG_ASSET_NAME"|"$CODEX_ASSET"|"$WORKBUDDY_ASSET") ;;
+              *) echo "Unexpected Release asset: $NAME" >&2; exit 1 ;;
+            esac
+          done < "$EXISTING_FILE"
+          [[ "$(grep -Fxc "$DMG_ASSET_NAME" "$EXISTING_FILE" || true)" -eq 1 ]]
+
+      - name: Verify notarization, stapling, signature, version, and Team ID
+        shell: bash
+        run: |
+          set -euo pipefail
+          DMG_DIR="$RUNNER_TEMP/dmg-verification"
+          mkdir -p "$DMG_DIR"
+          gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
+            --pattern "$DMG_ASSET_NAME" --dir "$DMG_DIR"
+          DMG="$DMG_DIR/$DMG_ASSET_NAME"
+          [[ "$(shasum -a 256 "$DMG" | awk '{print $1}')" == "$DMG_SHA256" ]]
+          hdiutil verify "$DMG"
+          xcrun stapler validate "$DMG"
+          spctl -a -t open --context context:primary-signature -vv "$DMG"
+
+          MOUNT_POINT="$RUNNER_TEMP/cc-theme-dmg"
+          mkdir -p "$MOUNT_POINT"
+          hdiutil attach -readonly -nobrowse -mountpoint "$MOUNT_POINT" "$DMG"
+          trap 'hdiutil detach "$MOUNT_POINT" || true' EXIT
+          [[ "$(find "$MOUNT_POINT" -mindepth 1 -maxdepth 1 -print | wc -l | tr -d ' ')" -eq 2 ]]
+          APP="$MOUNT_POINT/CC Theme.app"
+          APPLICATIONS_LINK="$MOUNT_POINT/Applications"
+          [[ -d "$APP" && ! -L "$APP" ]]
+          [[ -L "$APPLICATIONS_LINK" ]]
+          [[ "$(readlink "$APPLICATIONS_LINK")" == "/Applications" ]]
+          codesign --verify --deep --strict --verbose=2 "$APP"
+          spctl -a -t exec -vv "$APP"
+          [[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP/Contents/Info.plist")" == "$VERSION" ]]
+          [[ "$(codesign -dv --verbose=4 "$APP" 2>&1 | sed -n 's/^TeamIdentifier=//p')" == "8UPRU238P7" ]]
+          hdiutil detach "$MOUNT_POINT"
+          trap - EXIT
+
+      - name: Upload missing Adapter assets without replacing published bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          for NAME in "$CODEX_ASSET" "$WORKBUDDY_ASSET"; do
+            BUILT="$ADAPTER_OUT/$NAME"
+            if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json assets \
+              --jq '.assets[].name' | grep -Fxq "$NAME"; then
+              CURRENT_DIR="$RUNNER_TEMP/current-$NAME"
+              mkdir -p "$CURRENT_DIR"
+              gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
+                --pattern "$NAME" --dir "$CURRENT_DIR"
+              [[ "$(shasum -a 256 "$BUILT" | awk '{print $1}')" == \
+                 "$(shasum -a 256 "$CURRENT_DIR/$NAME" | awk '{print $1}')" ]]
+            else
+              gh release upload "$RELEASE_TAG" "$BUILT" --repo "$GITHUB_REPOSITORY"
+            fi
+          done
+
+      - name: Enforce the final three-asset draft
+        shell: bash
+        run: |
+          set -euo pipefail
+          FINAL_FILE="$RUNNER_TEMP/final-release-assets.txt"
+          EXPECTED_FILE="$RUNNER_TEMP/expected-release-assets.txt"
+          gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
+            --json assets --jq '.assets[].name' | sort > "$FINAL_FILE"
+          printf '%s\n' "$DMG_ASSET_NAME" "$CODEX_ASSET" "$WORKBUDDY_ASSET" | sort > "$EXPECTED_FILE"
+          [[ "$(wc -l < "$FINAL_FILE" | tr -d ' ')" -eq 3 ]]
+          diff -u "$EXPECTED_FILE" "$FINAL_FILE"
+          {
+            echo "## Verified draft Release"
+            echo "- Tag: \`$RELEASE_TAG\`"
+            echo "- Commit: \`$(git rev-parse HEAD)\`"
+            echo "- Apple notarization: \`$NOTARIZATION_ID\`"
+            echo "- DMG SHA-256: \`$DMG_SHA256\`"
+            for NAME in "$CODEX_ASSET" "$WORKBUDDY_ASSET"; do
+              echo "- \`$NAME\`: \`$(shasum -a 256 "$ADAPTER_OUT/$NAME" | awk '{print $1}')\`"
+            done
+            echo
+            echo "The Release remains a draft for a maintainer to publish after reviewing this run."
+          } >> "$GITHUB_STEP_SUMMARY"

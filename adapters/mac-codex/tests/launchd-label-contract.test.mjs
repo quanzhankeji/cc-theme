@@ -11,12 +11,17 @@ const retiredNamespace = ["com", "openai", "cc-theme-studio"].join(".");
 
 assert.match(common, /CODEX_APP_JOB_LABEL="app\.cc-theme\.mac-codex\.app"/);
 assert.match(common, /INJECTOR_JOB_LABEL="app\.cc-theme\.mac-codex\.injector"/);
+assert.match(common, /INJECTOR_LAUNCH_AGENT_PLIST=.*INJECTOR_JOB_LABEL.*\.plist/);
 const stopInjector = common.slice(common.indexOf("stop_recorded_injector()"), common.indexOf("launch_injector_daemon()"));
-assert.match(stopInjector, /remove_launchd_job_label "\$INJECTOR_JOB_LABEL"[\s\S]*\[ -f "\$STATE_PATH" \] \|\| return 0/,
+assert.match(stopInjector, /remove_injector_launch_agent[\s\S]*\[ -f "\$STATE_PATH" \] \|\| return 0/,
   "Restore must remove an owned launchd watcher even when state.json is missing.");
 const launchInjector = common.slice(common.indexOf("launch_injector_daemon()"), common.indexOf("ensure_node_runtime()"));
-assert.ok(launchInjector.indexOf("launchctl submit") < launchInjector.indexOf("/usr/bin/nohup"),
-  "The persistent launchd watcher must be preferred over the shell-bound fallback.");
+assert.match(launchInjector, /write_injector_launch_agent[\s\S]*launchctl bootstrap/,
+  "The watcher must use an owned LaunchAgent rather than a PTY-bound process.");
+assert.equal(launchInjector.includes("launchctl submit"), false,
+  "ephemeral submit jobs are not stable across repeated desktop launches");
+assert.equal(launchInjector.includes("/usr/bin/nohup"), false,
+  "the watcher must never fall back to a shell or PTY-bound process");
 assert.equal(status.includes("pgrep -x ChatGPT"), false,
   "Status must not rely on the truncated macOS process name.");
 assert.match(status, /\/Applications\/ChatGPT\.app\/Contents\/MacOS\/ChatGPT/);

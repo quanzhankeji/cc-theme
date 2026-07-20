@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 
-import { createDocumentGenerationCoordinator } from "../scripts/document-generation.mjs";
+import {
+  createDocumentGenerationCoordinator,
+  createDocumentGenerationReconciler,
+} from "../scripts/document-generation.mjs";
 
 const coordinator = createDocumentGenerationCoordinator();
 let runs = 0;
@@ -72,5 +75,36 @@ coordinator.cancel();
 releaseCleanup();
 assert.deepEqual(await cleaning, { status: "superseded" });
 assert.equal(coordinator.current(), null);
+
+let currentDocumentId = "frame-c:loader-cold-shell";
+const reconciledDocuments = [];
+const reconciler = createDocumentGenerationReconciler({
+  readDocumentId: async () => currentDocumentId,
+});
+const reconcile = () => reconciler.reconcile({
+  generation: "runtime-cold:theme-a",
+  task: async ({ documentId, guard }) => {
+    guard();
+    reconciledDocuments.push(documentId);
+    return documentId;
+  },
+});
+assert.deepEqual(await reconcile(), {
+  status: "committed",
+  value: "frame-c:loader-cold-shell",
+});
+currentDocumentId = "frame-c:loader-stable-shell";
+assert.deepEqual(await reconcile(), {
+  status: "committed",
+  value: "frame-c:loader-stable-shell",
+}, "poll reconciliation must recover a cold navigation even when Page.loadEventFired was missed");
+assert.deepEqual(await reconcile(), {
+  status: "already-committed",
+  value: "frame-c:loader-stable-shell",
+});
+assert.deepEqual(reconciledDocuments, [
+  "frame-c:loader-cold-shell",
+  "frame-c:loader-stable-shell",
+], "a stable document must not retransmit its generation on every poll");
 
 console.log("PASS: renderer work is single-flight per document/generation and stale generations cannot commit.");

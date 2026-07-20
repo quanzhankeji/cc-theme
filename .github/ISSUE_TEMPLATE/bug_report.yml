@@ -26,7 +26,7 @@ body:
     id: version
     attributes:
       label: CC Theme 版本或提交 / Version or commit
-      placeholder: CC Theme 0.1.0, Adapter version, or commit SHA
+      placeholder: CC Theme 0.2.0, Adapter version, or commit SHA
     validations:
       required: true
   - type: input

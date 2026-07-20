@@ -1,6 +1,6 @@
 [package]
 name = "cc-theme"
-version = "0.1.0"
+version = "0.2.0"
 description = "Unified macOS theme tool for Codex and WorkBuddy"
 authors = ["CC Theme contributors"]
 license = "MIT"

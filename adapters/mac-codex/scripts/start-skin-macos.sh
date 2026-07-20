@@ -13,6 +13,7 @@ record_start_error() {
 trap 'code=$?; record_start_error "$code" "$LINENO"' ERR
 
 PORT=9341
+COLD_RENDERER_READY_TIMEOUT_MS="45000"
 PORT_EXPLICIT="false"
 RESTART_EXISTING="false"
 PROMPT_RESTART="false"
@@ -73,6 +74,12 @@ if codex_is_running && [ "$DEBUG_READY" = "false" ]; then
 fi
 
 if [ "$DEBUG_READY" = "false" ]; then
+  # A watcher intentionally outlives the renderer it was supervising. Stop it
+  # before a replacement Codex process can reuse the same CDP port; otherwise
+  # the stale generation can attach to the new document before the new watcher.
+  stop_recorded_injector \
+    || fail "The previous injector service did not stop before the replacement Codex launch."
+  /bin/rm -f "$STATE_PATH"
   PORT="$(select_available_port "$PORT")"
   printf 'Launching Codex with skin debug port %s…\n' "$PORT" >&2
   launch_stage_started="$(lifecycle_now_ms)"
@@ -99,7 +106,7 @@ fi
 RUNTIME_GENERATION="$(new_runtime_generation)"
 readiness_started="$(lifecycle_now_ms)"
 INJECTOR_PID="$(launch_injector_daemon "$PORT" "$RUNTIME_GENERATION")"
-if ! wait_for_injector_ready "$PORT" "$INJECTOR_PID" "$RUNTIME_GENERATION" 20000; then
+if ! wait_for_injector_ready "$PORT" "$INJECTOR_PID" "$RUNTIME_GENERATION" "$COLD_RENDERER_READY_TIMEOUT_MS"; then
   emit_lifecycle_stage "watcher-generation-readiness" "failed" "$readiness_started" "generation-readiness-timeout"
   rollback_for_theme_failure "The Theme engine did not complete its bounded renderer-generation handshake. See $INJECTOR_ERROR_LOG."
 fi
@@ -108,6 +115,12 @@ INJECTOR_STARTED_AT="$(process_started_at "$INJECTOR_PID")"
 [ -n "$INJECTOR_STARTED_AT" ] || fail "Could not record the injector process start time."
 [ -n "$CODEX_PID" ] && [ -n "$CODEX_STARTED_AT" ] \
   || rollback_for_theme_failure "The trusted Codex process identity was lost before state commit."
+handoff_started="$(lifecycle_now_ms)"
+if ! activate_trusted_codex "$PORT" "$CODEX_PID" "$CODEX_STARTED_AT"; then
+  emit_lifecycle_stage "foreground-handoff" "failed" "$handoff_started" "trusted-activation-failed"
+  rollback_for_theme_failure "The themed Codex renderer was ready, but the trusted app could not be brought to the foreground."
+fi
+emit_lifecycle_stage "foreground-handoff" "ready" "$handoff_started" "ok"
 write_state "$PORT" "$INJECTOR_PID" "$INJECTOR_STARTED_AT" "$CODEX_PID" "$CODEX_STARTED_AT" "$RUNTIME_GENERATION"
 
 printf 'CC Theme %s is active on loopback port %s.\n' "$SKIN_VERSION" "$PORT"

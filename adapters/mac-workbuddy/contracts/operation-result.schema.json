@@ -22,6 +22,11 @@
       "description": "Process/session-scoped renderer generation; not a deterministic source or artifact digest."
     },
     "revisionScope": { "const": "renderer-session-generation" },
+    "runtimeInputFingerprint": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "Deterministic identity of the validated runtime inputs used only to admit safe reuse of the existing local Watcher; it is not a release artifact digest."
+    },
     "releaseTraceability": { "const": "file-manifest-sha256" },
     "details": { "type": "object" }
   }

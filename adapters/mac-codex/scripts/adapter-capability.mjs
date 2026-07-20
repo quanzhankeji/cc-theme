@@ -480,21 +480,44 @@ function compileAdmission(capability, context) {
   const deny = (code, field, message) => diagnostics.push({
     code, field, decision: "unsupported", severity: "error", message,
   });
+  const compatibilityAttempt = context.reasonCode === "older-adapter-compatibility-attempt";
+  const numericVersion = (value) => {
+    if (typeof value !== "string" || !/^\d+(?:\.\d+){2}$/.test(value)) return null;
+    return value.split(".").map((part) => BigInt(part));
+  };
+  const isNewerHost = (() => {
+    const host = numericVersion(context.detectedClientVersion);
+    const adapter = numericVersion(expected.clientVersion);
+    if (!host || !adapter) return false;
+    for (let index = 0; index < 3; index += 1) {
+      if (host[index] !== adapter[index]) return host[index] > adapter[index];
+    }
+    return false;
+  })();
   if (context.compileAllowed !== true) deny("adapter-compile-context-denied", "compileContext.compileAllowed", "The Manager compile context did not admit this Adapter compilation.");
   if (context.applyAllowed !== true) deny("adapter-apply-context-denied", "compileContext.applyAllowed", "The Manager compile context did not admit runtime application.");
-  if (context.detectedClientVersion !== expected.clientVersion) {
+  if (compatibilityAttempt && !isNewerHost) {
+    deny("older-adapter-compatibility-direction-invalid", "compileContext.detectedClientVersion", "Compatibility mode only permits an older Adapter to be tried on a newer official client.");
+  } else if (!compatibilityAttempt && context.detectedClientVersion !== expected.clientVersion) {
     deny("surface-evidence-client-version-mismatch", "compileContext.detectedClientVersion", `Current Mac Codex evidence is for ${expected.clientVersion}; received ${String(context.detectedClientVersion)}.`);
   }
-  if (context.detectedClientBuild !== expected.clientBuild) {
+  if (!compatibilityAttempt && context.detectedClientBuild !== expected.clientBuild) {
     deny("surface-evidence-client-build-mismatch", "compileContext.detectedClientBuild", `Current Mac Codex evidence is for build ${expected.clientBuild}; received ${String(context.detectedClientBuild)}.`);
   }
-  if (context.probeStatus !== "passed") {
+  if (!compatibilityAttempt && context.probeStatus !== "passed") {
     deny("surface-evidence-probe-not-passed", "compileContext.probeStatus", "Current privacy-preserving Surface evidence has not passed for this compile context.");
   }
   if (context.surfaceCatalogId !== expected.surfaceCatalogId) {
     deny("surface-evidence-catalog-mismatch", "compileContext.surfaceCatalogId", `Expected Surface Catalog ${expected.surfaceCatalogId}.`);
   }
-  return { applyAllowed: diagnostics.length === 0, diagnostics };
+  if (compatibilityAttempt && isNewerHost) diagnostics.push({
+    code: "older-adapter-runtime-probe-required",
+    field: "compileContext.reasonCode",
+    decision: "approximated",
+    severity: "warning",
+    message: "Projection uses the older Adapter recipe; the current official client must still pass the Adapter-owned structural runtime probe before commit.",
+  });
+  return { applyAllowed: !diagnostics.some((item) => item.severity === "error"), diagnostics };
 }
 
 export async function projectThemeFamilyAdapter(value) {

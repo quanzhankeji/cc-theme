@@ -242,6 +242,17 @@ assert.equal(stale.status, "success");
 assert.equal(stale.applyAllowed, false);
 assert(stale.diagnostics.some((item) => item.code === "surface-evidence-client-version-mismatch"));
 
+const compatibilityInvocation = managerInvocation();
+compatibilityInvocation.compileContext.detectedClientVersion = "26.715.52143";
+compatibilityInvocation.compileContext.detectedClientBuild = "6000";
+compatibilityInvocation.compileContext.probeStatus = "not-run";
+compatibilityInvocation.compileContext.reasonCode = "older-adapter-compatibility-attempt";
+const compatibilityProjection = await projectThemeFamilyAdapter(compatibilityInvocation);
+assert.equal(compatibilityProjection.status, "success");
+assert.equal(compatibilityProjection.applyAllowed, true);
+assert(compatibilityProjection.diagnostics.some((item) =>
+  item.code === "older-adapter-runtime-probe-required" && item.severity === "warning"));
+
 const missingEvidenceIdentityInvocation = managerInvocation();
 delete missingEvidenceIdentityInvocation.compileContext.detectedClientBuild;
 delete missingEvidenceIdentityInvocation.compileContext.surfaceCatalogId;

@@ -16,6 +16,12 @@ pkill -x "$PROCESS_NAME" >/dev/null 2>&1 || true
   npm run tauri:build -- --bundles app
 )
 
+if [ -n "${CC_THEME_SIGNING_IDENTITY:-}" ]; then
+  "$APP_DIR/scripts/sign-macos-app.sh" "$APP_BUNDLE" "$CC_THEME_SIGNING_IDENTITY"
+else
+  "$APP_DIR/scripts/verify-packaged-runtime.sh" "$APP_BUNDLE"
+fi
+
 open_app() {
   /usr/bin/open -n "$APP_BUNDLE"
 }

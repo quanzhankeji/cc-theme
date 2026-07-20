@@ -103,7 +103,7 @@ try {
   );
   assert.match(
     stopInjector,
-    /remove_launchd_job_label "\$INJECTOR_JOB_LABEL"[\s\S]*\[ -f "\$STATE_PATH" \] \|\| return 0/,
+    /remove_injector_launch_agent[\s\S]*\[ -f "\$STATE_PATH" \] \|\| return 0/,
     "Owned launchd cleanup must precede the no-state early return.",
   );
 

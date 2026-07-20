@@ -65,7 +65,9 @@ const probeStart = source.indexOf("const probe = await waitForCodexProbe", disco
 assert.ok(discoveryStart >= 0 && probeStart > discoveryStart);
 assert.match(source, /Page\.addScriptToEvaluateOnNewDocument/);
 assert.match(source, /Page\.removeScriptToEvaluateOnNewDocument/);
-assert.match(source, /createDocumentGenerationCoordinator\(\)/);
+assert.match(source, /createDocumentGenerationReconciler\(\{/);
+assert.match(source, /if \(existing\) \{[\s\S]*await runSessionGeneration\(existing, current\)/,
+  "Target polling must reconcile the current document instead of relying only on Page.loadEventFired.");
 assert.match(source, /const payloadGenerationFor = \(loaded\) => `\$\{loaded\.revision\}:\$\{loaded\.editorNonce\}`/);
 assert.match(source, /const generationFor = \(loaded\) => `\$\{options\.runtimeGeneration\}:\$\{payloadGenerationFor\(loaded\)\}`/);
 assert.match(source, /\[data-app-shell-main-content-layout\], main\.main-surface/,

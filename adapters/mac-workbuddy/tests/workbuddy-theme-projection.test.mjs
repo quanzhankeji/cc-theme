@@ -106,6 +106,14 @@ untargeted.targets = ["mac-codex"];
 delete untargeted.targetProfiles["mac-workbuddy"];
 assert.equal((await projectUnifiedThemeForWorkBuddy(untargeted, context)).applyAllowed, false);
 assert.equal((await projectUnifiedThemeForWorkBuddy(unifiedV2, { ...context, clientVersion: "5.2.7" })).applyAllowed, false);
+const compatibilityProjection = await projectUnifiedThemeForWorkBuddy(unifiedV2, {
+  ...context,
+  clientVersion: "5.2.7",
+  compatibilityAttempt: true,
+});
+assert.equal(compatibilityProjection.applyAllowed, true);
+assert(compatibilityProjection.diagnostics.some((item) =>
+  item.code === "older-adapter-runtime-probe-required" && item.severity === "warning"));
 await assert.rejects(projectUnifiedThemeForWorkBuddy(unifiedV2, {
   ...context,
   targetProfile: profile({ paletteStrategy: "system", selector: "body" }),

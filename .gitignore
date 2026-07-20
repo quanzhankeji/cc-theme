@@ -120,6 +120,7 @@ next-env.d.ts
 # local reports and private theme material
 /.codex/
 /.local-docs/
+/research/
 **/reports/
 **/screenshots/
 **/themes/private/

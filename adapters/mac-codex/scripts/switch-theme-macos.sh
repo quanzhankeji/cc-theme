@@ -161,7 +161,7 @@ if [ -f "$STATE_PATH" ]; then
   [ -n "${saved:-}" ] && PORT="$saved"
 fi
 
-if hot_reapply_theme "$PORT" 8000; then
+if codex_is_running && hot_reapply_theme "$PORT" 8000; then
   finish_transaction
   progress "Done: ${THEME_NAME}"
   emit_result true hot

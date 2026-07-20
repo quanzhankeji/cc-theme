@@ -7,6 +7,7 @@ PROJECT_ROOT="$(cd "$COMMON_DIR/.." && pwd -P)"
 ADAPTER_ID="mac-workbuddy"
 EXPECTED_BUNDLE_ID="${WORKBUDDY_EXPECTED_BUNDLE_ID:-com.workbuddy.workbuddy}"
 EXPECTED_TEAM_ID="${WORKBUDDY_EXPECTED_TEAM_ID:-FN2V63AD2J}"
+EXPECTED_WORKBUDDY_VERSION="$(/usr/bin/awk 'NR == 1 { gsub(/[[:space:]]/, ""); print; exit }' "$PROJECT_ROOT/VERSION" 2>/dev/null || true)"
 DEFAULT_PORT="${WORKBUDDY_SKIN_PORT:-9342}"
 USER_HOME="${HOME:-$(/usr/bin/dscl . -read "/Users/$(/usr/bin/id -un)" NFSHomeDirectory 2>/dev/null | /usr/bin/awk '{print $2}')}"
 STATE_DIR="$USER_HOME/Library/Application Support/$ADAPTER_ID"
@@ -14,6 +15,7 @@ LEGACY_STATE_DIR="${STATE_DIR}-skin"
 STATE_FILE="$STATE_DIR/state.env"
 INJECTOR_PID_FILE="$STATE_DIR/injector.pid"
 WATCHER_STARTUP_REPORT="$STATE_DIR/watcher-startup.json"
+SIGNATURE_CACHE_FILE="$STATE_DIR/signature-cache-v1.env"
 LOG_DIR="$STATE_DIR/logs"
 INSTALL_PARENT="$USER_HOME/.workbuddy"
 DEFAULT_INSTALL_ROOT="$INSTALL_PARENT/workbuddy-skin-studio"
@@ -29,6 +31,26 @@ NODE_RUNTIME=""
 log() { printf '[workbuddy-skin] %s\n' "$*"; }
 warn() { printf '[workbuddy-skin] warning: %s\n' "$*" >&2; }
 die() { printf '[workbuddy-skin] error: %s\n' "$*" >&2; exit 1; }
+
+version_is_strictly_newer() {
+  local host="$1" adapter="$2"
+  /usr/bin/awk -v host="$host" -v adapter="$adapter" '
+    function numeric(value, output, count, index) {
+      count=split(value, output, ".")
+      if (count != 3) return 0
+      for (index=1; index<=3; index++) if (output[index] !~ /^[0-9]+$/) return 0
+      return 1
+    }
+    BEGIN {
+      if (!numeric(host, h) || !numeric(adapter, a)) exit 1
+      for (i=1; i<=3; i++) {
+        if ((h[i] + 0) > (a[i] + 0)) exit 0
+        if ((h[i] + 0) < (a[i] + 0)) exit 1
+      }
+      exit 1
+    }
+  '
+}
 
 migrate_legacy_state_once() {
   local owner state_temporary migration_marker
@@ -124,6 +146,86 @@ plist_value() {
   /usr/libexec/PlistBuddy -c "Print :$2" "$1/Contents/Info.plist" 2>/dev/null || true
 }
 
+bundle_metadata_fingerprint() {
+  /usr/bin/find "$WORKBUDDY_BUNDLE" -xdev -print0 \
+    | /usr/bin/xargs -0 /usr/bin/stat -f '%N:%d:%i:%p:%u:%g:%z:%m:%c:%B:%f:%HT' \
+    | LC_ALL=C /usr/bin/sort \
+    | /usr/bin/shasum -a 256 \
+    | /usr/bin/awk 'NF == 2 && $1 ~ /^[a-f0-9]{64}$/ { print $1; exit }'
+}
+
+signature_cache_value() {
+  local key="$1"
+  /usr/bin/awk -F= -v key="$key" '$1 == key { print substr($0, length($1) + 2); exit }' \
+    "$SIGNATURE_CACHE_FILE" 2>/dev/null || true
+}
+
+signature_cache_base_matches() {
+  local owner permissions
+  [ -f "$SIGNATURE_CACHE_FILE" ] && [ ! -L "$SIGNATURE_CACHE_FILE" ] || return 1
+  owner="$(/usr/bin/stat -f '%u' "$SIGNATURE_CACHE_FILE" 2>/dev/null || true)"
+  permissions="$(/usr/bin/stat -f '%Lp' "$SIGNATURE_CACHE_FILE" 2>/dev/null || true)"
+  [ "$owner" = "$(/usr/bin/id -u)" ] && [ "$permissions" = "600" ] || return 1
+  [ "$(signature_cache_value kind)" = "cc-theme.workbuddy-signature-cache" ] || return 1
+  [ "$(signature_cache_value schema)" = "1" ] || return 1
+  [ "$(signature_cache_value bundle)" = "$WORKBUDDY_BUNDLE" ] || return 1
+  [ "$(signature_cache_value bundle_id)" = "$EXPECTED_BUNDLE_ID" ] || return 1
+  [ "$(signature_cache_value team_id)" = "$EXPECTED_TEAM_ID" ] || return 1
+  [ "$(signature_cache_value version)" = "$WORKBUDDY_VERSION" ] || return 1
+  [ "$(signature_cache_value executable)" = "$WORKBUDDY_EXECUTABLE" ]
+}
+
+signature_cache_matches() {
+  local fingerprint="$1"
+  signature_cache_base_matches || return 1
+  [ "$(signature_cache_value strategy)" = "metadata-cache" ] || return 1
+  [ "$(signature_cache_value fingerprint)" = "$fingerprint" ]
+}
+
+write_signature_cache() {
+  local strategy="$1" fingerprint="$2" temporary="$STATE_DIR/.signature-cache.$$"
+  /bin/mkdir -p "$STATE_DIR"
+  /bin/chmod 700 "$STATE_DIR"
+  (
+    umask 077
+    {
+      printf 'kind=cc-theme.workbuddy-signature-cache\n'
+      printf 'schema=1\n'
+      printf 'bundle=%s\n' "$WORKBUDDY_BUNDLE"
+      printf 'bundle_id=%s\n' "$EXPECTED_BUNDLE_ID"
+      printf 'team_id=%s\n' "$EXPECTED_TEAM_ID"
+      printf 'version=%s\n' "$WORKBUDDY_VERSION"
+      printf 'executable=%s\n' "$WORKBUDDY_EXECUTABLE"
+      printf 'strategy=%s\n' "$strategy"
+      printf 'fingerprint=%s\n' "$fingerprint"
+    } >"$temporary"
+  )
+  /bin/chmod 600 "$temporary"
+  /bin/mv "$temporary" "$SIGNATURE_CACHE_FILE"
+}
+
+verify_workbuddy_recursively_and_cache() {
+  local fingerprint="${1:-}" started_at finished_at elapsed
+  started_at="$(/bin/date +%s)"
+  /usr/bin/codesign --verify --deep --strict "$WORKBUDDY_BUNDLE" >/dev/null 2>&1 \
+    || die "WorkBuddy recursive code signature verification failed."
+  finished_at="$(/bin/date +%s)"
+  elapsed=$((finished_at - started_at))
+  if [ "$elapsed" -ge 3 ]; then
+    if [ -z "$fingerprint" ]; then
+      fingerprint="$(bundle_metadata_fingerprint)" \
+        || die "WorkBuddy bundle change identity could not be computed safely."
+    fi
+    case "$fingerprint" in ''|*[!a-f0-9]*) die "WorkBuddy bundle change identity is invalid." ;; esac
+    [ "${#fingerprint}" -eq 64 ] || die "WorkBuddy bundle change identity is invalid."
+    write_signature_cache metadata-cache "$fingerprint"
+  else
+    # Recursive verification is already faster than walking this filesystem.
+    # Keep the stronger check on each operation and avoid a slower cache path.
+    write_signature_cache deep-always ""
+  fi
+}
+
 discover_workbuddy() {
   local candidate
   for candidate in \
@@ -144,7 +246,7 @@ discover_workbuddy() {
 }
 
 validate_workbuddy() {
-  local bundle_id executable_name signature team identifier
+  local bundle_id executable_name signature team identifier fingerprint
   bundle_id="$(plist_value "$WORKBUDDY_BUNDLE" CFBundleIdentifier)"
   [ "$bundle_id" = "$EXPECTED_BUNDLE_ID" ] || die "Unexpected WorkBuddy bundle id: ${bundle_id:-missing}"
   executable_name="$(plist_value "$WORKBUDDY_BUNDLE" CFBundleExecutable)"
@@ -152,12 +254,32 @@ validate_workbuddy() {
   WORKBUDDY_EXECUTABLE="$WORKBUDDY_BUNDLE/Contents/MacOS/$executable_name"
   [ -x "$WORKBUDDY_EXECUTABLE" ] || die "WorkBuddy executable is missing: $WORKBUDDY_EXECUTABLE"
   WORKBUDDY_VERSION="$(plist_value "$WORKBUDDY_BUNDLE" CFBundleShortVersionString)"
+  case "$EXPECTED_WORKBUDDY_VERSION" in ''|*[!0-9.]*) die "Adapter host version contract is invalid." ;; esac
+  if [ "$WORKBUDDY_VERSION" != "$EXPECTED_WORKBUDDY_VERSION" ]; then
+    [ "${CC_THEME_ADAPTER_COMPATIBILITY_ATTEMPT:-0}" = "1" ] \
+      && version_is_strictly_newer "$WORKBUDDY_VERSION" "$EXPECTED_WORKBUDDY_VERSION" \
+      || die "WorkBuddy $WORKBUDDY_VERSION is not supported by this Adapter; expected $EXPECTED_WORKBUDDY_VERSION."
+    warn "older-adapter-compatibility-attempt: runtime role discovery is required before theme state can commit."
+  fi
   signature="$(/usr/bin/codesign -dvvv "$WORKBUDDY_BUNDLE" 2>&1)" || die "WorkBuddy code signature could not be read."
   team="$(printf '%s\n' "$signature" | /usr/bin/sed -n 's/^TeamIdentifier=//p' | /usr/bin/head -n 1)"
   identifier="$(printf '%s\n' "$signature" | /usr/bin/sed -n 's/^Identifier=//p' | /usr/bin/head -n 1)"
   [ "$identifier" = "$EXPECTED_BUNDLE_ID" ] || die "Unexpected signature identifier: ${identifier:-missing}"
   [ "$team" = "$EXPECTED_TEAM_ID" ] || die "Unexpected WorkBuddy signing team: ${team:-missing}"
-  /usr/bin/codesign --verify --deep --strict "$WORKBUDDY_BUNDLE" >/dev/null 2>&1 || die "WorkBuddy code signature verification failed."
+  if signature_cache_base_matches \
+    && [ "$(signature_cache_value strategy)" = "metadata-cache" ]; then
+    /usr/bin/codesign --verify --strict "$WORKBUDDY_BUNDLE" >/dev/null 2>&1 \
+      || die "WorkBuddy outer code signature verification failed."
+    fingerprint="$(bundle_metadata_fingerprint)" \
+      || die "WorkBuddy bundle change identity could not be computed safely."
+    if ! signature_cache_matches "$fingerprint"; then
+      verify_workbuddy_recursively_and_cache "$fingerprint"
+    fi
+  else
+    # A recursive verification includes the outer seal. Fast filesystems keep
+    # this stronger path instead of redundantly running both checks.
+    verify_workbuddy_recursively_and_cache
+  fi
 }
 
 node_is_supported() {
@@ -350,6 +472,73 @@ write_state() {
 
 injector_running() {
   /bin/launchctl print "gui/$(/usr/bin/id -u)/$LAUNCH_AGENT_LABEL" >/dev/null 2>&1
+}
+
+launch_agent_argument() {
+  /usr/libexec/PlistBuddy -c "Print :ProgramArguments:$1" "$LAUNCH_AGENT_PLIST" 2>/dev/null || true
+}
+
+watcher_report_matches_fingerprint() {
+  local expected_fingerprint="$1"
+  [ -f "$WATCHER_STARTUP_REPORT" ] && [ ! -L "$WATCHER_STARTUP_REPORT" ] || return 1
+  "$NODE_RUNTIME" -e '
+    const fs = require("fs");
+    const report = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+    const valid = report?.kind === "cc-theme.operation-result"
+      && report?.adapter === "mac-workbuddy"
+      && report?.status === "ok"
+      && report?.code === "watcher-ready"
+      && report?.version === process.argv[3]
+      && report?.runtimeInputFingerprint === process.argv[2]
+      && report?.revisionScope === "renderer-session-generation"
+      && report?.releaseTraceability === "file-manifest-sha256";
+    process.exit(valid ? 0 : 1);
+  ' "$WATCHER_STARTUP_REPORT" "$expected_fingerprint" "$WORKBUDDY_VERSION" >/dev/null 2>&1
+}
+
+trusted_injector_running() {
+  local port="$1" theme_dir="$2" themes_root="$3" uid owner pid executable index actual
+  local expected_fingerprint deadline preflight
+  uid="$(/usr/bin/id -u)"
+  injector_running || return 1
+  [ -f "$STATE_FILE" ] && [ ! -L "$STATE_FILE" ] || return 1
+  [ "$(state_value adapter)" = "$ADAPTER_ID" ] || return 1
+  [ "$(state_value port)" = "$port" ] || return 1
+  [ "$(state_value theme_dir)" = "$theme_dir" ] || return 1
+  [ "$(state_value project_root)" = "$PROJECT_ROOT" ] || return 1
+  [ -f "$LAUNCH_AGENT_PLIST" ] && [ ! -L "$LAUNCH_AGENT_PLIST" ] || return 1
+  owner="$(/usr/bin/stat -f '%u' "$LAUNCH_AGENT_PLIST" 2>/dev/null || true)"
+  [ "$owner" = "$uid" ] || return 1
+  [ "$(/usr/libexec/PlistBuddy -c 'Print :Label' "$LAUNCH_AGENT_PLIST" 2>/dev/null || true)" = "$LAUNCH_AGENT_LABEL" ] \
+    || return 1
+  index=0
+  for actual in \
+    "$NODE_RUNTIME" "$PROJECT_ROOT/scripts/injector.mjs" --watch --port "$port" \
+    --theme-dir "$theme_dir" --themes-root "$themes_root" --report-file "$WATCHER_STARTUP_REPORT"; do
+    [ "$(launch_agent_argument "$index")" = "$actual" ] || return 1
+    index=$((index + 1))
+  done
+  [ -z "$(launch_agent_argument "$index")" ] || return 1
+  pid="$(/bin/launchctl print "gui/$uid/$LAUNCH_AGENT_LABEL" 2>/dev/null \
+    | /usr/bin/awk '/pid =/ { print $3; exit }')"
+  case "$pid" in ''|*[!0-9]*) return 1 ;; esac
+  executable="$(/bin/ps -ww -p "$pid" -o comm= 2>/dev/null | /usr/bin/sed 's/^[[:space:]]*//' || true)"
+  [ "$executable" = "$NODE_RUNTIME" ] || return 1
+
+  preflight="$("$NODE_RUNTIME" "$PROJECT_ROOT/scripts/injector.mjs" --check-payload \
+    --theme-dir "$theme_dir" --themes-root "$themes_root" 2>/dev/null)" || return 1
+  expected_fingerprint="$("$NODE_RUNTIME" -e '
+    const value = JSON.parse(process.argv[1]);
+    const fingerprint = value?.runtimeInputFingerprint;
+    if (typeof fingerprint !== "string" || !/^[a-f0-9]{64}$/.test(fingerprint)) process.exit(1);
+    process.stdout.write(fingerprint);
+  ' "$preflight")" || return 1
+  deadline=$((SECONDS + 2))
+  while [ "$SECONDS" -lt "$deadline" ]; do
+    watcher_report_matches_fingerprint "$expected_fingerprint" && return 0
+    /bin/sleep 0.05
+  done
+  watcher_report_matches_fingerprint "$expected_fingerprint"
 }
 
 stop_injector() {

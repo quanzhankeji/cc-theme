@@ -184,7 +184,17 @@ pub async fn run_operation(
                 "preflight",
                 "正在验证客户端、签名和主题适配器",
             );
-            let state = discovery::client_state(client_id);
+            let state = if matches!(operation, ClientOperation::Launch) {
+                // Native launch has no Adapter-owned final gate, so the Manager
+                // retains recursive verification for that path.
+                discovery::client_state(client_id)
+            } else {
+                // Adapter operations end in the Adapter's own recursive
+                // signature, Surface, process, and rollback admission. The
+                // Manager checks identity plus the outer seal here to avoid an
+                // immediately duplicated full bundle walk.
+                discovery::client_state_for_adapter_operation(client_id)
+            };
             if !state.discovered {
                 return OperationResult::failed("app-not-found", "未找到官方客户端");
             }
@@ -270,7 +280,12 @@ pub async fn run_operation(
                 "running",
                 operation_message(operation),
             );
-            execute_fixed_script(client_id, operation, spec)
+            execute_fixed_script(
+                client_id,
+                operation,
+                spec,
+                state.adapter_status == "compatibility-candidate",
+            )
         }
     })
     .await
@@ -324,6 +339,7 @@ fn execute_fixed_script(
     client_id: ClientId,
     operation: ClientOperation,
     spec: CommandSpec,
+    compatibility_attempt: bool,
 ) -> OperationResult {
     let definition = registry::definition(client_id);
     let script = match resolve_fixed_script(&definition, spec.script_name) {
@@ -336,6 +352,7 @@ fn execute_fixed_script(
         .args(&spec.args)
         .current_dir(registry::adapter_root(&definition))
         .env("PATH", safe_command_path());
+    configure_compatibility_environment(&mut command, compatibility_attempt);
     let output = match run_with_timeout(&mut command, operation_timeout(operation)) {
         Ok(output) => output,
         Err(ProcessError::TimedOut) => {
@@ -349,6 +366,13 @@ fn execute_fixed_script(
         }
     };
     adapter_result(client_id, operation, output)
+}
+
+fn configure_compatibility_environment(command: &mut Command, compatibility_attempt: bool) {
+    command.env_remove("CC_THEME_ADAPTER_COMPATIBILITY_ATTEMPT");
+    if compatibility_attempt {
+        command.env("CC_THEME_ADAPTER_COMPATIBILITY_ATTEMPT", "1");
+    }
 }
 
 fn operation_timeout(operation: ClientOperation) -> Duration {
@@ -421,7 +445,11 @@ fn adapter_result(
 ) -> OperationResult {
     let stdout = bounded_text(&output.stdout);
     let stderr = bounded_text(&output.stderr);
-    let parsed = parse_adapter_output(&stdout);
+    let parsed = if output.status.success() {
+        parse_adapter_output(&stdout)
+    } else {
+        parse_adapter_output(&format!("{stdout}\n{stderr}"))
+    };
     let details = json!({
         "clientId": client_id,
         "operation": operation,
@@ -461,9 +489,32 @@ fn adapter_public_code(parsed: &Value) -> Option<&str> {
     })
 }
 
+fn has_transport_failure(raw: &str) -> bool {
+    raw.lines().any(|line| {
+        let lower = line.to_ascii_lowercase();
+        (lower.contains("\"stage\":\"cdp-process-tree\"")
+            && lower.contains("\"status\":\"failed\""))
+            || lower.contains("cdp-readiness-timeout")
+            || lower.contains("transport-unavailable")
+            || lower.contains("official-cdp-auth-required")
+            || lower.contains("did not expose a verified cdp endpoint")
+            || lower.contains("running without the theme cdp endpoint")
+            || lower.contains("could not connect to the local theme service")
+    })
+}
+
 fn public_failure_message(operation: ClientOperation, raw: &str) -> String {
     let lower = raw.to_ascii_lowercase();
-    if lower.contains("enoent")
+    if lower.contains("generation-readiness-timeout")
+        || lower.contains("renderer-generation handshake")
+    {
+        "客户端界面未在限定时间内完成主题初始化，Adapter 已安全回滚".to_string()
+    } else if lower.contains("compatibility-attempt")
+        || lower.contains("structural compatibility")
+        || lower.contains("surface-evidence-landmark-missing")
+    {
+        "旧版 Adapter 与当前客户端界面结构不兼容，已安全停止并保留原生外观".to_string()
+    } else if lower.contains("enoent")
         || lower.contains("no such file")
         || lower.contains("ui-surface-catalog")
         || lower.contains("compatibility") && lower.contains("missing")
@@ -473,11 +524,7 @@ fn public_failure_message(operation: ClientOperation, raw: &str) -> String {
         "客户端签名未通过官方身份校验".to_string()
     } else if lower.contains("permission denied") || lower.contains("eacces") {
         "Adapter Engine 没有完成操作所需的本地权限".to_string()
-    } else if lower.contains("cdp")
-        || lower.contains("debug port")
-        || lower.contains("endpoint")
-        || lower.contains("auth")
-    {
+    } else if has_transport_failure(raw) {
         "Adapter Engine 当前无法与客户端建立安全连接".to_string()
     } else if lower.contains("theme")
         && (lower.contains("invalid")
@@ -522,7 +569,16 @@ fn bounded_text(bytes: &[u8]) -> String {
 
 fn classify_failure(operation: ClientOperation, message: &str) -> &'static str {
     let lower = message.to_ascii_lowercase();
-    if lower.contains("not found") || lower.contains("could not find") {
+    if lower.contains("generation-readiness-timeout")
+        || lower.contains("renderer-generation handshake")
+    {
+        "renderer-readiness-timeout"
+    } else if lower.contains("compatibility-attempt")
+        || lower.contains("structural compatibility")
+        || lower.contains("surface-evidence-landmark-missing")
+    {
+        "adapter-compatibility-probe-failed"
+    } else if lower.contains("not found") || lower.contains("could not find") {
         "app-not-found"
     } else if lower.contains("signature") || lower.contains("signing team") {
         "signature-invalid"
@@ -533,7 +589,7 @@ fn classify_failure(operation: ClientOperation, message: &str) -> &'static str {
             || lower.contains("failed validation"))
     {
         "theme-invalid"
-    } else if lower.contains("cdp") || lower.contains("debug port") || lower.contains("endpoint") {
+    } else if has_transport_failure(message) {
         "transport-unavailable"
     } else {
         match operation {
@@ -729,6 +785,22 @@ mod tests {
     use super::*;
 
     #[test]
+    fn compatibility_environment_is_manager_controlled_and_never_inherited_implicitly() {
+        let mut exact = Command::new("/usr/bin/true");
+        configure_compatibility_environment(&mut exact, false);
+        assert!(exact.get_envs().any(|(key, value)| {
+            key == "CC_THEME_ADAPTER_COMPATIBILITY_ATTEMPT" && value.is_none()
+        }));
+
+        let mut compatibility = Command::new("/usr/bin/true");
+        configure_compatibility_environment(&mut compatibility, true);
+        assert!(compatibility.get_envs().any(|(key, value)| {
+            key == "CC_THEME_ADAPTER_COMPATIBILITY_ATTEMPT"
+                && value.is_some_and(|value| value == "1")
+        }));
+    }
+
+    #[test]
     fn command_mapping_is_a_closed_allowlist() {
         let apply = command_mapping(
             ClientId::Codex,
@@ -804,6 +876,37 @@ mod tests {
         assert_eq!(
             message,
             "Adapter Engine 缺少必需的兼容文件，请重新安装或更新该 Adapter"
+        );
+    }
+
+    #[test]
+    fn renderer_readiness_timeout_is_not_misreported_as_a_transport_failure() {
+        let raw = r#"CDP not ready, starting the verified Codex runtime...
+{"kind":"cc-theme.lifecycle-stage","stage":"watcher-generation-readiness","status":"failed","code":"generation-readiness-timeout"}
+The Theme engine did not complete its bounded renderer-generation handshake."#;
+        assert_eq!(
+            classify_failure(ClientOperation::Apply, raw),
+            "renderer-readiness-timeout"
+        );
+        assert_eq!(
+            public_failure_message(ClientOperation::Apply, raw),
+            "客户端界面未在限定时间内完成主题初始化，Adapter 已安全回滚"
+        );
+    }
+
+    #[test]
+    fn successful_cdp_progress_does_not_mask_a_later_adapter_failure() {
+        let raw = r#"CDP not ready, starting the verified Codex runtime...
+{"kind":"cc-theme.lifecycle-stage","stage":"cdp-process-tree","status":"ready","code":"ok"}
+{"kind":"cc-theme.lifecycle-stage","stage":"foreground-handoff","status":"failed","code":"trusted-activation-failed"}
+The themed renderer was ready, but the trusted app could not be brought to the foreground."#;
+        assert_eq!(
+            classify_failure(ClientOperation::Apply, raw),
+            "apply-failed"
+        );
+        assert_eq!(
+            public_failure_message(ClientOperation::Apply, raw),
+            "主题应用失败，请运行诊断后重试"
         );
     }
 

@@ -8,6 +8,10 @@ CC Theme provides ready-to-use, reproducible theme packages and unified theme ma
 
 It is an independent, unofficial, open-source project—not a prompt library, concept gallery, or general-purpose AI theme generator. This repository contains the CC Theme app, host-specific Adapters, shared contracts, and release metadata. Production theme packages are maintained in the separate [CC Theme Themes](https://github.com/quanzhankeji/cc-theme-themes) registry and published as Release assets; theme media does not enter this Git source tree.
 
+## Demo
+
+https://github.com/user-attachments/assets/5877f113-c50f-4457-84e1-89fb7c195df8
+
 ## Why CC Theme
 
 Some theme products provide a concept image and a prompt, leaving the user to ask Codex, WorkBuddy, or another AI to generate the actual result. That workflow is model-dependent: it can consume additional tokens, require repeated prompt changes and regeneration, and produce different results from the same starting idea.
@@ -33,16 +37,17 @@ CC Theme distributes the actual declarative package—prepared assets, semantic 
 
 ## System requirements
 
-**CC Theme 0.1.0 currently supports Apple Silicon only.**
+**CC Theme 0.2.0 currently supports Apple Silicon only.**
 
 - macOS 13.5 or later
 - M1, M2, M3, M4, or a later Apple chip
 - Intel / x86_64 Macs are not supported
 - Windows is not supported
 
-There is no current public release artifact. The earlier notarized `CC Theme Manager` image predates
-this rename and must not be presented as the current application. A future public build will use
-`CC Theme.app` / `CC Theme_0.1.0_aarch64.dmg`, receive new hashes, and complete a new notarization.
+The `0.2.0` source line is being prepared for its first public `CC Theme` application Release. The
+earlier notarized `CC Theme Manager` image predates this rename and must not be presented as the
+current application. The formal build will use `CC Theme.app` / `CC Theme_0.2.0_aarch64.dmg`, receive
+new hashes, and complete a new notarization before publication.
 
 ## Current client support
 

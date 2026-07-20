@@ -224,6 +224,7 @@ function ClientCard({
   const canInject = Boolean(theme) && runtimeAvailable && client.discovered && client.adapterReady && compatibility?.status === "ready" && stopped;
   const canLaunch = launchAvailable && stopped;
   const diagnosticPreviewOnly = capability.availability === "contract-only" && !capability.runtimeApplyAvailable;
+  const compatibilityCandidate = client.adapterStatus === "compatibility-candidate";
   const applyLabel = running
     ? t("client.alreadyRunning")
     : diagnosticPreviewOnly
@@ -231,7 +232,7 @@ function ClientCard({
       : !runtimeAvailable || !client.discovered || (theme && compatibility?.status !== "ready")
         ? t("capability.unavailable")
         : theme
-          ? t("client.injectLaunch")
+          ? t(compatibilityCandidate ? "adapter.compatibilityLaunch" : "client.injectLaunch")
           : t("client.chooseThemeShort");
 
   return (
@@ -279,6 +280,9 @@ function ClientCard({
       {client.adapterStatus === "host-version-mismatch" && (
         <p className="adapter-status adapter-status--waiting">{t("adapter.waitingForHost", { version: client.version ?? "—" })}</p>
       )}
+      {compatibilityCandidate && (
+        <p className="adapter-status adapter-status--compatibility" role="status">{t("adapter.compatibilityCandidate")}</p>
+      )}
       {client.adapterSource === "local" && running && (
         <p className="adapter-status">{t("adapter.activeNextUse")}</p>
       )}
@@ -297,7 +301,7 @@ function ClientCard({
             {installingAdapter ? <span className="spinner" /> : <Icon name="download" />}{installingAdapter ? t("adapter.installing") : t("adapter.install")}
           </button>
         ) : (
-          <button className="button button--primary" type="button" disabled={!canInject || busy} onClick={() => onAction(client, "apply")} aria-label={running ? t("client.alreadyRunningNamed", { name: client.name }) : t("client.injectLaunchNamed", { name: client.name })}>
+          <button className="button button--primary" type="button" disabled={!canInject || busy} onClick={() => onAction(client, "apply")} aria-label={running ? t("client.alreadyRunningNamed", { name: client.name }) : t(compatibilityCandidate ? "adapter.compatibilityLaunchNamed" : "client.injectLaunchNamed", { name: client.name })}>
             <Icon name="sparkle" />{applyLabel}
           </button>
         )}
@@ -308,20 +312,37 @@ function ClientCard({
 
 function ThemeCard({ theme, selected, locale, disabled, t, onSelect, onDelete }: { theme: ThemeFamily; selected: boolean; locale: ManagerLocale; disabled: boolean; t: Translate; onSelect: () => void; onDelete: () => void }) {
   const display = themeDisplay(theme, locale);
+  const [previewAttempt, setPreviewAttempt] = useState(0);
   const [previewFailed, setPreviewFailed] = useState(false);
+  const previewSource = theme.previewUrl && previewAttempt > 0
+    ? `${theme.previewUrl}${theme.previewUrl.includes("?") ? "&" : "?"}ccThemePreviewRetry=${previewAttempt}`
+    : theme.previewUrl;
   const coverStyle = {
     "--theme-cover-base": theme.colors[0],
     "--theme-cover-accent": theme.colors[1],
     "--theme-cover-text": theme.colors[2],
   } as React.CSSProperties;
+  useEffect(() => {
+    setPreviewAttempt(0);
+    setPreviewFailed(false);
+  }, [theme.previewUrl]);
+
+  function handlePreviewError() {
+    if (previewAttempt === 0) {
+      setPreviewAttempt(1);
+      return;
+    }
+    setPreviewFailed(true);
+  }
+
   return (
     <article className={`theme-card${selected ? " theme-card--selected" : ""}`} data-testid={`theme-${theme.id}`}>
       <button type="button" className="theme-card__select" disabled={disabled} onClick={onSelect} aria-pressed={selected} aria-label={display.name}>
         <span className="visually-hidden">{display.name}</span>
       </button>
       <div className="theme-cover" style={coverStyle} aria-hidden="true">
-        {theme.previewUrl && !previewFailed
-          ? <img src={theme.previewUrl} alt="" loading="lazy" decoding="async" onError={() => setPreviewFailed(true)} />
+        {previewSource && !previewFailed
+          ? <img key={previewSource} src={previewSource} alt="" loading="lazy" decoding="async" onError={handlePreviewError} />
           : <span className="theme-cover__placeholder"><Icon name="sparkle" /></span>}
       </div>
       <footer className="theme-card__footer">

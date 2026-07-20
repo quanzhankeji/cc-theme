@@ -17,7 +17,7 @@ import {
   writeSurfaceEvidence,
 } from "./live-surface-evidence.mjs";
 import { createLatestWriteCoordinator } from "./latest-write-coordinator.mjs";
-import { createDocumentGenerationCoordinator } from "./document-generation.mjs";
+import { createDocumentGenerationReconciler } from "./document-generation.mjs";
 import {
   MAX_DIRECTIONAL_ATLAS_BYTES,
   MAX_IMAGE_BYTES,
@@ -1747,10 +1747,9 @@ async function runWatch(options) {
   const generationFor = (loaded) => `${options.runtimeGeneration}:${payloadGenerationFor(loaded)}`;
   const runSessionGeneration = async (record, loaded) => {
     const { session } = record;
-    const documentId = await documentIdentity(session);
     const payloadGeneration = payloadGenerationFor(loaded);
     const generation = generationFor(loaded);
-    return record.generations.run({ documentId, generation }, async ({ guard, isCurrent }) => {
+    return record.reconciler.reconcile({ generation, task: async ({ documentId, guard, isCurrent }) => {
       await beginRendererGeneration(session, options.runtimeGeneration, payloadGeneration, documentId);
       guard();
       const probe = await waitForCodexProbe(session);
@@ -1772,7 +1771,7 @@ async function runWatch(options) {
       guard();
       await notifyThemeRuntimeResult(session, { ok: true });
       return { documentId, generation };
-    });
+    } });
   };
 
   const refreshPayload = async ({ applySessions = true, preserveEditorNonce = false } = {}) => {
@@ -1891,14 +1890,31 @@ async function runWatch(options) {
       const activeIds = new Set(targets.map((target) => target.id));
       for (const [id, record] of sessions) {
         if (!activeIds.has(id) || record.session.closed) {
-          record.generations.cancel();
+          record.reconciler.cancel();
           record.session.close();
           sessions.delete(id);
         }
       }
 
       for (const target of targets) {
-        if (sessions.has(target.id)) continue;
+        const existing = sessions.get(target.id);
+        if (existing) {
+          try {
+            await runSessionGeneration(existing, current);
+          } catch (error) {
+            const now = Date.now();
+            if (now - existing.lastReconcileErrorAt >= 2000) {
+              existing.lastReconcileErrorAt = now;
+              await notifyThemeRuntimeResult(existing.session, {
+                ok: false,
+                stage: "navigation-reconcile",
+                message: error.message,
+              });
+              console.error(`[cc-theme] current document reconciliation failed: ${error.message}`);
+            }
+          }
+          continue;
+        }
         let session;
         let record;
         try {
@@ -1907,7 +1923,10 @@ async function runWatch(options) {
             session,
             earlyScriptId: null,
             needsLoadFallback: false,
-            generations: createDocumentGenerationCoordinator(),
+            reconciler: createDocumentGenerationReconciler({
+              readDocumentId: () => documentIdentity(session),
+            }),
+            lastReconcileErrorAt: 0,
           };
           await installStyleEditorBinding(session, () => current, broadcastPersistedStyleOverrides);
           try {
@@ -1945,7 +1964,7 @@ async function runWatch(options) {
           sessions.set(target.id, record);
           console.log(`[cc-theme] injected Codex target ${target.id}`);
         } catch (error) {
-          record?.generations.cancel();
+          record?.reconciler.cancel();
           if (record) await removeEarly(record);
           if (session && !session.closed) {
             await notifyThemeRuntimeResult(session, {
@@ -1969,7 +1988,7 @@ async function runWatch(options) {
     await reloadChain.catch(() => {});
     await Promise.all([...sessions.values()].map((record) => removeEarly(record)));
     for (const record of sessions.values()) {
-      record.generations.cancel();
+      record.reconciler.cancel();
       record.session.close();
     }
   }

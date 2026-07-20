@@ -145,7 +145,7 @@ test("local generation is byte-deterministic, records the two active Mac Engines
     });
     assert.deepEqual(adapter.releases[0].packages, []);
     assert.match(adapter.releases[0].assetIdentity, new RegExp(`^${adapter.adapterId}-.+-r1-macos-arm64$`));
-    assert.equal(adapter.releases[0].contracts.minimumManagerVersion, "0.1.0");
+    assert.equal(adapter.releases[0].contracts.minimumManagerVersion, "0.2.0");
     assert.equal(adapter.releases[0].contracts.unifiedThemeSchemaVersion, 1);
     assert.equal(adapter.releases[0].contracts.adapterPackageSchemaVersion, 1);
   }

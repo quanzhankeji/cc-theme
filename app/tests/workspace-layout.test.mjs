@@ -60,6 +60,13 @@ test("the public macOS application and runtime identity are consistently CC Them
   assert.doesNotMatch(translations, /Close CC Theme Manager|关闭 CC Theme Manager/);
 });
 
+test("Manager viewport keeps one height-constrained vertical scroll container", async () => {
+  const styles = await readFile(path.join(managerRoot, "src", "styles.css"), "utf8");
+
+  assert.match(styles, /\.workspace\s*\{[^}]*display:\s*grid;[^}]*grid-template-rows:\s*minmax\(0,\s*1fr\);[^}]*\}/s);
+  assert.match(styles, /\.main-content\s*\{[^}]*min-height:\s*0;[^}]*overflow-x:\s*hidden;[^}]*overflow-y:\s*auto;[^}]*\}/s);
+});
+
 test("cached Node is fully verified before it can be reused or executed", async () => {
   const source = await readFile(path.join(managerRoot, "scripts", "prepare-node-runtime.sh"), "utf8");
   const hashGate = source.indexOf('shasum -a 256 "$node"');
@@ -71,4 +78,25 @@ test("cached Node is fully verified before it can be reused or executed", async 
     source,
     /if \[ -x "\$RUNTIME_ROOT\/bin\/node" \] &&[\s\S]*?validate_runtime "\$RUNTIME_ROOT\/bin\/node"; then[\s\S]*?exit 0[\s\S]*?fi[\s\S]*?rm -rf "\$RUNTIME_ROOT"/,
   );
+});
+
+test("packaged Node keeps the minimum V8 JIT entitlement and executes JavaScript before launch", async () => {
+  const [launcher, signer, verifier, entitlements] = await Promise.all([
+    readFile(path.join(managerRoot, "scripts", "build_and_run.sh"), "utf8"),
+    readFile(path.join(managerRoot, "scripts", "sign-macos-app.sh"), "utf8"),
+    readFile(path.join(managerRoot, "scripts", "verify-packaged-runtime.sh"), "utf8"),
+    readFile(path.join(managerRoot, "src-tauri", "node-runtime.entitlements.plist"), "utf8"),
+  ]);
+
+  assert.match(entitlements, /<key>com\.apple\.security\.cs\.allow-jit<\/key>\s*<true\/>/);
+  assert.match(entitlements, /<key>com\.apple\.security\.cs\.allow-unsigned-executable-memory<\/key>\s*<true\/>/);
+  assert.match(signer, /--entitlements\s+"\$NODE_ENTITLEMENTS"/);
+  assert.match(signer, /verify-packaged-runtime\.sh/);
+  assert.match(verifier, /"\$NODE" --input-type=module/);
+  assert.match(verifier, /cc-theme-packaged-node-smoke-ok/);
+
+  const build = launcher.indexOf("npm run tauri:build");
+  const verify = launcher.indexOf("verify-packaged-runtime.sh");
+  const open = launcher.indexOf("open_app");
+  assert.ok(build >= 0 && verify > build && open > verify);
 });

@@ -18,6 +18,9 @@ OUTPUT = ICONS_DIR / "app-icon-master.png"
 SIZE = 1024
 SCALE = 4
 CANVAS_SIZE = SIZE * SCALE
+BACKGROUND_INSET = 64
+BACKGROUND_RADIUS = 208
+LOGO_EXTENT = 740
 
 
 def render_background() -> Image.Image:
@@ -35,10 +38,10 @@ def render_background() -> Image.Image:
     background = strip.resize((CANVAS_SIZE, CANVAS_SIZE))
     mask = Image.new("L", (CANVAS_SIZE, CANVAS_SIZE), 0)
     draw = ImageDraw.Draw(mask)
-    inset = 24 * SCALE
+    inset = BACKGROUND_INSET * SCALE
     draw.rounded_rectangle(
         (inset, inset, CANVAS_SIZE - inset - 1, CANVAS_SIZE - inset - 1),
-        radius=224 * SCALE,
+        radius=BACKGROUND_RADIUS * SCALE,
         fill=255,
     )
     background.putalpha(mask)
@@ -52,7 +55,7 @@ def render_logo() -> Image.Image:
         raise ValueError(f"Source artwork has no visible pixels: {SOURCE}")
 
     logo = source.crop(alpha_box)
-    target_extent = 820 * SCALE
+    target_extent = LOGO_EXTENT * SCALE
     ratio = min(target_extent / logo.width, target_extent / logo.height)
     logo = logo.resize(
         (round(logo.width * ratio), round(logo.height * ratio)),

@@ -28,16 +28,45 @@ struct InstalledApp {
     running: Option<bool>,
 }
 
-pub fn client_state(id: ClientId) -> ClientState {
-    let process_snapshot = process_executable_snapshot();
-    client_state_from_snapshot(id, process_snapshot.as_deref())
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum SignatureVerification {
+    Recursive,
+    Outer,
 }
 
-fn client_state_from_snapshot(id: ClientId, process_snapshot: Option<&str>) -> ClientState {
+pub fn client_state(id: ClientId) -> ClientState {
+    let process_snapshot = process_executable_snapshot();
+    client_state_from_snapshot(
+        id,
+        process_snapshot.as_deref(),
+        SignatureVerification::Recursive,
+    )
+}
+
+/// Performs the Manager-owned identity and outer-seal checks immediately before
+/// invoking an Adapter. The Adapter remains the single owner of the recursive
+/// host verification and repeats it before any runtime mutation. Keeping the
+/// two checks complementary avoids two consecutive full bundle walks without
+/// weakening the final apply gate.
+pub fn client_state_for_adapter_operation(id: ClientId) -> ClientState {
+    let process_snapshot = process_executable_snapshot();
+    client_state_from_snapshot(
+        id,
+        process_snapshot.as_deref(),
+        SignatureVerification::Outer,
+    )
+}
+
+fn client_state_from_snapshot(
+    id: ClientId,
+    process_snapshot: Option<&str>,
+    signature_verification: SignatureVerification,
+) -> ClientState {
     let definition = registry::definition(id);
-    let app = discover_app(&definition, process_snapshot);
+    let app = discover_app(&definition, process_snapshot, signature_verification);
     let adapter = adapter_installer::installed_adapter_info(&definition, app.version.as_deref());
-    let adapter_ready = adapter.status == "ready" && adapter_is_ready(&definition);
+    let adapter_ready = matches!(adapter.status, "ready" | "compatibility-candidate")
+        && adapter_is_ready(&definition);
     let (current_theme_id, theme_paused) = read_theme_state(&definition);
     let current_theme_name = current_theme_id
         .as_deref()
@@ -67,6 +96,8 @@ fn client_state_from_snapshot(id: ClientId, process_snapshot: Option<&str>) -> C
         format!("未找到官方 {}", definition.app_filename)
     } else if !adapter_ready {
         "已找到客户端，但适配器文件不完整".to_string()
+    } else if adapter.status == "compatibility-candidate" {
+        "客户端已更新；可使用旧版 Adapter 做受控兼容尝试".to_string()
     } else if !matches!(signature_status, SignatureState::Verified) {
         "已找到客户端，但官方签名校验未通过".to_string()
     } else if theme_paused {
@@ -106,7 +137,13 @@ pub fn all_client_states() -> Vec<ClientState> {
     let process_snapshot = process_executable_snapshot();
     ClientId::ALL
         .into_iter()
-        .map(|id| client_state_from_snapshot(id, process_snapshot.as_deref()))
+        .map(|id| {
+            client_state_from_snapshot(
+                id,
+                process_snapshot.as_deref(),
+                SignatureVerification::Recursive,
+            )
+        })
         .collect()
 }
 
@@ -144,7 +181,7 @@ pub fn verified_app_path(id: ClientId) -> Option<PathBuf> {
     let canonical = fs::canonicalize(path).ok()?;
     if bundle_id(&canonical).as_deref() != Some(definition.bundle_id)
         || codesign_team_id(&canonical).as_deref() != Some(definition.expected_team_id)
-        || codesign_verify(&canonical) != Some(true)
+        || codesign_verify(&canonical, SignatureVerification::Recursive) != Some(true)
     {
         return None;
     }
@@ -157,7 +194,11 @@ pub fn app_path_is_running(id: ClientId, app_path: &Path) -> Option<bool> {
         .and_then(|snapshot| snapshot_contains_app(&snapshot, app_path, &definition))
 }
 
-fn discover_app(definition: &ClientDefinition, process_snapshot: Option<&str>) -> InstalledApp {
+fn discover_app(
+    definition: &ClientDefinition,
+    process_snapshot: Option<&str>,
+    signature_verification: SignatureVerification,
+) -> InstalledApp {
     let app_path = candidate_app_paths(definition)
         .into_iter()
         .find(|candidate| bundle_id(candidate).as_deref() == Some(definition.bundle_id))
@@ -168,7 +209,7 @@ fn discover_app(definition: &ClientDefinition, process_snapshot: Option<&str>) -
     let version = plist_string(&path, "CFBundleShortVersionString");
     let build = plist_string(&path, "CFBundleVersion");
     let team_id = codesign_team_id(&path);
-    let signature_valid = codesign_verify(&path);
+    let signature_valid = codesign_verify(&path, signature_verification);
     let running =
         process_snapshot.and_then(|snapshot| snapshot_contains_app(snapshot, &path, definition));
     InstalledApp {
@@ -240,13 +281,20 @@ fn codesign_team_id(app_path: &Path) -> Option<String> {
         .map(ToOwned::to_owned)
 }
 
-fn codesign_verify(app_path: &Path) -> Option<bool> {
+fn codesign_verify_args(verification: SignatureVerification) -> &'static [&'static str] {
+    match verification {
+        SignatureVerification::Recursive => &["--verify", "--deep", "--strict"],
+        SignatureVerification::Outer => &["--verify", "--strict"],
+    }
+}
+
+fn codesign_verify(app_path: &Path, verification: SignatureVerification) -> Option<bool> {
     if !cfg!(target_os = "macos") {
         return None;
     }
     let mut command = Command::new("/usr/bin/codesign");
     command
-        .args(["--verify", "--deep", "--strict"])
+        .args(codesign_verify_args(verification))
         .arg(app_path);
     run_with_timeout(&mut command, Duration::from_secs(15))
         .ok()
@@ -488,5 +536,17 @@ mod tests {
 
         let interactive = "57600     1 /Applications/WorkBuddy.app/Contents/MacOS/Electron\n57657 57600 /Applications/WorkBuddy.app/Contents/Frameworks/WorkBuddy Helper (Renderer).app/Contents/MacOS/WorkBuddy Helper (Renderer)\n";
         assert!(snapshot_contains_workbuddy_renderer(interactive, app));
+    }
+
+    #[test]
+    fn adapter_preflight_keeps_outer_seal_while_the_adapter_owns_recursive_verification() {
+        assert_eq!(
+            codesign_verify_args(SignatureVerification::Outer),
+            ["--verify", "--strict"]
+        );
+        assert_eq!(
+            codesign_verify_args(SignatureVerification::Recursive),
+            ["--verify", "--deep", "--strict"]
+        );
     }
 }

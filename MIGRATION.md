@@ -50,8 +50,8 @@ and document its exact client versions.
    round-trip import verification; test-only package helpers are not release tooling.
 
 Do not publish mixed archives containing both old and new transport identities.
-The first release tag should use the new namespace (for example `cc-theme-v0.1.0`) because the
-historical repository already contains a retired `v0.1.0` tag.
+The first release tag in the new application line is `cc-theme-v0.2.0`; it must not move or reuse the
+historical `v0.1.0` and `cc-theme-v0.1.0` tags.
 
 ## History boundary
 

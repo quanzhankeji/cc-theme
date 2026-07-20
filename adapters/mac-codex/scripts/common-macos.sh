@@ -33,6 +33,7 @@ APP_ERROR_LOG="$STATE_ROOT/codex-launch-error.log"
 START_ERROR_LOG="$STATE_ROOT/start-error.log"
 CODEX_APP_JOB_LABEL="app.cc-theme.mac-codex.app"
 INJECTOR_JOB_LABEL="app.cc-theme.mac-codex.injector"
+INJECTOR_LAUNCH_AGENT_PLIST="$HOME/Library/LaunchAgents/$INJECTOR_JOB_LABEL.plist"
 EXPECTED_CODEX_TEAM_ID="${CODEX_EXPECTED_TEAM_ID:-2DC432GLL2}"
 SKIN_VERSION="$(/usr/bin/tr -d '[:space:]' < "$PROJECT_ROOT/VERSION")"
 [[ "$SKIN_VERSION" =~ ^[0-9]+([.][0-9]+){2}$ ]] || {
@@ -84,6 +85,34 @@ remove_launchd_job_label() {
   local user_domain="gui/$(/usr/bin/id -u)"
   /bin/launchctl bootout "$user_domain/$label" >/dev/null 2>&1 || true
   /bin/launchctl remove "$label" >/dev/null 2>&1 || true
+}
+
+wait_for_launchd_job_absent() {
+  local label="$1"
+  local timeout_seconds="${2:-5}"
+  local user_domain="gui/$(/usr/bin/id -u)"
+  local deadline=$((SECONDS + timeout_seconds))
+  while /bin/launchctl print "$user_domain/$label" >/dev/null 2>&1; do
+    [ "$SECONDS" -lt "$deadline" ] || return 1
+    /bin/sleep 0.1
+  done
+  return 0
+}
+
+remove_injector_launch_agent() {
+  local user_domain="gui/$(/usr/bin/id -u)"
+  /bin/launchctl bootout "$user_domain/$INJECTOR_JOB_LABEL" >/dev/null 2>&1 || true
+  if [ -f "$INJECTOR_LAUNCH_AGENT_PLIST" ] && [ ! -L "$INJECTOR_LAUNCH_AGENT_PLIST" ]; then
+    /bin/launchctl bootout "$user_domain" "$INJECTOR_LAUNCH_AGENT_PLIST" >/dev/null 2>&1 || true
+  fi
+  /bin/launchctl remove "$INJECTOR_JOB_LABEL" >/dev/null 2>&1 || true
+  wait_for_launchd_job_absent "$INJECTOR_JOB_LABEL" 5 || return 1
+  /bin/rm -f "$INJECTOR_LAUNCH_AGENT_PLIST"
+}
+
+xml_escape() {
+  printf '%s' "$1" | /usr/bin/sed \
+    -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' -e 's/"/\&quot;/g'
 }
 
 # Releases before the independent CC Theme namespace used two incorrectly
@@ -195,7 +224,11 @@ require_macos_runtime() {
 surface_admission_report() {
   [ -n "${CODEX_BUNDLE:-}" ] || fail "Discover the Codex app before checking current Surface evidence."
   [ -x "${NODE:-}" ] || fail "Validate the signed Codex runtime before checking current Surface evidence."
-  "$NODE" "$SURFACE_ADMISSION" --app "$CODEX_BUNDLE"
+  local args=(--app "$CODEX_BUNDLE")
+  if [ "${CC_THEME_ADAPTER_COMPATIBILITY_ATTEMPT:-0}" = "1" ]; then
+    args+=(--compatibility-attempt)
+  fi
+  "$NODE" "$SURFACE_ADMISSION" "${args[@]}"
 }
 
 require_surface_admission() {
@@ -448,8 +481,7 @@ stop_recorded_injector() {
   remove_legacy_injector_launchd_job
   # The current launchd label is project-owned. Remove it even when state.json
   # is absent or stale so restore/uninstall cannot leave an orphan watcher.
-  # A direct-process fallback, if any, is handled by the PID checks below.
-  remove_launchd_job_label "$INJECTOR_JOB_LABEL"
+  remove_injector_launch_agent || return 1
   [ -f "$STATE_PATH" ] || return 0
   local pid
   local saved_start
@@ -503,47 +535,83 @@ stop_recorded_injector() {
   return 0
 }
 
+write_injector_launch_agent() {
+  local port="$1" runtime_generation="$2"
+  local launch_agents="$HOME/Library/LaunchAgents"
+  local temporary="$STATE_ROOT/.injector-launch-agent.$$"
+  ensure_state_root
+  [ ! -L "$launch_agents" ] || fail "The user LaunchAgents directory is a symbolic link."
+  /bin/mkdir -p "$launch_agents"
+  [ ! -L "$INJECTOR_LAUNCH_AGENT_PLIST" ] \
+    || fail "The owned injector LaunchAgent path is a symbolic link."
+  (
+    umask 077
+    {
+      printf '%s\n' '<?xml version="1.0" encoding="UTF-8"?>'
+      printf '%s\n' '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">'
+      printf '%s\n' '<plist version="1.0"><dict>'
+      printf '  <key>Label</key><string>%s</string>\n' "$(xml_escape "$INJECTOR_JOB_LABEL")"
+      printf '%s\n' '  <key>ProgramArguments</key><array>'
+      for argument in "$NODE" "$INJECTOR" --watch --port "$port" --theme-dir "$THEME_DIR" \
+        --runtime-generation "$runtime_generation"; do
+        printf '    <string>%s</string>\n' "$(xml_escape "$argument")"
+      done
+      printf '%s\n' '  </array>'
+      printf '%s\n' '  <key>RunAtLoad</key><true/>'
+      printf '%s\n' '  <key>KeepAlive</key><true/>'
+      printf '%s\n' '  <key>ProcessType</key><string>Background</string>'
+      printf '  <key>StandardOutPath</key><string>%s</string>\n' "$(xml_escape "$INJECTOR_LOG")"
+      printf '  <key>StandardErrorPath</key><string>%s</string>\n' "$(xml_escape "$INJECTOR_ERROR_LOG")"
+      printf '%s\n' '</dict></plist>'
+    } >"$temporary"
+  )
+  /usr/bin/plutil -lint "$temporary" >/dev/null \
+    || fail "The owned injector LaunchAgent could not be validated."
+  /bin/chmod 600 "$temporary"
+  /bin/mv "$temporary" "$INJECTOR_LAUNCH_AGENT_PLIST"
+}
+
 launch_injector_daemon() {
   local port="$1"
   local runtime_generation="$2"
   local pid=""
-  local deadline=$((SECONDS + 10))
+  local deadline=""
+  local attempt=0
+  local bootstrapped="false"
+  local user_domain="gui/$(/usr/bin/id -u)"
   : > "$INJECTOR_LOG"
   : > "$INJECTOR_ERROR_LOG"
   remove_legacy_injector_launchd_job
-  remove_launchd_job_label "$INJECTOR_JOB_LABEL"
+  remove_injector_launch_agent \
+    || fail "The previous injector service did not stop within the bounded cleanup window."
+  write_injector_launch_agent "$port" "$runtime_generation"
+  deadline=$((SECONDS + 10))
 
-  # A user launchd job outlives the shell/PTY that invoked apply or switch.
-  # This is essential for launches initiated by CC Theme.app and automation,
-  # whose process groups may be reaped as soon as the command returns.
-  /bin/launchctl submit -l "$INJECTOR_JOB_LABEL" -o "$INJECTOR_LOG" -e "$INJECTOR_ERROR_LOG" -- \
-    "$NODE" "$INJECTOR" --watch --port "$port" --theme-dir "$THEME_DIR" \
-      --runtime-generation "$runtime_generation" >/dev/null 2>&1 || true
-  while [ "$SECONDS" -lt "$deadline" ]; do
-    pid="$(/bin/launchctl print "gui/$(/usr/bin/id -u)/$INJECTOR_JOB_LABEL" 2>/dev/null \
-      | /usr/bin/awk '/^[[:space:]]*pid = [0-9]+/{print $3; exit}')"
-    if [ -n "$pid" ] && /bin/kill -0 "$pid" 2>/dev/null; then
-      printf '%s\n' "$pid"
-      return 0
+  # An owned user LaunchAgent is independent of the Manager command's PTY and
+  # process group. This keeps one watcher alive across renderer documents and
+  # avoids the intermittent submit/nohup race seen on repeated launches.
+  while [ "$attempt" -lt 12 ]; do
+    if /bin/launchctl bootstrap "$user_domain" "$INJECTOR_LAUNCH_AGENT_PLIST" \
+      >>"$INJECTOR_LOG" 2>>"$INJECTOR_ERROR_LOG"; then
+      bootstrapped="true"
+      break
     fi
-    /bin/sleep 0.2
+    attempt=$((attempt + 1))
+    /bin/sleep 0.25
   done
-
-  # Fallback for environments where submitted launchd jobs are unavailable.
-  remove_launchd_job_label "$INJECTOR_JOB_LABEL"
-  /usr/bin/nohup "$NODE" "$INJECTOR" --watch --port "$port" --theme-dir "$THEME_DIR" \
-    --runtime-generation "$runtime_generation" \
-    >>"$INJECTOR_LOG" 2>>"$INJECTOR_ERROR_LOG" &
-  pid="$!"
-  local fallback_deadline=$((SECONDS + 3))
-  while [ "$SECONDS" -lt "$fallback_deadline" ]; do
+  [ "$bootstrapped" = "true" ] \
+    || fail "The injector LaunchAgent could not be registered after bounded retries. See $INJECTOR_ERROR_LOG"
+  while [ "$SECONDS" -lt "$deadline" ]; do
+    pid="$(/bin/launchctl print "$user_domain/$INJECTOR_JOB_LABEL" 2>/dev/null \
+      | /usr/bin/awk '/^[[:space:]]*pid = [0-9]+/{print $3; exit}')"
     if [ -n "$pid" ] && /bin/kill -0 "$pid" 2>/dev/null; then
       printf '%s\n' "$pid"
       return 0
     fi
     /bin/sleep 0.1
   done
-  fail "The injector did not start. See $INJECTOR_ERROR_LOG and $INJECTOR_LOG"
+  remove_injector_launch_agent || true
+  fail "The injector LaunchAgent did not expose a live process. See $INJECTOR_ERROR_LOG and $INJECTOR_LOG"
 }
 
 wait_for_injector_ready() {
@@ -664,12 +732,12 @@ hot_reapply_theme() {
   stage_started="$(lifecycle_now_ms)"
   inj_pid="$(launch_injector_daemon "$port" "$runtime_generation")"
   if ! /bin/kill -0 "$inj_pid" 2>/dev/null; then
-    remove_launchd_job_label "$INJECTOR_JOB_LABEL"
+    remove_injector_launch_agent || true
     emit_lifecycle_stage "hot-watcher-readiness" "failed" "$stage_started" "watcher-exited"
     return 1
   fi
   if ! wait_for_injector_ready "$port" "$inj_pid" "$runtime_generation" "$timeout_ms"; then
-    remove_launchd_job_label "$INJECTOR_JOB_LABEL"
+    remove_injector_launch_agent || true
     /bin/kill -TERM "$inj_pid" 2>/dev/null || true
     emit_lifecycle_stage "hot-watcher-readiness" "failed" "$stage_started" "generation-readiness-timeout"
     return 1
@@ -680,7 +748,7 @@ hot_reapply_theme() {
   started_at="$(process_started_at "$inj_pid")"
   [ -n "$started_at" ] || started_at="$(/bin/date)"
   if ! write_state "$port" "$inj_pid" "$started_at" "$codex_pid" "$codex_started_at" "$runtime_generation"; then
-    remove_launchd_job_label "$INJECTOR_JOB_LABEL"
+    remove_injector_launch_agent || true
     /bin/kill -TERM "$inj_pid" 2>/dev/null || true
     /bin/rm -f "$STATE_PATH"
     return 1
@@ -694,6 +762,22 @@ hot_reapply_theme() {
 release_codex_launchd_job() {
   remove_launchd_job_label "$CODEX_APP_JOB_LABEL"
   remove_legacy_codex_launchd_job
+}
+
+activate_trusted_codex() {
+  local port="$1"
+  local expected_pid="$2"
+  local expected_started_at="$3"
+  local trusted
+  local pid
+  local started_at
+  trusted="$(trusted_cdp_process "$port")" || return 1
+  IFS=$'\t' read -r pid started_at <<< "$trusted"
+  [ "$pid" = "$expected_pid" ] && [ "$started_at" = "$expected_started_at" ] || return 1
+  /usr/bin/osascript -e 'tell application id "com.openai.codex" to activate' >/dev/null 2>&1 || return 1
+  trusted="$(trusted_cdp_process "$port")" || return 1
+  IFS=$'\t' read -r pid started_at <<< "$trusted"
+  [ "$pid" = "$expected_pid" ] && [ "$started_at" = "$expected_started_at" ]
 }
 
 launch_codex_with_cdp() {
@@ -714,7 +798,7 @@ launch_codex_with_cdp() {
   stage_started="$(lifecycle_now_ms)"
   # Start as a normal user process (NOT launchctl submit). submit keeps a job
   # that will restart Codex when the window is closed.
-  /usr/bin/open -na "$CODEX_BUNDLE" --args \
+  /usr/bin/open -gna "$CODEX_BUNDLE" --args \
     --remote-debugging-address=127.0.0.1 \
     --remote-debugging-port="$port" \
     >>"$APP_LOG" 2>>"$APP_ERROR_LOG" || true

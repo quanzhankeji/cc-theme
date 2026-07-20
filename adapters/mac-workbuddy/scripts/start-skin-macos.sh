@@ -53,7 +53,13 @@ cleanup_failed_start() {
 trap cleanup_failed_start EXIT
 
 watcher_stop_started_ms="$(now_ms)"
-stop_injector || die "The previous injector could not be stopped safely."
+reuse_injector=0
+if trusted_injector_running "$port" "$theme_dir" "$STATE_DIR/themes"; then
+  reuse_injector=1
+  log "Reusing the trusted long-lived Watcher for the current runtime inputs."
+else
+  stop_injector || die "The previous injector could not be stopped safely."
+fi
 watcher_stop_finished_ms="$(now_ms)"
 
 needs_launch=0
@@ -68,7 +74,9 @@ fi
 host_stop_finished_ms="$(now_ms)"
 
 watcher_started_ms="$(now_ms)"
-start_injector "$port" "$theme_dir" "$STATE_DIR/themes"
+if [ "$reuse_injector" -eq 0 ]; then
+  start_injector "$port" "$theme_dir" "$STATE_DIR/themes"
+fi
 watcher_ready_ms="$(now_ms)"
 
 host_launch_started_ms="$(now_ms)"

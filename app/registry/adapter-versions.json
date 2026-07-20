@@ -16,7 +16,7 @@
           "adapterReleaseRevision": 1,
           "assetIdentity": "mac-codex-26.715.31925-r1-macos-arm64",
           "contracts": {
-            "minimumManagerVersion": "0.1.0",
+            "minimumManagerVersion": "0.2.0",
             "capabilityVersion": "2.0.0",
             "unifiedThemeSchemaVersion": 1,
             "adapterPackageSchemaVersion": 1
@@ -37,7 +37,7 @@
           "adapterReleaseRevision": 1,
           "assetIdentity": "mac-workbuddy-5.2.6-r1-macos-arm64",
           "contracts": {
-            "minimumManagerVersion": "0.1.0",
+            "minimumManagerVersion": "0.2.0",
             "capabilityVersion": "1.0.0",
             "unifiedThemeSchemaVersion": 1,
             "adapterPackageSchemaVersion": 1

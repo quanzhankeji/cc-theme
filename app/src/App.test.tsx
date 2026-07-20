@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
@@ -242,6 +242,34 @@ describe("CC Theme desktop dashboard", () => {
     expect(await screen.findByRole("button", { name: "Example Theme" })).toHaveTextContent("Example Theme");
     expect(screen.queryByText("中文主题说明")).not.toBeInTheDocument();
     expect(screen.queryByText("English theme description")).not.toBeInTheDocument();
+  });
+
+  it("主题封面发生一次瞬时加载错误时重试，连续失败后才回退占位图", async () => {
+    const dashboard = cloneDemoDashboard();
+    dashboard.themes = [{
+      ...dashboard.themes[0],
+      id: "preview-retry",
+      previewUrl: "cc-theme-preview://localhost/preview-retry?revision=1",
+    }];
+
+    render(<App api={makeApi({ getDashboardState: vi.fn(() => Promise.resolve(dashboard)) })} />);
+
+    const card = await screen.findByTestId("theme-preview-retry");
+    const firstImage = card.querySelector<HTMLImageElement>(".theme-cover img");
+    expect(firstImage).not.toBeNull();
+    expect(firstImage).toHaveAttribute("src", dashboard.themes[0].previewUrl);
+
+    fireEvent.error(firstImage!);
+
+    const retryImage = card.querySelector<HTMLImageElement>(".theme-cover img");
+    expect(retryImage).not.toBeNull();
+    expect(retryImage?.src).toContain("ccThemePreviewRetry=1");
+    expect(card.querySelector(".theme-cover__placeholder")).not.toBeInTheDocument();
+
+    fireEvent.error(retryImage!);
+
+    expect(card.querySelector(".theme-cover img")).not.toBeInTheDocument();
+    expect(card.querySelector(".theme-cover__placeholder")).toBeInTheDocument();
   });
 
   it("把单个 .cctheme 拖入窗口时显示接收提示，并通过同一安全导入流程安装", async () => {
@@ -751,5 +779,27 @@ describe("CC Theme desktop dashboard", () => {
       "mac-workbuddy",
       "/Downloads/mac-workbuddy-5.2.6-r1.ccadapter",
     ));
+  });
+
+  it("客户端更新后明确展示旧 Adapter 兼容模式并允许受控尝试", async () => {
+    const dashboard = cloneDemoDashboard();
+    const codex = dashboard.clients.find((client) => client.id === "mac-codex")!;
+    codex.version = "26.715.52143";
+    codex.runState = "stopped";
+    codex.adapterReady = true;
+    codex.adapterVersion = "26.715.31925";
+    codex.adapterStatus = "compatibility-candidate";
+    const api = makeApi({ getDashboardState: vi.fn(() => Promise.resolve(dashboard)) });
+    const user = userEvent.setup();
+    render(<App api={api} />);
+
+    await user.click(await screen.findByRole("button", { name: /纸月 Paper Moon/ }));
+    const card = screen.getByTestId("client-mac-codex");
+    expect(card).toHaveTextContent("正在使用旧版 Adapter 进行兼容尝试");
+    const apply = within(card).getByRole("button", { name: "使用旧版 Adapter 尝试为 Codex 注入主题并启动" });
+    expect(apply).toBeEnabled();
+    expect(apply).toHaveTextContent("兼容尝试并启动");
+    await user.click(apply);
+    await waitFor(() => expect(api.applyTheme).toHaveBeenCalledWith("mac-codex", "paper-moon", true));
   });
 });

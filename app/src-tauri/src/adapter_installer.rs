@@ -1,4 +1,5 @@
 use std::{
+    cmp::Ordering,
     collections::BTreeSet,
     fs::{self, OpenOptions},
     io::{Read, Write},
@@ -123,6 +124,11 @@ pub fn installed_adapter_info(
         "missing"
     } else if detected_host_version == version.as_deref() {
         "ready"
+    } else if matches!(
+        detected_host_version.zip(version.as_deref()),
+        Some((host, adapter)) if host_version_relation(host, adapter) == Some(Ordering::Greater)
+    ) {
+        "compatibility-candidate"
     } else {
         "host-version-mismatch"
     };
@@ -439,7 +445,10 @@ fn validate_manifest(
     {
         return Err("adapter-incompatible".to_string());
     }
-    if detected_host_version != Some(manifest.adapter_version.as_str()) {
+    if !matches!(
+        detected_host_version.map(|host| host_version_relation(host, &manifest.adapter_version)),
+        Some(Some(Ordering::Equal | Ordering::Greater))
+    ) {
         return Err("adapter-host-version-mismatch".to_string());
     }
     let expected_identity = format!(
@@ -749,6 +758,22 @@ fn valid_semver(value: &str) -> bool {
     valid && parts.next().is_none() && value.len() <= 80
 }
 
+fn host_version_relation(host: &str, adapter: &str) -> Option<Ordering> {
+    fn numeric(value: &str) -> Option<(u64, u64, u64)> {
+        if !valid_semver(value) || value.contains('-') {
+            return None;
+        }
+        let mut parts = value.split('.');
+        let result = (
+            parts.next()?.parse().ok()?,
+            parts.next()?.parse().ok()?,
+            parts.next()?.parse().ok()?,
+        );
+        parts.next().is_none().then_some(result)
+    }
+    Some(numeric(host)?.cmp(&numeric(adapter)?))
+}
+
 fn manager_supports(minimum: &str) -> bool {
     fn numeric(value: &str) -> Option<(u64, u64, u64)> {
         let core = value.split_once('-').map_or(value, |(core, _)| core);
@@ -1041,6 +1066,40 @@ mod tests {
             active_before
         );
         fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn an_older_adapter_can_be_installed_for_an_explicit_newer_host_compatibility_attempt() {
+        let root = scratch("older-host-compatibility");
+        fs::create_dir_all(&root).unwrap();
+        let archive = root.join("codex.ccadapter");
+        let library = root.join("library");
+        package(&archive, "mac-codex", "26.715.31925");
+
+        let receipt =
+            install_adapter_package_to(&archive, &library, "mac-codex", Some("26.715.52143"))
+                .unwrap();
+
+        assert_eq!(receipt.adapter_version, "26.715.31925");
+        assert!(active_adapter_root_from(&library, "mac-codex").is_some());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn host_version_relation_only_accepts_strict_numeric_updates() {
+        assert_eq!(
+            host_version_relation("26.715.52143", "26.715.31925"),
+            Some(std::cmp::Ordering::Greater)
+        );
+        assert_eq!(
+            host_version_relation("5.2.6", "5.2.6"),
+            Some(std::cmp::Ordering::Equal)
+        );
+        assert_eq!(
+            host_version_relation("5.2.5", "5.2.6"),
+            Some(std::cmp::Ordering::Less)
+        );
+        assert_eq!(host_version_relation("latest", "5.2.6"), None);
     }
 
     #[test]

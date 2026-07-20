@@ -37,6 +37,34 @@ assert.equal(allowed.clientVersionPolicy, "always-latest");
 assert.equal(allowed.evidencePolicy, "current-host-evidence-required");
 assert.deepEqual(allowed.diagnostics, []);
 
+const newerCompatibleFacts = structuredClone(facts);
+newerCompatibleFacts.version = "26.715.52143";
+newerCompatibleFacts.build = "6000";
+newerCompatibleFacts.chromium = "151.0.8000.1";
+newerCompatibleFacts.asarSha256 = "1".repeat(64);
+const compatibilityAttempt = evaluateSurfaceAdmissionFacts(newerCompatibleFacts, catalog, {
+  compatibilityAttempt: true,
+});
+assert.equal(compatibilityAttempt.allowed, true);
+assert.equal(compatibilityAttempt.compatibilityAttempt, true);
+assert.equal(compatibilityAttempt.evidencePolicy, "older-adapter-structural-probe-required");
+assert(compatibilityAttempt.diagnostics.some((item) =>
+  item.code === "older-adapter-compatibility-attempt" && item.severity === "warning"));
+
+const incompatibleStructure = structuredClone(newerCompatibleFacts);
+incompatibleStructure.markerCounts["data-settings-panel-slug"] = 0;
+const blockedCompatibilityAttempt = evaluateSurfaceAdmissionFacts(incompatibleStructure, catalog, {
+  compatibilityAttempt: true,
+});
+assert.equal(blockedCompatibilityAttempt.allowed, false);
+assert(blockedCompatibilityAttempt.diagnostics.some((item) => item.code === "surface-evidence-landmark-missing"));
+
+const olderHostAttempt = structuredClone(facts);
+olderHostAttempt.version = "26.715.10000";
+assert.equal(evaluateSurfaceAdmissionFacts(olderHostAttempt, catalog, {
+  compatibilityAttempt: true,
+}).allowed, false, "a newer Adapter must never be tried on an older host");
+
 for (const [mutate, code] of [
   [(value) => { value.version = "26.715.99999"; }, "surface-evidence-client-version-mismatch"],
   [(value) => { value.build = "9999"; }, "surface-evidence-client-build-mismatch"],

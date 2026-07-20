@@ -8,7 +8,7 @@ use std::{
 };
 
 use chrono::{DateTime, Utc};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 use zip::ZipArchive;
@@ -27,7 +27,25 @@ const MAX_THEME_FILE_BYTES: u64 = 128 * 1024 * 1024;
 const MAX_THEME_DEPTH: usize = 8;
 const MAX_THEME_ARCHIVE_BYTES: u64 = 256 * 1024 * 1024;
 const MAX_THEME_PREVIEW_BYTES: u64 = 16 * 1024 * 1024;
+const COMPILED_THEME_CACHE_FILE: &str = ".cc-theme-compiled.json";
 static SEED_SEQUENCE: AtomicU64 = AtomicU64::new(1);
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CompiledThemeCacheKey {
+    pub adapter_id: String,
+    pub theme_id: String,
+    pub fingerprint: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct CompiledThemeCacheRecord {
+    kind: String,
+    schema_version: u64,
+    adapter_id: String,
+    theme_id: String,
+    fingerprint: String,
+}
 
 #[derive(Debug, Clone)]
 pub struct ThemeMetadata {
@@ -208,6 +226,7 @@ struct ThemeAccessibilitySource {
 #[derive(Debug, Clone)]
 struct FamilyBuilder {
     metadata: ThemeMetadata,
+    central_metadata: bool,
     clients: BTreeSet<String>,
     installed: bool,
 }
@@ -1332,20 +1351,71 @@ pub fn ensure_saved_theme(
 }
 
 /// Publishes a freshly compiled Adapter target together with the Theme Family's
-/// shared assets. Existing valid local themes win so Manager orchestration never
-/// erases user-owned deep customization.
+/// shared assets. A matching generated snapshot is reused; a stale snapshot is
+/// replaced atomically. Adapter-owned settings and transaction state live outside
+/// this generated directory and are therefore preserved.
 pub fn seed_compiled_theme_into_library(
     definition: &registry::ClientDefinition,
     compiled_target: &Path,
     assets: &Path,
     theme_id: &str,
+    cache_key: &CompiledThemeCacheKey,
 ) -> Result<PathBuf, String> {
+    if cache_key.adapter_id != definition.id.as_str() || cache_key.theme_id != theme_id {
+        return Err("编译缓存身份与目标 Adapter 不一致".to_string());
+    }
     seed_compiled_theme_to_saved_root(
         compiled_target,
         assets,
         &registry::saved_themes_root(definition),
         theme_id,
+        cache_key,
     )
+}
+
+pub fn cached_compiled_theme(
+    definition: &registry::ClientDefinition,
+    cache_key: &CompiledThemeCacheKey,
+) -> Option<PathBuf> {
+    if cache_key.adapter_id != definition.id.as_str() {
+        return None;
+    }
+    cached_compiled_theme_from(&registry::saved_themes_root(definition), cache_key)
+}
+
+fn valid_compiled_theme_cache_key(cache_key: &CompiledThemeCacheKey) -> bool {
+    valid_adapter_id(&cache_key.adapter_id)
+        && valid_theme_id(&cache_key.theme_id)
+        && valid_sha256(&cache_key.fingerprint)
+}
+
+fn cached_compiled_theme_from(
+    saved_root: &Path,
+    cache_key: &CompiledThemeCacheKey,
+) -> Option<PathBuf> {
+    if !valid_compiled_theme_cache_key(cache_key) {
+        return None;
+    }
+    let destination = saved_root.join(&cache_key.theme_id);
+    if validate_existing_saved_theme(&destination, &cache_key.theme_id).is_err() {
+        return None;
+    }
+    let record_path = destination.join(COMPILED_THEME_CACHE_FILE);
+    let metadata = record_path.symlink_metadata().ok()?;
+    if !metadata.file_type().is_file()
+        || metadata.file_type().is_symlink()
+        || metadata.len() > 16 * 1024
+    {
+        return None;
+    }
+    let record: CompiledThemeCacheRecord =
+        serde_json::from_slice(&fs::read(record_path).ok()?).ok()?;
+    (record.kind == "cc-theme.compiled-target-cache"
+        && record.schema_version == 1
+        && record.adapter_id == cache_key.adapter_id
+        && record.theme_id == cache_key.theme_id
+        && record.fingerprint == cache_key.fingerprint)
+        .then_some(destination)
 }
 
 fn seed_compiled_theme_to_saved_root(
@@ -1353,9 +1423,13 @@ fn seed_compiled_theme_to_saved_root(
     assets: &Path,
     saved_root: &Path,
     theme_id: &str,
+    cache_key: &CompiledThemeCacheKey,
 ) -> Result<PathBuf, String> {
     if !valid_theme_id(theme_id) {
         return Err("主题 id 不符合安全白名单".to_string());
+    }
+    if !valid_compiled_theme_cache_key(cache_key) || cache_key.theme_id != theme_id {
+        return Err("编译缓存身份无效".to_string());
     }
     let target_parent = compiled_target
         .parent()
@@ -1377,8 +1451,14 @@ fn seed_compiled_theme_to_saved_root(
 
     prepare_saved_root(saved_root)?;
     let destination = saved_root.join(theme_id);
-    if destination.exists() || destination.symlink_metadata().is_ok() {
-        return validate_existing_saved_theme(&destination, theme_id);
+    if cached_compiled_theme_from(saved_root, cache_key).is_some() {
+        return Ok(destination);
+    }
+    if destination.symlink_metadata().is_ok() {
+        let saved_root_real = saved_root
+            .canonicalize()
+            .map_err(|_| "无法解析 Adapter 主题库".to_string())?;
+        validated_direct_directory(&saved_root_real, &destination, "旧的编译主题缓存")?;
     }
     let stage_container = saved_root.join(format!(
         ".compile-{theme_id}-{}-{}",
@@ -1397,8 +1477,35 @@ fn seed_compiled_theme_to_saved_root(
             if read_theme_metadata(&stage).is_none() {
                 return Err("编译主题未通过发布前校验".to_string());
             }
-            fs::rename(&stage, &destination).map_err(|_| "无法原子发布编译主题".to_string())?;
-            fs::remove_dir(&stage_container).map_err(|_| "无法清理主题编译暂存目录".to_string())?;
+            let record = CompiledThemeCacheRecord {
+                kind: "cc-theme.compiled-target-cache".to_string(),
+                schema_version: 1,
+                adapter_id: cache_key.adapter_id.clone(),
+                theme_id: cache_key.theme_id.clone(),
+                fingerprint: cache_key.fingerprint.clone(),
+            };
+            let record_path = stage.join(COMPILED_THEME_CACHE_FILE);
+            fs::write(
+                &record_path,
+                serde_json::to_vec(&record).map_err(|_| "无法编码编译缓存身份".to_string())?,
+            )
+            .map_err(|_| "无法写入编译缓存身份".to_string())?;
+            set_file_permissions(&record_path)?;
+
+            let previous = stage_container.join("previous");
+            let had_previous = destination.symlink_metadata().is_ok();
+            if had_previous {
+                fs::rename(&destination, &previous)
+                    .map_err(|_| "无法隔离旧的编译主题缓存".to_string())?;
+            }
+            if fs::rename(&stage, &destination).is_err() {
+                if had_previous {
+                    let _ = fs::rename(&previous, &destination);
+                }
+                return Err("无法原子发布编译主题".to_string());
+            }
+            fs::remove_dir_all(&stage_container)
+                .map_err(|_| "无法清理主题编译暂存目录".to_string())?;
             Ok(destination.clone())
         });
     if result.is_err() {
@@ -1872,6 +1979,7 @@ fn collect_central_root(
                     .entry(metadata.id.clone())
                     .or_insert_with(|| FamilyBuilder {
                         metadata: metadata.clone(),
+                        central_metadata: true,
                         clients: BTreeSet::new(),
                         installed: true,
                     });
@@ -1901,6 +2009,7 @@ fn collect_central_root(
                 .entry(metadata.id.clone())
                 .or_insert_with(|| FamilyBuilder {
                     metadata: metadata.clone(),
+                    central_metadata: true,
                     clients: BTreeSet::new(),
                     installed: true,
                 });
@@ -1936,10 +2045,11 @@ fn collect_root(
             .entry(metadata.id.clone())
             .or_insert_with(|| FamilyBuilder {
                 metadata: metadata.clone(),
+                central_metadata: false,
                 clients: BTreeSet::new(),
                 installed: false,
             });
-        if metadata.modified > family.metadata.modified {
+        if !family.central_metadata && metadata.modified > family.metadata.modified {
             family.metadata = metadata;
         }
         family.clients.insert(client_id.as_str().to_string());
@@ -2111,6 +2221,37 @@ mod tests {
             .unwrap()
             .flatten()
             .all(|entry| !entry.file_name().to_string_lossy().starts_with(".import-")));
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn compiled_adapter_snapshots_never_replace_central_package_display_metadata() {
+        let root = scratch("central-display-authority");
+        let package = root.join("fixture.cctheme");
+        let library = root.join("library");
+        let adapter_root = root.join("adapter-themes");
+        fs::create_dir_all(&root).unwrap();
+        write_package(&package, package_entries("fixture"));
+        import_theme_package_to(&package, &library).unwrap();
+
+        let adapter_theme = adapter_root.join("fixture");
+        fs::create_dir_all(&adapter_theme).unwrap();
+        fs::write(
+            adapter_theme.join("theme.json"),
+            br##"{"id":"fixture","name":"Compiled Target","colors":{"background":"#000000"}}"##,
+        )
+        .unwrap();
+
+        let mut families = BTreeMap::new();
+        let capabilities = capabilities::load_capabilities_or_fallback();
+        collect_central_root(&library, &capabilities, &mut families);
+        collect_root(&adapter_root, ClientId::Codex, true, &mut families);
+
+        let family = families.get("fixture").unwrap();
+        assert_eq!(family.metadata.name, "Fixture Theme");
+        assert_eq!(family.metadata.localizations["zh-CN"].name, "测试主题");
+        assert!(family.metadata.preview_url.is_some());
+        assert!(family.clients.contains("mac-codex"));
         fs::remove_dir_all(root).unwrap();
     }
 
@@ -2418,11 +2559,17 @@ mod tests {
         )
         .unwrap();
         fs::write(assets.join("background.png"), b"shared").unwrap();
+        let cache_key = CompiledThemeCacheKey {
+            adapter_id: "mac-codex".to_string(),
+            theme_id: "neutral-fixture".to_string(),
+            fingerprint: "a".repeat(64),
+        };
         let installed = seed_compiled_theme_to_saved_root(
             &output,
             &assets,
             &root.join("saved"),
             "neutral-fixture",
+            &cache_key,
         )
         .unwrap();
 
@@ -2434,6 +2581,67 @@ mod tests {
             read_theme_metadata(&installed).unwrap().name,
             "Runtime compiled"
         );
+        assert_eq!(
+            cached_compiled_theme_from(&root.join("saved"), &cache_key),
+            Some(installed)
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn stale_compiled_target_is_atomically_replaced_for_a_new_cache_identity() {
+        let root = scratch("runtime-compiled-refresh");
+        let output = root.join("compile/mac-workbuddy");
+        let assets = root.join("family/assets");
+        let saved = root.join("saved");
+        fs::create_dir_all(&output).unwrap();
+        fs::create_dir_all(&assets).unwrap();
+        fs::write(assets.join("background.png"), b"shared").unwrap();
+        fs::write(
+            output.join("theme.json"),
+            r#"{"id":"neutral-fixture","name":"Old projection","appearance":{"backgroundVideoPosition":{"xPercent":50,"yPercent":50}}}"#,
+        )
+        .unwrap();
+        let old_key = CompiledThemeCacheKey {
+            adapter_id: "mac-workbuddy".to_string(),
+            theme_id: "neutral-fixture".to_string(),
+            fingerprint: "1".repeat(64),
+        };
+        seed_compiled_theme_to_saved_root(&output, &assets, &saved, "neutral-fixture", &old_key)
+            .unwrap();
+
+        fs::write(
+            output.join("theme.json"),
+            r#"{"id":"neutral-fixture","name":"Current projection","appearance":{"backgroundPosition":{"xPercent":50,"yPercent":50}}}"#,
+        )
+        .unwrap();
+        let current_key = CompiledThemeCacheKey {
+            adapter_id: "mac-workbuddy".to_string(),
+            theme_id: "neutral-fixture".to_string(),
+            fingerprint: "2".repeat(64),
+        };
+        let installed = seed_compiled_theme_to_saved_root(
+            &output,
+            &assets,
+            &saved,
+            "neutral-fixture",
+            &current_key,
+        )
+        .unwrap();
+
+        let theme = fs::read_to_string(installed.join("theme.json")).unwrap();
+        assert!(theme.contains("Current projection"));
+        assert!(!theme.contains("backgroundVideoPosition"));
+        assert_eq!(
+            cached_compiled_theme_from(&saved, &current_key),
+            Some(installed)
+        );
+        assert_eq!(cached_compiled_theme_from(&saved, &old_key), None);
+        assert!(fs::read_dir(&saved).unwrap().all(|entry| !entry
+            .unwrap()
+            .file_name()
+            .to_string_lossy()
+            .starts_with(".previous-")));
         fs::remove_dir_all(root).unwrap();
     }
 }

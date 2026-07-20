@@ -13,11 +13,18 @@ const [start, common, injector, renderer] = await Promise.all([
 
 assert.doesNotMatch(start, /injector\.mjs" --once/,
   "cold start must not inject a static one-shot generation before the video Watcher");
-const stopIndex = start.indexOf("stop_injector");
 const watcherIndex = start.indexOf("start_injector");
 const launchIndex = start.indexOf("launch_workbuddy_debug");
-assert(stopIndex >= 0 && watcherIndex > stopIndex && launchIndex > watcherIndex,
-  "startup must stop the old Watcher, start one media-owning Watcher, then launch WorkBuddy");
+assert(watcherIndex >= 0 && launchIndex > watcherIndex,
+  "a cold startup must start one media-owning Watcher before it launches WorkBuddy");
+assert.match(start, /trusted_injector_running/,
+  "a trusted long-lived Watcher must be eligible for reuse on a later Manager operation");
+assert.match(start, /if \[ "\$reuse_injector" -eq 0 \]; then[\s\S]*start_injector/,
+  "only an absent or untrusted Watcher may be stopped and replaced");
+assert.match(common, /Print :ProgramArguments:\$1/,
+  "Watcher reuse must validate every fixed launchd argument by index instead of trusting only a PID or label");
+assert.match(common, /\[ -z "\$\(launch_agent_argument "\$index"\)" \]/,
+  "Watcher reuse must reject a launchd job with unexpected trailing arguments");
 assert.match(start, /activate_workbuddy/);
 assert.match(start, /--verify --startup/);
 assert.match(common, /--report-file[^\n]*WATCHER_STARTUP_REPORT|WATCHER_STARTUP_REPORT[^\n]*--report-file/s,

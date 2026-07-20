@@ -20,6 +20,10 @@ function denial(code, field, message) {
   return { code, field, severity: "error", message };
 }
 
+function warning(code, field, message) {
+  return { code, field, severity: "warning", message };
+}
+
 function safeVersion(value) {
   return typeof value === "string" && /^[A-Za-z0-9._+-]{1,80}$/.test(value);
 }
@@ -37,7 +41,22 @@ function requiredCatalogMarkers(catalog) {
   return Object.fromEntries(entries);
 }
 
-export function evaluateSurfaceAdmissionFacts(facts, catalog) {
+function numericVersion(value) {
+  if (typeof value !== "string" || !/^\d+(?:\.\d+){2}$/.test(value)) return null;
+  return value.split(".").map((part) => BigInt(part));
+}
+
+function compareVersions(left, right) {
+  const a = numericVersion(left);
+  const b = numericVersion(right);
+  if (!a || !b) return null;
+  for (let index = 0; index < 3; index += 1) {
+    if (a[index] !== b[index]) return a[index] < b[index] ? -1 : 1;
+  }
+  return 0;
+}
+
+export function evaluateSurfaceAdmissionFacts(facts, catalog, { compatibilityAttempt = false } = {}) {
   const diagnostics = [];
   const deny = (code, field, message) => diagnostics.push(denial(code, field, message));
   if (catalog?.kind !== "skin.ui-surface-catalog" || catalog?.schemaVersion !== "1.0.0") {
@@ -52,18 +71,26 @@ export function evaluateSurfaceAdmissionFacts(facts, catalog) {
   if (facts.teamId !== EXPECTED_TEAM_ID || catalog?.bundleEvidence?.bundleTeamId !== EXPECTED_TEAM_ID) {
     deny("surface-evidence-signature-mismatch", "bundleEvidence.bundleTeamId", "The installed app signer does not match the verified Surface evidence.");
   }
-  if (facts.version !== catalog?.client?.version) {
+  const newerHost = compareVersions(facts.version, catalog?.client?.version) === 1;
+  if (compatibilityAttempt && !newerHost) {
+    deny("older-adapter-compatibility-direction-invalid", "client.version", "Compatibility mode only permits an older Adapter catalog to be tried on a newer official client.");
+  } else if (!compatibilityAttempt && facts.version !== catalog?.client?.version) {
     deny("surface-evidence-client-version-mismatch", "client.version", `Surface evidence is for ${String(catalog?.client?.version)} but the installed client is ${String(facts.version)}.`);
   }
-  if (facts.build !== catalog?.client?.build) {
+  if (!compatibilityAttempt && facts.build !== catalog?.client?.build) {
     deny("surface-evidence-client-build-mismatch", "client.build", `Surface evidence build ${String(catalog?.client?.build)} does not match installed build ${String(facts.build)}.`);
   }
-  if (facts.chromium !== catalog?.client?.chromium) {
+  if (!compatibilityAttempt && facts.chromium !== catalog?.client?.chromium) {
     deny("surface-evidence-runtime-mismatch", "client.chromium", "The installed Chromium runtime does not match the current Surface evidence.");
   }
-  if (facts.asarSha256 !== catalog?.bundleEvidence?.asarSha256) {
+  if (!compatibilityAttempt && facts.asarSha256 !== catalog?.bundleEvidence?.asarSha256) {
     deny("surface-evidence-asar-mismatch", "bundleEvidence.asarSha256", "The packaged renderer does not match the verified current Surface evidence.");
   }
+  if (compatibilityAttempt && newerHost) diagnostics.push(warning(
+    "older-adapter-compatibility-attempt",
+    "client.version",
+    `The verified ${String(catalog?.client?.version)} structural recipe is being tried on newer client ${String(facts.version)}; exact build, runtime and archive identity are intentionally not treated as verified.`,
+  ));
   let required = {};
   try {
     required = requiredCatalogMarkers(catalog);
@@ -78,10 +105,13 @@ export function evaluateSurfaceAdmissionFacts(facts, catalog) {
     kind: SURFACE_ADMISSION_KIND,
     revision: 1,
     adapterId: "mac-codex",
-    allowed: diagnostics.length === 0,
-    code: diagnostics[0]?.code ?? "ok",
+    allowed: !diagnostics.some((item) => item.severity === "error"),
+    code: diagnostics.find((item) => item.severity === "error")?.code ?? "ok",
     clientVersionPolicy: "always-latest",
-    evidencePolicy: "current-host-evidence-required",
+    evidencePolicy: compatibilityAttempt
+      ? "older-adapter-structural-probe-required"
+      : "current-host-evidence-required",
+    compatibilityAttempt,
     installedClient: {
       bundleId: facts.bundleId ?? null,
       version: facts.version ?? null,
@@ -140,7 +170,7 @@ async function hashAndCountMarkers(file, markers) {
   return { asarSha256: hash.digest("hex"), markerCounts: counts };
 }
 
-export async function inspectInstalledSurface(appPath, catalogRoot = DEFAULT_CATALOG_ROOT) {
+export async function inspectInstalledSurface(appPath, catalogRoot = DEFAULT_CATALOG_ROOT, { compatibilityAttempt = false } = {}) {
   if (typeof appPath !== "string" || !path.isAbsolute(appPath)) throw new Error("--app must be an absolute application bundle path");
   const appStat = await fsp.lstat(appPath);
   if (!appStat.isDirectory() || appStat.isSymbolicLink()) throw new Error("The Codex application must be a regular local bundle directory");
@@ -153,7 +183,19 @@ export async function inspectInstalledSurface(appPath, catalogRoot = DEFAULT_CAT
     signingTeamId(appPath),
   ]);
   if (!safeVersion(version)) throw new Error("The installed client version is unsafe or unavailable");
-  const catalogFile = path.join(catalogRoot, version, "ui-surface-catalog.json");
+  let catalogVersion = version;
+  if (compatibilityAttempt) {
+    const candidates = [];
+    for (const entry of await fsp.readdir(catalogRoot, { withFileTypes: true })) {
+      if (!entry.isDirectory() || entry.isSymbolicLink?.() || compareVersions(version, entry.name) !== 1) continue;
+      const child = path.join(catalogRoot, entry.name);
+      const stat = await fsp.lstat(child);
+      if (stat.isDirectory() && !stat.isSymbolicLink()) candidates.push(entry.name);
+    }
+    candidates.sort((left, right) => compareVersions(left, right) ?? 0);
+    catalogVersion = candidates.at(-1) ?? version;
+  }
+  const catalogFile = path.join(catalogRoot, catalogVersion, "ui-surface-catalog.json");
   let catalog;
   try {
     catalog = await readBoundedJson(catalogFile);
@@ -176,7 +218,11 @@ export async function inspectInstalledSurface(appPath, catalogRoot = DEFAULT_CAT
   }
   const requiredMarkers = Object.keys(requiredCatalogMarkers(catalog));
   const renderer = await hashAndCountMarkers(path.join(appPath, "Contents", "Resources", "app.asar"), requiredMarkers);
-  return evaluateSurfaceAdmissionFacts({ bundleId, version, build, chromium, teamId, ...renderer }, catalog);
+  return evaluateSurfaceAdmissionFacts(
+    { bundleId, version, build, chromium, teamId, ...renderer },
+    catalog,
+    { compatibilityAttempt },
+  );
 }
 
 function argument(argv, name) {
@@ -187,9 +233,10 @@ function argument(argv, name) {
 async function main(argv) {
   const appPath = argument(argv, "--app");
   const catalogRoot = argument(argv, "--catalog-root") ?? DEFAULT_CATALOG_ROOT;
+  const compatibilityAttempt = argv.includes("--compatibility-attempt");
   if (!appPath) throw new Error("Usage: surface-admission.mjs --app <absolute-app-bundle> [--catalog-root <absolute-directory>]");
   if (!path.isAbsolute(catalogRoot)) throw new Error("--catalog-root must be absolute");
-  const result = await inspectInstalledSurface(appPath, catalogRoot);
+  const result = await inspectInstalledSurface(appPath, catalogRoot, { compatibilityAttempt });
   process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
   if (!result.allowed) process.exitCode = 1;
 }

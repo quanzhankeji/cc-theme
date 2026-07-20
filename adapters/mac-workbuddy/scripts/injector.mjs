@@ -428,8 +428,7 @@ async function loadPayload(themeDir, { videoUrlFor = null, themesRoot = defaultS
   };
   const artUrl = `data:${imageMime(imagePath)};base64,${imageBytes.toString("base64")}`;
   const videoUrl = videoPath && videoUrlFor ? await videoUrlFor(videoPath, videoStat) : null;
-  const revision = createHash("sha256")
-    .update(RENDERER_SESSION_NONCE)
+  const runtimeInputFingerprint = createHash("sha256")
     .update(SKIN_VERSION).update(css).update(template).update(backgroundEffects).update(uiInterpreter)
     .update(themeSettingsSession).update(themeSettingsLocale).update(themeSettingsColor)
     .update(JSON.stringify(theme)).update(JSON.stringify(runtimeCatalog)).update(JSON.stringify(styleCatalog))
@@ -440,6 +439,10 @@ async function loadPayload(themeDir, { videoUrlFor = null, themesRoot = defaultS
     .update(interactiveAtlasStat
       ? `${interactiveAtlasPath}:${interactiveAtlasStat.dev}:${interactiveAtlasStat.ino}:${interactiveAtlasStat.size}:${interactiveAtlasStat.mtimeMs}`
       : "no-interactive-atlas")
+    .digest("hex");
+  const revision = createHash("sha256")
+    .update(RENDERER_SESSION_NONCE)
+    .update(runtimeInputFingerprint)
     .digest("hex").slice(0, 20);
   let payload = template;
   payload = replaceOnce(payload, "__WORKBUDDY_SKIN_CSS_JSON__", JSON.stringify(css));
@@ -466,6 +469,7 @@ async function loadPayload(themeDir, { videoUrlFor = null, themesRoot = defaultS
   return {
     payload,
     revision,
+    runtimeInputFingerprint,
     theme,
     styleCatalog,
     assetsRoot,
@@ -1161,8 +1165,10 @@ function watchPayloadSources(themeDir, onDirty) {
   const staticRoot = path.join(root, "assets");
   const contractRoot = path.join(root, "contracts");
   const themeRoot = path.resolve(themeDir);
+  const themeParent = path.dirname(themeRoot);
+  const themeDirectoryName = path.basename(themeRoot);
   const catalogRoot = path.dirname(catalogPathFor());
-  const directories = new Set([staticRoot, contractRoot, themeRoot, catalogRoot]);
+  const directories = new Set([staticRoot, contractRoot, themeRoot, themeParent, catalogRoot]);
   const payloadFiles = new Set([
     "skin.css", "renderer-inject.js", "background-effects.js", "ui-interpreter.js", "theme-settings-session.js",
     "theme-settings-locale.js", "theme.json",
@@ -1173,7 +1179,11 @@ function watchPayloadSources(themeDir, onDirty) {
     try {
       const watcher = watchFs(directory, { persistent: false }, (_event, filename) => {
         const name = filename ? String(filename) : "";
-        if (!name || payloadFiles.has(name) || directory === themeRoot) onDirty();
+        if (directory === themeParent) {
+          if (!name || name === themeDirectoryName) onDirty();
+        } else if (!name || payloadFiles.has(name) || directory === themeRoot) {
+          onDirty();
+        }
       });
       watcher.on("error", (error) => console.error(`[workbuddy-skin] file watch unavailable: ${error.message}`));
       watchers.push(watcher);
@@ -1239,6 +1249,7 @@ async function runWatch(options) {
       }),
       version: SKIN_VERSION,
       revision: current.revision,
+      runtimeInputFingerprint: current.runtimeInputFingerprint,
       revisionScope: RENDERER_REVISION_SCOPE,
       releaseTraceability: RELEASE_TRACEABILITY,
     });
@@ -1269,6 +1280,7 @@ async function runWatch(options) {
       await applyToSession(record.session, current.payload);
       await transferDeferredInteractiveAtlas(record.session, current);
     }
+    await writeWatcherReport();
     console.log(`[workbuddy-skin] refreshed ${current.theme.id} (${current.buildMs}ms)`);
   };
 
@@ -1433,6 +1445,7 @@ if (path.resolve(process.argv[1] || "") === path.resolve(scriptPath)) {
         interactiveAtlasMetadata: loaded.interactiveAtlasMetadata,
         payloadBytes: loaded.payloadBytes,
         revision: loaded.revision,
+        runtimeInputFingerprint: loaded.runtimeInputFingerprint,
         revisionScope: RENDERER_REVISION_SCOPE,
         releaseTraceability: RELEASE_TRACEABILITY,
         unsupportedMedia: loaded.theme.unsupportedMedia,

@@ -65,3 +65,18 @@ export function createDocumentGenerationCoordinator() {
     },
   };
 }
+
+export function createDocumentGenerationReconciler({ readDocumentId } = {}) {
+  if (typeof readDocumentId !== "function") {
+    throw new Error("readDocumentId must be a function");
+  }
+  const coordinator = createDocumentGenerationCoordinator();
+  return {
+    async reconcile({ generation, task } = {}) {
+      const documentId = requiredIdentity(await readDocumentId(), "documentId");
+      return coordinator.run({ documentId, generation }, task);
+    },
+    cancel: coordinator.cancel,
+    current: coordinator.current,
+  };
+}

@@ -189,7 +189,7 @@ function valueAt(value, dotted) {
   return dotted.split(".").reduce((cursor, part) => cursor?.[part], value);
 }
 
-export async function projectUnifiedThemeForWorkBuddy(value, { targetProfile = null, clientVersion = null, surfaceCatalogVersion = null } = {}) {
+export async function projectUnifiedThemeForWorkBuddy(value, { targetProfile = null, clientVersion = null, surfaceCatalogVersion = null, compatibilityAttempt = false } = {}) {
   const capability = await loadAdapterCapability();
   const diagnostics = [];
   const rawTheme = plainObject(value);
@@ -420,11 +420,34 @@ export async function projectUnifiedThemeForWorkBuddy(value, { targetProfile = n
   }
   const effectiveClientVersion = clientVersion ?? legacyCompatibility?.clientVersion ?? null;
   const effectiveSurfaceVersion = surfaceCatalogVersion ?? legacyCompatibility?.surfaceCatalogVersion ?? null;
-  const clientAllowed = capability.compatibility.verifiedClientVersions.includes(effectiveClientVersion);
+  const numericVersion = (value) => typeof value === "string" && /^\d+(?:\.\d+){2}$/.test(value)
+    ? value.split(".").map((part) => BigInt(part))
+    : null;
+  const newerThan = (left, right) => {
+    const a = numericVersion(left);
+    const b = numericVersion(right);
+    if (!a || !b) return false;
+    for (let index = 0; index < 3; index += 1) {
+      if (a[index] !== b[index]) return a[index] > b[index];
+    }
+    return false;
+  };
+  const exactClientAllowed = capability.compatibility.verifiedClientVersions.includes(effectiveClientVersion);
+  const compatibilityClientAllowed = compatibilityAttempt && capability.compatibility.verifiedClientVersions.some(
+    (verifiedVersion) => newerThan(effectiveClientVersion, verifiedVersion),
+  );
+  const clientAllowed = exactClientAllowed || compatibilityClientAllowed;
   const surfaceAllowed = effectiveSurfaceVersion === capability.catalogs.uiSurfaceCatalogVersion;
   const applyAllowed = targetRequested && clientAllowed && surfaceAllowed;
   if (!targetRequested) diagnostics.push({ severity: "error", field: "targets", decision: "unsupported", code: "target-not-requested", message: "The unified theme does not include the WorkBuddy adapter target." });
   if (!applyAllowed) diagnostics.push({ severity: "error", field: "compatibility", decision: "unsupported", code: "client-version-unsupported", message: "Compilation is deterministic, but apply is unavailable until the verified WorkBuddy client and UI Surface Catalog versions match." });
+  if (applyAllowed && compatibilityClientAllowed) diagnostics.push({
+    severity: "warning",
+    field: "compatibility",
+    decision: "approximate",
+    code: "older-adapter-runtime-probe-required",
+    message: "Projection uses the older WorkBuddy recipe; runtime role discovery must converge on the current official client before commit.",
+  });
 
   normalizeSkinTheme(output, "Projected WorkBuddy theme");
   const summary = { exact: 0, approximate: 0, unsupported: 0 };
@@ -517,6 +540,7 @@ export async function projectThemeFamilyAdapter(value) {
   return projectUnifiedThemeForWorkBuddy(theme, {
     clientVersion: context.detectedClientVersion ?? null,
     surfaceCatalogVersion: context.surfaceCatalogVersion ?? null,
+    compatibilityAttempt: context.reasonCode === "older-adapter-compatibility-attempt",
   });
 }
 

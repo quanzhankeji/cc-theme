@@ -36,7 +36,7 @@ export interface ClientState {
   adapterVersion?: string | null;
   adapterReleaseRevision?: number | null;
   adapterSource?: "bundled" | "local";
-  adapterStatus?: "ready" | "missing" | "host-version-mismatch";
+  adapterStatus?: "ready" | "missing" | "host-version-mismatch" | "compatibility-candidate";
   detail: string;
 }
 
