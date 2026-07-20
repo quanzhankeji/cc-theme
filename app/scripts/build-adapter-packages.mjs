@@ -8,7 +8,7 @@ import { buildAdapterPackage, verifyAdapterPackage } from "./adapter-package.mjs
 import { generateAdapterVersionCatalog, serializeCatalog } from "./generate-adapter-version-catalog.mjs";
 import { managerLayout } from "./workspace-layout.mjs";
 
-const ADAPTER_IDS = Object.freeze(["mac-codex", "mac-workbuddy"]);
+const ADAPTER_IDS = Object.freeze(["mac-codex", "mac-doubao", "mac-workbuddy"]);
 const ARCHITECTURES = new Set(["arm64", "x86_64", "universal2"]);
 
 function fail(message) {

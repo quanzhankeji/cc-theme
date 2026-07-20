@@ -26,11 +26,11 @@
       "type": "array",
       "minItems": 1,
       "uniqueItems": true,
-      "items": { "enum": ["mac-codex", "mac-workbuddy"] }
+      "items": { "enum": ["mac-codex", "mac-doubao", "mac-workbuddy"] }
     },
     "targetProfiles": {
       "type": "object",
-      "propertyNames": { "enum": ["mac-codex", "mac-workbuddy"] },
+      "propertyNames": { "enum": ["mac-codex", "mac-doubao", "mac-workbuddy"] },
       "additionalProperties": { "type": "object" }
     }
   },

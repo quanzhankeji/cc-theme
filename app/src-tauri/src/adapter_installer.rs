@@ -145,7 +145,7 @@ pub fn active_adapter_root(adapter_id: &str) -> Option<PathBuf> {
 }
 
 fn active_adapter_root_from(library_root: &Path, adapter_id: &str) -> Option<PathBuf> {
-    if !matches!(adapter_id, "mac-codex" | "mac-workbuddy") {
+    if !matches!(adapter_id, "mac-codex" | "mac-doubao" | "mac-workbuddy") {
         return None;
     }
     let library_root = canonical_directory(library_root)?;
@@ -431,7 +431,10 @@ fn validate_manifest(
     if manifest.kind != "cc-theme.adapter-package"
         || manifest.schema_version != 1
         || manifest.adapter_id != expected_adapter_id
-        || !matches!(expected_adapter_id, "mac-codex" | "mac-workbuddy")
+        || !matches!(
+            expected_adapter_id,
+            "mac-codex" | "mac-doubao" | "mac-workbuddy"
+        )
         || manifest.platform != "macos"
         || manifest.architecture != runtime_architecture()
         || manifest.adapter_release_revision == 0
@@ -550,6 +553,7 @@ fn validate_staged_engine(root: &Path, manifest: &AdapterPackageManifest) -> Res
     let release = read_small_json(&root.join("contracts/adapter-release-manifest.json"))?;
     let expected_release_kind = match manifest.adapter_id.as_str() {
         "mac-codex" => "mac-codex-adapter.release-manifest",
+        "mac-doubao" => "mac-doubao-adapter.release-manifest",
         "mac-workbuddy" => "workbuddy-adapter.release-manifest",
         _ => return Err("adapter-health-check-failed".to_string()),
     };
@@ -595,6 +599,7 @@ fn validate_staged_engine(root: &Path, manifest: &AdapterPackageManifest) -> Res
     }
     let projector = match manifest.adapter_id.as_str() {
         "mac-codex" => "scripts/adapter-capability.mjs",
+        "mac-doubao" => "scripts/adapter-capability.mjs",
         "mac-workbuddy" => "scripts/workbuddy-theme-projection.mjs",
         _ => return Err("adapter-health-check-failed".to_string()),
     };

@@ -5,16 +5,17 @@ import { adapterRegistry } from "./support/runtime-interface.mjs";
 
 const { DEFAULT_ADAPTER_REGISTRY, discoverAdapterCapabilities } = adapterRegistry;
 
-test("capability discovery returns the two active registered Adapter-owned capabilities", () => {
+test("capability discovery returns the active registered Adapter-owned capabilities", () => {
   const capabilities = discoverAdapterCapabilities(DEFAULT_ADAPTER_REGISTRY);
 
   assert.deepEqual(
     capabilities.map(({ adapterId }) => adapterId),
-    ["mac-codex", "mac-workbuddy"],
+    ["mac-codex", "mac-doubao", "mac-workbuddy"],
   );
   assert.deepEqual(
     capabilities.map(({ availability, compileAvailable, runtimeApplyAvailable }) => ({ availability, compileAvailable, runtimeApplyAvailable })),
     [
+      { availability: "available", compileAvailable: true, runtimeApplyAvailable: true },
       { availability: "available", compileAvailable: true, runtimeApplyAvailable: true },
       { availability: "available", compileAvailable: true, runtimeApplyAvailable: true },
     ],
@@ -64,4 +65,11 @@ test("capabilities explicitly decide accessibility and adapter-specific surfaces
   for (const dormant of ["surfaceCode", "borderStrong", "selectedHoverSurface", "success", "warning"]) {
     assert.equal(workBuddyTargets.has(dormant), false, `WorkBuddy must not project dormant semantic token ${dormant}`);
   }
+
+  for (const token of ["tokens.fonts.display", "tokens.fonts.code", "tokens.appearance.shellMode"]) {
+    assert.equal(decision("mac-doubao", token).support, "unsupported", token);
+  }
+  assert.equal(decision("mac-doubao", "background.video").support, "approximated");
+  assert.equal(decision("mac-doubao", "background.mode.ripple").support, "approximated");
+  assert.equal(decision("mac-doubao", "background.mode.directional").support, "approximated");
 });

@@ -166,6 +166,7 @@ describe("CC Theme desktop dashboard", () => {
     expect(screen.queryByText(/所选目标/)).not.toBeInTheDocument();
     expect(screen.getByTestId("client-mac-workbuddy")).toHaveTextContent("5.2.6");
     expect(screen.getByTestId("client-icon-mac-codex")).toBeInTheDocument();
+    expect(screen.getByTestId("client-icon-mac-doubao")).toBeInTheDocument();
     expect(screen.getByTestId("client-icon-mac-workbuddy")).toBeInTheDocument();
     expect(screen.queryByTestId("tool-status")).not.toBeInTheDocument();
     expect(screen.queryByText("客户端内编辑")).not.toBeInTheDocument();

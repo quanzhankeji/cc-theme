@@ -14,6 +14,17 @@
       }
     },
     {
+      "adapterId": "mac-doubao",
+      "bundleDirectory": "mac-doubao",
+      "normalizerModule": "mac-doubao/scripts/skin-theme.mjs",
+      "normalizerExport": "normalizeSkinTheme",
+      "source": {
+        "kind": "release-builder",
+        "workspaceModule": "adapters/mac-doubao/scripts/adapter-release.mjs",
+        "releaseManifest": "adapters/mac-doubao/contracts/adapter-release-manifest.json"
+      }
+    },
+    {
       "adapterId": "mac-workbuddy",
       "bundleDirectory": "mac-workbuddy",
       "normalizerModule": "mac-workbuddy/scripts/skin-theme.mjs",

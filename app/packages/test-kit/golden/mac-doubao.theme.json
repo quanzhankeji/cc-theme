@@ -1,0 +1,33 @@
+{
+  "kind": "skin.theme",
+  "id": "neutral-fixture",
+  "name": "Neutral Fixture",
+  "sourceVersion": "2.0.0",
+  "image": "background.webp",
+  "colors": {
+    "text": "#E9EEF7",
+    "muted": "#AAB5C5"
+  },
+  "semanticColors": {
+    "surfaceBase": "#10151F",
+    "action": "#6699FF",
+    "actionForeground": "#FFFFFF",
+    "focusRing": "#8EB1FF",
+    "sidebarSurface": "rgba(24, 31, 44, 0.86)"
+  },
+  "fonts": {
+    "ui": [
+      "SF Pro Text",
+      "system-ui"
+    ]
+  },
+  "appearance": {
+    "backdropBlurPx": 18,
+    "backdropSaturation": 1.1,
+    "radiusScale": 1,
+    "backgroundPosition": {
+      "xPercent": 50,
+      "yPercent": 50
+    }
+  }
+}

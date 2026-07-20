@@ -103,7 +103,7 @@ test("capability matrix keeps every Windows runtime paused-by-user", async () =>
   const matrix = await json("app/registry/client-capabilities.json");
   assert.deepEqual(
     matrix.projects.map((project) => project.id).sort(),
-    ["mac-codex", "mac-workbuddy", "win-codex", "win-workbuddy"],
+    ["mac-codex", "mac-doubao", "mac-workbuddy", "win-codex", "win-workbuddy"],
   );
   const allowed = new Set(matrix.statuses);
   for (const project of matrix.projects) {

@@ -26,6 +26,27 @@
       ]
     },
     {
+      "adapterId": "mac-doubao",
+      "current": {
+        "adapterVersion": "2.19.9",
+        "adapterReleaseRevision": 1
+      },
+      "releases": [
+        {
+          "adapterVersion": "2.19.9",
+          "adapterReleaseRevision": 1,
+          "assetIdentity": "mac-doubao-2.19.9-r1-macos-arm64",
+          "contracts": {
+            "minimumManagerVersion": "0.2.0",
+            "capabilityVersion": "1.0.0",
+            "unifiedThemeSchemaVersion": 1,
+            "adapterPackageSchemaVersion": 1
+          },
+          "packages": []
+        }
+      ]
+    },
+    {
       "adapterId": "mac-workbuddy",
       "current": {
         "adapterVersion": "5.2.6",

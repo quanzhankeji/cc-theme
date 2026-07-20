@@ -1,7 +1,7 @@
 # Mac Adapter coordination record
 
-Last updated: 2026-07-19  
-Status: **CC Theme scope: CodeX + WorkBuddy; Claude registration paused**
+Last updated: 2026-07-21
+Status: **CC Theme scope: CodeX + WorkBuddy; Doubao admission in progress; Claude paused**
 
 This document is the coordination-level status shared by CC Theme, the two active macOS
 Adapter owners, and the preserved Claude source owner. Detailed implementation evidence remains owned
@@ -18,6 +18,31 @@ by the corresponding project.
 - Claude may submit a future registration proposal only after it has a production, machine-callable
   apply/verify/pause/restore/rollback Seam, updated Capability, and real-client QA evidence.
 - Windows remains `paused-by-user`.
+
+### Open Doubao admission P0
+
+The user has requested `mac-doubao` as the next active CC Theme Adapter. Source registration and a
+Doubao 2.19.9 Adapter exist, but the currently installed `/Applications/CC Theme.app` still packages
+only CodeX and WorkBuddy Engines. The installed EVA, Terrarium, and WOLP Motion themes also declare
+only `mac-codex` and `mac-workbuddy`, so their themed Doubao launch action is correctly disabled.
+
+Admission requires all of the following before `mac-doubao` becomes an active product identity:
+
+- current Doubao application, Browser, renderer, signature/process identity, and versioned Surface
+  evidence pass fail-closed verification;
+- Capability, Projector, Normalizer, Style/Surface Catalog, and the complete Manager Compile Context
+  agree;
+- every exact/approximated/unsupported decision is backed by a real renderer/CSS consumer and visible
+  diagnostics; Schema acceptance alone is not consumption;
+- video, ripple, and directional backgrounds are either implemented and tested or explicitly reduced
+  to a static image/poster approximation without silent field loss;
+- at least one declarative theme version explicitly targets `mac-doubao` and passes target-scoped
+  compile/normalize diagnostics;
+- one prepared and signed CC Theme package contains the frozen Doubao Engine and then completes real
+  apply-and-launch, verify, pause, reapply, restore, rollback, and cleanup testing.
+
+Until those gates pass, normal Doubao launch may remain available, but themed launch must stay
+disabled. Claude remains excluded and Windows remains paused throughout this admission work.
 
 ## WOLP → WorkBuddy P0
 

@@ -9,7 +9,7 @@ export const ADAPTER_PACKAGE_SCHEMA_VERSION = 1;
 
 const ROOT_MANIFEST = "adapter.json";
 const PAYLOAD_PREFIX = "payload/";
-const ALLOWED_ADAPTERS = new Set(["mac-codex", "mac-workbuddy"]);
+const ALLOWED_ADAPTERS = new Set(["mac-codex", "mac-doubao", "mac-workbuddy"]);
 const ALLOWED_ARCHITECTURES = new Set(["arm64", "x86_64", "universal2"]);
 const MAX_ENTRIES = 256;
 const MAX_FILE_BYTES = 8 * 1024 * 1024;
@@ -39,6 +39,15 @@ const RELEASE_MANIFESTS = Object.freeze({
     ],
     platformKey: "os",
     architectureKey: "arch",
+  },
+  "mac-doubao": {
+    kind: "mac-doubao-adapter.release-manifest",
+    keys: [
+      "adapterId", "adapterReleaseRevision", "adapterVersion", "architecture",
+      "assetIdentity", "entries", "kind", "platform", "revision",
+    ],
+    platformKey: "platform",
+    architectureKey: "architecture",
   },
   "mac-workbuddy": {
     kind: "workbuddy-adapter.release-manifest",

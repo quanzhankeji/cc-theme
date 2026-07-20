@@ -16,6 +16,20 @@
         "entries": []
       }
     },
+    "mac-doubao": {
+      "detectedClientVersion": "2.19.9",
+      "detectedClientBuild": "2.19.9",
+      "surfaceCatalogId": "doubao-macos-2.19.9",
+      "surfaceCatalogVersion": 1,
+      "probeStatus": "passed",
+      "compileAllowed": true,
+      "applyAllowed": true,
+      "reasonCode": null,
+      "localRuntimeOverrides": {
+        "baseThemeHash": null,
+        "entries": []
+      }
+    },
     "mac-workbuddy": {
       "detectedClientVersion": "5.2.6",
       "detectedClientBuild": null,

@@ -25,7 +25,7 @@ use crate::{
 };
 
 static OPERATION_SEQUENCE: AtomicU64 = AtomicU64::new(1);
-static OPERATION_LOCKS: OnceLock<[Mutex<()>; 2]> = OnceLock::new();
+static OPERATION_LOCKS: OnceLock<[Mutex<()>; 3]> = OnceLock::new();
 
 fn apply_admission(capability: &AdapterCapability) -> Result<(), String> {
     if capability.availability == CapabilityAvailability::Available
@@ -58,10 +58,11 @@ fn launch_state_admission(
 }
 
 fn operation_lock(client_id: ClientId) -> &'static Mutex<()> {
-    let locks = OPERATION_LOCKS.get_or_init(|| [Mutex::new(()), Mutex::new(())]);
+    let locks = OPERATION_LOCKS.get_or_init(|| [Mutex::new(()), Mutex::new(()), Mutex::new(())]);
     match client_id {
         ClientId::Codex => &locks[0],
-        ClientId::Workbuddy => &locks[1],
+        ClientId::Doubao => &locks[1],
+        ClientId::Workbuddy => &locks[2],
     }
 }
 
@@ -133,7 +134,7 @@ pub fn command_mapping(
                     "--restore-base-theme".to_string(),
                     "--restart-codex".to_string(),
                 ],
-                ClientId::Workbuddy => vec![],
+                ClientId::Doubao | ClientId::Workbuddy => vec![],
             },
         },
         ClientOperation::Verify => CommandSpec {
@@ -352,6 +353,7 @@ fn execute_fixed_script(
         .args(&spec.args)
         .current_dir(registry::adapter_root(&definition))
         .env("PATH", safe_command_path());
+    configure_manager_runtime_environment(&mut command);
     configure_compatibility_environment(&mut command, compatibility_attempt);
     let output = match run_with_timeout(&mut command, operation_timeout(operation)) {
         Ok(output) => output,
@@ -366,6 +368,26 @@ fn execute_fixed_script(
         }
     };
     adapter_result(client_id, operation, output)
+}
+
+fn configure_manager_runtime_environment(command: &mut Command) {
+    for key in [
+        "NODE",
+        "CC_THEME_NODE",
+        "CC_THEME_NODE_SHA256",
+        "CC_THEME_MANAGER_BUNDLE",
+    ] {
+        command.env_remove(key);
+    }
+    for key in [
+        "CC_THEME_NODE",
+        "CC_THEME_NODE_SHA256",
+        "CC_THEME_MANAGER_BUNDLE",
+    ] {
+        if let Some(value) = std::env::var_os(key) {
+            command.env(key, value);
+        }
+    }
 }
 
 fn configure_compatibility_environment(command: &mut Command, compatibility_attempt: bool) {
@@ -798,6 +820,22 @@ mod tests {
             key == "CC_THEME_ADAPTER_COMPATIBILITY_ATTEMPT"
                 && value.is_some_and(|value| value == "1")
         }));
+    }
+
+    #[test]
+    fn adapter_runtime_environment_is_explicit_and_does_not_export_generic_node() {
+        let mut command = Command::new("/usr/bin/true");
+        configure_manager_runtime_environment(&mut command);
+        assert!(command
+            .get_envs()
+            .any(|(key, value)| key == "NODE" && value.is_none()));
+        for key in [
+            "CC_THEME_NODE",
+            "CC_THEME_NODE_SHA256",
+            "CC_THEME_MANAGER_BUNDLE",
+        ] {
+            assert!(command.get_envs().any(|(actual, _)| actual == key));
+        }
     }
 
     #[test]

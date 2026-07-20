@@ -44,7 +44,7 @@ test("writer creates one stable target artifact per discovered Adapter", async (
   const outputDirectory = await mkdtemp(path.join(os.tmpdir(), "cc-theme-family-"));
   try {
     const result = await writeCompiledThemeFamily(example, context, outputDirectory);
-    assert.deepEqual(Object.keys(result.files), ["mac-codex", "mac-workbuddy"]);
+    assert.deepEqual(Object.keys(result.files), ["mac-codex", "mac-doubao", "mac-workbuddy"]);
     for (const [adapterId, file] of Object.entries(result.files)) {
       assert.deepEqual(JSON.parse(await readFile(file, "utf8")), result.themes[adapterId]);
       assert.equal(path.basename(file), "theme.json");

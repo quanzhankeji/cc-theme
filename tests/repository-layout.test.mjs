@@ -78,7 +78,7 @@ test("only the approved Monorepo top-level source layout exists", async () => {
   for (const retired of ["apps", "packages", "registry", "tools", "theme-manager", "mac-app", "mac-codex", "mac-workbuddy", "mac-claude", "win-codex", "win-workbuddy", "win-claude", "contracts", "research"] ) {
     assert.equal(await exists(retired), false, retired);
   }
-  for (const required of ["app", "adapters/mac-codex", "adapters/mac-workbuddy", "adapters/mac-claude", "adapters/win-codex", "adapters/win-workbuddy", "adapters/win-claude", "app/packages/shared-core", "app/packages/adapter-sdk", "app/packages/contracts", "app/packages/test-kit", "app/registry", "app/scripts/build_and_run.sh", "docs", "tests"]) {
+  for (const required of ["app", "adapters/mac-codex", "adapters/mac-doubao", "adapters/mac-workbuddy", "adapters/mac-claude", "adapters/win-codex", "adapters/win-workbuddy", "adapters/win-claude", "app/packages/shared-core", "app/packages/adapter-sdk", "app/packages/contracts", "app/packages/test-kit", "app/registry", "app/scripts/build_and_run.sh", "docs", "tests"]) {
     assert.equal(await exists(required), true, required);
   }
   assert.deepEqual(await readJson(".cc-theme-workspace.json"), { kind: "cc-theme.workspace", schemaVersion: 1 });
@@ -139,7 +139,7 @@ test("Git candidate tree contains source inputs only", async () => {
   }
   assert.doesNotMatch(JSON.stringify(catalog), /(?:https?:\/\/|file:\/\/|\.ccadapter|[A-Za-z]:\\|\/Users\/|\/home\/)/i);
 
-  for (const adapterId of ["mac-codex", "mac-claude", "mac-workbuddy"]) {
+  for (const adapterId of ["mac-codex", "mac-doubao", "mac-claude", "mac-workbuddy"]) {
     const directory = `adapters/${adapterId}`;
     const adapterVersion = (await fs.readFile(path.join(root, directory, "VERSION"), "utf8")).trim();
     const project = await readJson(`${directory}/PROJECT_MANIFEST.json`);
@@ -178,7 +178,7 @@ test("catalog stays local and only active Adapter source paths close", async () 
   assert.equal(tracked.stdout.trim(), "");
   assert.equal(visible.stdout.trim(), "");
   const registry = await readJson("app/registry/adapter-capabilities.json");
-  const activeAdapterIds = ["mac-codex", "mac-workbuddy"];
+  const activeAdapterIds = ["mac-codex", "mac-doubao", "mac-workbuddy"];
   assert.deepEqual(registry.adapters.map(({ capabilityFile }) => capabilityFile.split("/")[0]), activeAdapterIds);
   for (const descriptor of registry.adapters) {
     for (const key of ["capabilityFile", "styleCatalogFile", "projectorModule", "normalizerModule"]) {

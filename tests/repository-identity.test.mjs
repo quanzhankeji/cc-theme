@@ -120,7 +120,7 @@ test("active source contains no retired brand, MIME, domain, repository, or cons
 });
 
 test("repository metadata points to the new repository without a website project", async () => {
-  for (const relative of ["adapters/mac-codex/package.json", "adapters/mac-workbuddy/package.json"]) {
+  for (const relative of ["adapters/mac-codex/package.json", "adapters/mac-doubao/package.json", "adapters/mac-workbuddy/package.json"]) {
     const metadata = await json(relative);
     assert.equal(metadata.homepage, "https://github.com/quanzhankeji/cc-theme", relative);
     assert.equal(metadata.repository.url, "git+https://github.com/quanzhankeji/cc-theme.git", relative);

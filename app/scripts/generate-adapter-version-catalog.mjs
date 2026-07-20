@@ -7,7 +7,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { verifyAdapterPackage } from "./adapter-package.mjs";
 
-const ADAPTER_IDS = Object.freeze(["mac-codex", "mac-workbuddy"]);
+const ADAPTER_IDS = Object.freeze(["mac-codex", "mac-doubao", "mac-workbuddy"]);
 const SIDECAR_SUFFIX = ".ccadapter.manifest.json";
 const SEMVER = /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-(?:0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*)?$/;
 const SHA256 = /^[0-9a-f]{64}$/;

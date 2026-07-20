@@ -6,6 +6,7 @@
   "workspaces": [
     "app",
     "adapters/mac-codex",
+    "adapters/mac-doubao",
     "adapters/mac-workbuddy",
     "app/packages/shared-core",
     "app/packages/adapter-sdk",
@@ -13,11 +14,12 @@
     "app/packages/test-kit"
   ],
   "scripts": {
-    "test": "npm run test:repository && npm run test:shared-core && npm run test:manager && npm run test:mac-codex && npm run test:mac-workbuddy",
+    "test": "npm run test:repository && npm run test:shared-core && npm run test:manager && npm run test:mac-codex && npm run test:mac-doubao && npm run test:mac-workbuddy",
     "test:repository": "node --test tests/*.test.mjs",
     "test:shared-core": "node --test app/packages/adapter-sdk/tests/*.test.mjs app/packages/shared-core/tests/*.test.mjs",
     "test:manager": "npm --prefix app test",
     "test:mac-codex": "npm --prefix adapters/mac-codex test",
+    "test:mac-doubao": "npm --prefix adapters/mac-doubao test",
     "test:mac-workbuddy": "npm --prefix adapters/mac-workbuddy test",
     "test:mac-claude": "npm --prefix adapters/mac-claude test",
     "theme:pack": "node themes/tools/pack-theme.mjs",

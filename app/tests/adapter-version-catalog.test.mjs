@@ -128,7 +128,7 @@ test("catalog Schema closes every public object and keeps identity, OS, architec
   assert.equal(new RegExp(schema.$defs.package.properties.downloadUrl.pattern).test("http://releases.example/a.ccadapter"), false);
 });
 
-test("local generation is byte-deterministic, records the two active Mac Engines, and publishes zero Windows entries", async () => {
+test("local generation is byte-deterministic, records the three active Mac Engines, and publishes zero Windows entries", async () => {
   const first = await generateAdapterVersionCatalog({ workspaceRoot });
   const second = await generateAdapterVersionCatalog({ workspaceRoot });
   assert.equal(serializeCatalog(first), serializeCatalog(second));

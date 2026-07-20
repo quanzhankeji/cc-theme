@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import appIconUrl from "../src-tauri/icons/icon.png";
 import chatgptIconUrl from "./assets/client-icons/chatgpt.png";
+import doubaoIconUrl from "./assets/client-icons/doubao.png";
 import workbuddyIconUrl from "./assets/client-icons/workbuddy.png";
 import { desktopApi, type DesktopApi } from "./api";
 import { adapterPackagePicker, type AdapterPackagePicker } from "./adapter-package-picker";
@@ -39,6 +40,7 @@ const LAST_CLIENT_THEMES_STORAGE_KEY = "cc-theme.last-client-themes";
 
 const CLIENT_ICON_URLS: Readonly<Record<string, string>> = Object.freeze({
   "mac-codex": chatgptIconUrl,
+  "mac-doubao": doubaoIconUrl,
   "mac-workbuddy": workbuddyIconUrl,
 });
 

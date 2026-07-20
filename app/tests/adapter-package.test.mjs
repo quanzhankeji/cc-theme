@@ -159,7 +159,7 @@ test("the public schema is closed and extensible while current build admission s
   assert.deepEqual(schema.$defs.file.properties.mode.enum, [420, 493]);
 });
 
-test("both active Mac Adapters preserve their host-version and release-revision identity in the verified package", async (t) => {
+test("all three active Mac Adapters preserve their host-version and release-revision identity in the verified package", async (t) => {
   const outputDirectory = await temporaryDirectory(t, "two-mac");
   for (const { adapterId, adapterVersion, adapterReleaseRevision, assetIdentity, capabilityVersion } of adapters) {
     const built = await buildAdapterPackage({

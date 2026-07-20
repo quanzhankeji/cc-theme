@@ -5,7 +5,7 @@ import test from "node:test";
 
 import { managerRoot, readContract, readFixture, registrySource } from "./support/runtime-interface.mjs";
 
-const canonicalAdapterIds = ["mac-codex", "mac-workbuddy"];
+const canonicalAdapterIds = ["mac-codex", "mac-doubao", "mac-workbuddy"];
 const managerCompileContextKeys = [
   "applyAllowed",
   "compileAllowed",
@@ -84,7 +84,7 @@ test("example uses capability identities and projection discovery instead of emb
   assert.equal(example.schemaVersion, 1);
   assert.equal(projection.sourceKind, example.kind);
   assert.equal(projection.outputKind, "skin.theme");
-  assert.deepEqual(example.targets, ["mac-codex", "mac-workbuddy"]);
+  assert.deepEqual(example.targets, canonicalAdapterIds);
   assert.equal(projection.targetDiscovery, "registry");
   assert.equal(projection.projectionOwner, "adapter");
   assert.equal(projection.targets, undefined);

@@ -44,7 +44,7 @@
       "transparencyFallback": "increased-scrim"
     }
   },
-  "targets": ["mac-codex", "mac-workbuddy"],
+  "targets": ["mac-codex", "mac-doubao", "mac-workbuddy"],
   "targetProfiles": {
     "mac-codex": {
       "kind": "cc-theme.target-profile",

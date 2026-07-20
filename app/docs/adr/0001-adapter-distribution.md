@@ -38,7 +38,7 @@ downloaded → verified → staged → activated → health-checked → committe
 ## Interface 规则
 
 - 格式使用禁止退休 `-skin` 身份的稳定 Adapter ID 语法，平台和架构是独立字段；当前 Manager 的
-  admission 当前只允许 `mac-codex`、`mac-workbuddy`，未注册身份 fail closed；
+  admission 当前只允许 `mac-codex`、`mac-doubao`、`mac-workbuddy`，未注册身份 fail closed；
 - Adapter 采用双轴身份：`adapterVersion` 严格跟随目标宿主的 `CFBundleShortVersionString`，
   `adapterReleaseRevision` 表示同一宿主版本下的 Adapter 发布修订；确定性资产身份固定为
   `<adapterId>-<adapterVersion>-r<adapterReleaseRevision>-<platform>-<architecture>`；宿主 build 仅属于

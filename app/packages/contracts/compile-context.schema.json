@@ -10,7 +10,7 @@
     "schemaVersion": { "const": 1 },
     "adapters": {
       "type": "object",
-      "propertyNames": { "enum": ["mac-codex", "mac-workbuddy"] },
+      "propertyNames": { "enum": ["mac-codex", "mac-doubao", "mac-workbuddy"] },
       "additionalProperties": { "$ref": "#/$defs/adapterContext" }
     }
   },

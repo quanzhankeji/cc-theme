@@ -18,11 +18,12 @@ test("staged runtime uses only registered macOS Adapter Engines and stable packa
   const manifest = JSON.parse(await readFile(path.join(runtimeRoot, "artifact-manifest.json"), "utf8"));
   assert.deepEqual(
     registry.adapters.map(({ capabilityFile }) => capabilityFile.split("/")[0]),
-    ["mac-codex", "mac-workbuddy"],
+    ["mac-codex", "mac-doubao", "mac-workbuddy"],
   );
   assert.ok(manifest.entries.some(({ path: file }) => file === "theme-core/compiler.mjs"));
   assert.ok(manifest.entries.some(({ path: file }) => file === "adapter-sdk/adapter-registry.mjs"));
   assert.ok(manifest.entries.some(({ path: file }) => file === "adapters/mac-workbuddy/scripts/workbuddy-theme-projection.mjs"));
+  assert.ok(manifest.entries.some(({ path: file }) => file === "adapters/mac-doubao/scripts/adapter-capability.mjs"));
   for (const { path: file } of manifest.entries) {
     const lower = file.toLowerCase();
     assert.equal(lower.includes("theme-sources"), false, file);
@@ -96,7 +97,8 @@ test("packaged Node keeps the minimum V8 JIT entitlement and executes JavaScript
   assert.match(verifier, /cc-theme-packaged-node-smoke-ok/);
 
   const build = launcher.indexOf("npm run tauri:build");
+  const localSeal = launcher.indexOf("--sign -");
   const verify = launcher.indexOf("verify-packaged-runtime.sh");
   const open = launcher.indexOf("open_app");
-  assert.ok(build >= 0 && verify > build && open > verify);
+  assert.ok(build >= 0 && localSeal > build && verify > localSeal && open > verify);
 });

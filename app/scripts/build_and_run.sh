@@ -19,6 +19,13 @@ pkill -x "$PROCESS_NAME" >/dev/null 2>&1 || true
 if [ -n "${CC_THEME_SIGNING_IDENTITY:-}" ]; then
   "$APP_DIR/scripts/sign-macos-app.sh" "$APP_BUNDLE" "$CC_THEME_SIGNING_IDENTITY"
 else
+  # Recent Rust/linker toolchains can leave a local Tauri bundle only
+  # linker-signed. Seal the copied Node entitlement first, then the outer app,
+  # so strict resource verification represents the artifact we actually run.
+  LOCAL_NODE="$APP_BUNDLE/Contents/Resources/runtime/node/bin/node"
+  /usr/bin/codesign --force --sign - \
+    --entitlements "$APP_DIR/src-tauri/node-runtime.entitlements.plist" "$LOCAL_NODE"
+  /usr/bin/codesign --force --sign - "$APP_BUNDLE"
   "$APP_DIR/scripts/verify-packaged-runtime.sh" "$APP_BUNDLE"
 fi
 

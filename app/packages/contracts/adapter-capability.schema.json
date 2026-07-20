@@ -58,6 +58,6 @@
     "raw": { "type": "object" }
   },
   "$defs": {
-    "adapterId": { "enum": ["mac-codex", "mac-workbuddy"] }
+    "adapterId": { "enum": ["mac-codex", "mac-doubao", "mac-workbuddy"] }
   }
 }

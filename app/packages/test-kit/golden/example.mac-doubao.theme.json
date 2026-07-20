@@ -1,0 +1,37 @@
+{
+  "kind": "skin.theme",
+  "id": "example",
+  "name": "Example Theme",
+  "sourceVersion": "1.0.0",
+  "image": "background.webp",
+  "colors": {
+    "text": "#E9EEF7",
+    "muted": "#AAB5C5"
+  },
+  "semanticColors": {
+    "surfaceBase": "#10151F",
+    "placeholder": "#8390A3",
+    "borderDefault": "#34445B",
+    "action": "#2F7D57",
+    "actionForeground": "#FFFFFF",
+    "focusRing": "#7BCFA8",
+    "link": "#8EB1FF",
+    "sidebarSurface": "#121925",
+    "composerSurface": "#1A2432"
+  },
+  "fonts": {
+    "ui": [
+      "SF Pro Text",
+      "system-ui"
+    ]
+  },
+  "appearance": {
+    "backdropBlurPx": 16,
+    "backdropSaturation": 1,
+    "radiusScale": 1,
+    "backgroundPosition": {
+      "xPercent": 50,
+      "yPercent": 50
+    }
+  }
+}

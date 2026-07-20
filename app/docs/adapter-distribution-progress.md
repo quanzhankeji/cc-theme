@@ -9,7 +9,7 @@
 
 ### 阶段 0：真实运行基线
 
-- [x] Registry 驱动 mac-codex、mac-workbuddy；
+- [x] Registry 驱动 mac-codex、mac-doubao、mac-workbuddy；
 - [x] Adapter release manifest 白名单构建 Engine；
 - [x] Manager bundle 不包含生产主题或媒体；
 - [x] WOLP 使用完整九键 Compile Context 编译 WorkBuddy；

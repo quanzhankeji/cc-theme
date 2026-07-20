@@ -14,6 +14,16 @@
       "outputDirectory": "mac-codex"
     },
     {
+      "capabilityFile": "mac-doubao/contracts/adapter-capability.json",
+      "styleCatalogFile": "mac-doubao/contracts/theme-style-catalog.json",
+      "projectorModule": "mac-doubao/scripts/adapter-capability.mjs",
+      "projectorExport": "projectThemeFamilyAdapter",
+      "normalizerModule": "mac-doubao/scripts/skin-theme.mjs",
+      "normalizerExport": "normalizeSkinTheme",
+      "requestContract": "cc-theme.adapter-projector-invocation@1",
+      "outputDirectory": "mac-doubao"
+    },
+    {
       "capabilityFile": "mac-workbuddy/contracts/adapter-capability.json",
       "styleCatalogFile": "mac-workbuddy/contracts/theme-style-catalog.json",
       "projectorModule": "mac-workbuddy/scripts/workbuddy-theme-projection.mjs",

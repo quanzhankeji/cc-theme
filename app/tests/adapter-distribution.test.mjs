@@ -13,16 +13,17 @@ import { verifyAdapterPackage } from "../scripts/adapter-package.mjs";
 const execute = promisify(execFile);
 const expectedIdentities = new Map([
   ["mac-codex", "mac-codex-26.715.31925-r1-macos-arm64"],
+  ["mac-doubao", "mac-doubao-2.19.9-r1-macos-arm64"],
   ["mac-workbuddy", "mac-workbuddy-5.2.6-r1-macos-arm64"],
 ]);
 
-test("one distribution build produces two verified Mac packages and one cacheable catalog", async (t) => {
+test("one distribution build produces three verified Mac packages and one cacheable catalog", async (t) => {
   const outputDirectory = await fs.mkdtemp(path.join(os.tmpdir(), "cc-theme-adapter-distribution-"));
   t.after(() => fs.rm(outputDirectory, { recursive: true, force: true }));
   const result = await buildAdapterDistribution({ outputDirectory, architecture: "arm64" });
   const registry = JSON.parse(await fs.readFile(new URL("../registry/adapter-capabilities.json", import.meta.url), "utf8"));
 
-  assert.deepEqual(result.packages.map(({ adapterId }) => adapterId), ["mac-codex", "mac-workbuddy"]);
+  assert.deepEqual(result.packages.map(({ adapterId }) => adapterId), ["mac-codex", "mac-doubao", "mac-workbuddy"]);
   assert.equal(result.catalog.publicationStatus, "development-local");
   assert.equal(JSON.stringify(result.catalog).includes("windows"), false);
   for (const packageRecord of result.packages) {

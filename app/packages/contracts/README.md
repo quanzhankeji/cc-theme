@@ -9,6 +9,6 @@ roles, and file digests belong to the package manifest, while semantic design
 tokens remain in `unified-theme.json`. The public theme resource contract is
 currently the single first version.
 
-Public Adapter identity is currently closed to `mac-codex` and
+Public Adapter identity is currently closed to `mac-codex`, `mac-doubao`, and
 `mac-workbuddy`. Shared contracts do not expose protocol aliases or local-state
 migration identifiers.

@@ -11,6 +11,8 @@ mod themes;
 use chrono::Utc;
 use models::{ClientId, ClientOperation, DashboardState, OperationResult};
 use serde_json::json;
+use sha2::{Digest, Sha256};
+use std::io::Read;
 use std::sync::atomic::{AtomicBool, Ordering};
 use tauri::{
     menu::{Menu, MenuItem},
@@ -23,6 +25,20 @@ const TRAY_ID: &str = "cc-theme-menu-bar";
 const TRAY_OPEN_ID: &str = "open-manager";
 const TRAY_QUIT_ID: &str = "quit-manager";
 static QUITTING: AtomicBool = AtomicBool::new(false);
+
+fn file_sha256(path: &std::path::Path) -> Option<String> {
+    let mut file = std::fs::File::open(path).ok()?;
+    let mut digest = Sha256::new();
+    let mut buffer = [0_u8; 64 * 1024];
+    loop {
+        let read = file.read(&mut buffer).ok()?;
+        if read == 0 {
+            break;
+        }
+        digest.update(&buffer[..read]);
+    }
+    Some(format!("{:x}", digest.finalize()))
+}
 
 fn show_manager_window(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
@@ -311,11 +327,20 @@ pub fn run() {
             if let Ok(resource_dir) = app.path().resource_dir() {
                 let bundled_node = resource_dir.join("runtime/node/bin/node");
                 if bundled_node.is_file() {
-                    if std::env::var_os("CC_THEME_NODE").is_none() {
-                        std::env::set_var("CC_THEME_NODE", &bundled_node);
+                    std::env::set_var("CC_THEME_NODE", &bundled_node);
+                    std::env::set_var("NODE", &bundled_node);
+                    if let Some(sha256) = file_sha256(&bundled_node) {
+                        std::env::set_var("CC_THEME_NODE_SHA256", sha256);
                     }
-                    if std::env::var_os("NODE").is_none() {
-                        std::env::set_var("NODE", &bundled_node);
+                    if resource_dir
+                        .file_name()
+                        .is_some_and(|name| name == "Resources")
+                    {
+                        if let Some(manager_bundle) =
+                            resource_dir.parent().and_then(|contents| contents.parent())
+                        {
+                            std::env::set_var("CC_THEME_MANAGER_BUNDLE", manager_bundle);
+                        }
                     }
                 }
                 let adapters = resource_dir.join("adapters");

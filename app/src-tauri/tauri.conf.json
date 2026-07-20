@@ -36,7 +36,7 @@
     ],
     "category": "Utility",
     "copyright": "Copyright © 2026 CC Theme contributors",
-    "shortDescription": "Manage themes for Codex and WorkBuddy",
+    "shortDescription": "Manage themes for Codex, Doubao, and WorkBuddy",
     "fileAssociations": [
       {
         "ext": ["cctheme"],

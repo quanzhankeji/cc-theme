@@ -560,7 +560,7 @@ fn validate_unified_theme_source<'a>(
     source: &'a UnifiedThemeSource,
     manifest: &ThemePackageManifest,
 ) -> Result<Vec<(&'a str, &'static str)>, String> {
-    let canonical_targets = ["mac-codex", "mac-workbuddy"];
+    let canonical_targets = ["mac-codex", "mac-doubao", "mac-workbuddy"];
     if source.kind != "cc-theme.unified-theme"
         || source.schema_version != 1
         || source.id != manifest.id

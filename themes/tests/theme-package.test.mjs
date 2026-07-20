@@ -103,7 +103,8 @@ test("the public example compiles through the registered macOS Adapters", async 
   assert.equal(source.sharedCore.tokens.appearance.backgroundPosition, undefined);
   assert.equal(built.manifest.id, "example");
   assert.equal(built.manifest.metadata.previewAsset, "background.webp");
-  assert.deepEqual(Object.keys(compiled.themes), ["mac-codex", "mac-workbuddy"]);
+  assert.deepEqual(Object.keys(compiled.themes), ["mac-codex", "mac-doubao", "mac-workbuddy"]);
   assert.equal(compiled.applyAvailability["mac-codex"].allowed, true);
+  assert.equal(compiled.applyAvailability["mac-doubao"].allowed, true);
   assert.equal(compiled.applyAvailability["mac-workbuddy"].allowed, true);
 });

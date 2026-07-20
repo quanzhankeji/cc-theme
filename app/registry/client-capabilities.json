@@ -1,7 +1,7 @@
 {
   "kind": "cc-theme.client-capabilities",
-  "revision": 5,
-  "auditedAt": "2026-07-19",
+  "revision": 7,
+  "auditedAt": "2026-07-21",
   "backgroundContract": "app/packages/contracts/background/background-capability.schema.json",
   "statuses": [
     "verified",
@@ -29,6 +29,28 @@
         "adapters/mac-codex/compatibility/chatgpt-macos/26.715.31925/ui-surface-catalog.json",
         "adapters/mac-codex/tests/background-effects-runtime.test.mjs",
         "adapters/mac-codex/tests/interactive-background.test.mjs"
+      ]
+    },
+    {
+      "id": "mac-doubao",
+      "adapterId": "mac-doubao",
+      "role": "client-adapter",
+      "platform": "macos",
+      "application": "doubao",
+      "verifiedClientVersion": "2.19.9",
+      "clientRuntimeBaseline": true,
+      "runtimeApplyAvailable": true,
+      "capabilities": {
+        "media": "verified",
+        "video": "projection-only",
+        "ripple": "projection-only",
+        "directional": "projection-only",
+        "reduceMotionForceStatic": "verified"
+      },
+      "evidence": [
+        "adapters/mac-doubao/compatibility/doubao-macos/2.19.9/ui-surface-catalog.json",
+        "adapters/mac-doubao/tests/renderer-runtime.test.mjs",
+        "adapters/mac-doubao/tests/injector-payload.test.mjs"
       ]
     },
     {

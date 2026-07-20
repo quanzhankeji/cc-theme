@@ -6,16 +6,19 @@ use serde_json::Value;
 pub enum ClientId {
     #[serde(rename = "mac-codex")]
     Codex,
+    #[serde(rename = "mac-doubao")]
+    Doubao,
     #[serde(rename = "mac-workbuddy")]
     Workbuddy,
 }
 
 impl ClientId {
-    pub const ALL: [Self; 2] = [Self::Codex, Self::Workbuddy];
+    pub const ALL: [Self; 3] = [Self::Codex, Self::Doubao, Self::Workbuddy];
 
     pub const fn as_str(self) -> &'static str {
         match self {
             Self::Codex => "mac-codex",
+            Self::Doubao => "mac-doubao",
             Self::Workbuddy => "mac-workbuddy",
         }
     }
@@ -23,6 +26,7 @@ impl ClientId {
     pub fn from_adapter_id(value: &str) -> Option<Self> {
         match value {
             "mac-codex" => Some(Self::Codex),
+            "mac-doubao" => Some(Self::Doubao),
             "mac-workbuddy" => Some(Self::Workbuddy),
             _ => None,
         }
@@ -249,6 +253,10 @@ mod tests {
         assert_eq!(
             serde_json::to_string(&ClientId::Codex).unwrap(),
             "\"mac-codex\""
+        );
+        assert_eq!(
+            serde_json::to_string(&ClientId::Doubao).unwrap(),
+            "\"mac-doubao\""
         );
         assert_eq!(
             serde_json::to_string(&ClientId::Workbuddy).unwrap(),

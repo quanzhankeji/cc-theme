@@ -9,7 +9,7 @@
     "kind": { "const": "cc-theme.adapter-request" },
     "schemaVersion": { "const": 1 },
     "requestId": { "type": "string", "pattern": "^[A-Za-z0-9_-]{8,80}$" },
-    "adapter": { "enum": ["mac-codex", "mac-workbuddy"] },
+    "adapter": { "enum": ["mac-codex", "mac-doubao", "mac-workbuddy"] },
     "operation": { "enum": ["detect", "preflight", "install", "apply", "launch", "apply-and-launch", "verify", "pause", "restore"] },
     "themeFamilyId": { "type": "string", "pattern": "^[A-Za-z0-9_-]{1,80}$" },
     "themeId": { "type": "string", "pattern": "^[A-Za-z0-9_-]{1,80}$" },

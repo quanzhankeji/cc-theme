@@ -5,7 +5,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { resolveWorkspaceRoot } from "./workspace-root.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-export const CANONICAL_ADAPTER_IDS = Object.freeze(["mac-codex", "mac-workbuddy"]);
+export const CANONICAL_ADAPTER_IDS = Object.freeze(["mac-codex", "mac-doubao", "mac-workbuddy"]);
 const canonicalAdapterIds = new Set(CANONICAL_ADAPTER_IDS);
 export const REPOSITORY_ROOT = resolveWorkspaceRoot({ anchor: import.meta.url });
 export const ADAPTER_SOURCE_ROOT = path.resolve(

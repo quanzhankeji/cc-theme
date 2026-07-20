@@ -43,6 +43,19 @@ pub fn definition(id: ClientId) -> ClientDefinition {
                 relative: "Library/Application Support/CCTheme/state.json",
             },
         },
+        ClientId::Doubao => ClientDefinition {
+            id,
+            display_name: "Doubao",
+            bundle_id: "com.bot.pc.doubao",
+            expected_team_id: "96L78H6LMH",
+            app_filename: "Doubao.app",
+            app_override_env: "DOUBAO_APP_BUNDLE",
+            adapter_dirname: "mac-doubao",
+            adapter_override_env: "CC_THEME_DOUBAO_ADAPTER_ROOT",
+            state_kind: StateKind::Env {
+                relative: "Library/Application Support/mac-doubao/state.env",
+            },
+        },
         ClientId::Workbuddy => ClientDefinition {
             id,
             display_name: "WorkBuddy",
@@ -208,7 +221,13 @@ mod tests {
                 (item.bundle_id, item.expected_team_id, item.adapter_dirname)
             })
             .collect();
-        assert_eq!(identities.len(), 2);
-        assert_ne!(identities[0], identities[1]);
+        assert_eq!(identities.len(), 3);
+        assert_eq!(
+            identities
+                .iter()
+                .collect::<std::collections::BTreeSet<_>>()
+                .len(),
+            3
+        );
     }
 }

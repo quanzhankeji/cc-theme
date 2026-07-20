@@ -51,6 +51,7 @@ pub fn load_capabilities_or_fallback() -> Vec<AdapterCapability> {
     load_capabilities().unwrap_or_else(|_| {
         [
             ("mac-codex", "ChatGPT / Codex", true),
+            ("mac-doubao", "Doubao", true),
             ("mac-workbuddy", "WorkBuddy", true),
         ]
         .into_iter()
@@ -298,6 +299,7 @@ fn unavailable_for_manifest(manifest: &str) -> AdapterCapability {
         path if path.contains("mac-codex") => {
             unavailable_capability("mac-codex", "ChatGPT / Codex", true)
         }
+        path if path.contains("mac-doubao") => unavailable_capability("mac-doubao", "Doubao", true),
         path if path.contains("mac-workbuddy") => {
             unavailable_capability("mac-workbuddy", "WorkBuddy", true)
         }
@@ -391,8 +393,9 @@ mod tests {
             .map(|item| (item.adapter_id.as_str(), item))
             .collect::<std::collections::BTreeMap<_, _>>();
         assert!(by_id["mac-codex"].runtime_apply_available);
+        assert!(by_id["mac-doubao"].runtime_apply_available);
         assert!(by_id["mac-workbuddy"].runtime_apply_available);
         assert_eq!(by_id["mac-workbuddy"].catalog_version.as_deref(), Some("2"));
-        assert_eq!(by_id.len(), 2);
+        assert_eq!(by_id.len(), 3);
     }
 }

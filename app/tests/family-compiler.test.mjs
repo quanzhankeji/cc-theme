@@ -6,6 +6,7 @@ import test from "node:test";
 import {
   compiler,
   loadAdapterNormalizer,
+  managerRoot,
   readFixture,
   runtimeRoot,
 } from "./support/runtime-interface.mjs";
@@ -14,15 +15,18 @@ const { compileThemeFamily } = compiler;
 const theme = await readFixture("fixtures/unified-theme.json");
 const context = await readFixture("fixtures/compile-context.json");
 const normalizeCodexTheme = await loadAdapterNormalizer("mac-codex");
+const normalizeDoubaoTheme = await loadAdapterNormalizer("mac-doubao");
 const normalizeWorkBuddyTheme = await loadAdapterNormalizer("mac-workbuddy");
 
-test("registry-driven compilation delegates to the two active Adapter projectors", async () => {
+test("registry-driven compilation delegates to the active Adapter projectors", async () => {
   const result = await compileThemeFamily(theme, context);
 
-  assert.deepEqual(Object.keys(result.themes), ["mac-codex", "mac-workbuddy"]);
+  assert.deepEqual(Object.keys(result.themes), ["mac-codex", "mac-doubao", "mac-workbuddy"]);
   assert.doesNotThrow(() => normalizeCodexTheme(result.themes["mac-codex"], "Manager Codex projection"));
+  assert.doesNotThrow(() => normalizeDoubaoTheme(result.themes["mac-doubao"], "Manager Doubao projection"));
   assert.doesNotThrow(() => normalizeWorkBuddyTheme(result.themes["mac-workbuddy"], "Manager WorkBuddy projection"));
   assert.equal(result.applyAvailability["mac-codex"].allowed, true);
+  assert.equal(result.applyAvailability["mac-doubao"].allowed, true);
   assert.equal(result.applyAvailability["mac-workbuddy"].allowed, true);
 });
 
@@ -82,6 +86,68 @@ test("WorkBuddy exposes visible approximation and omission without serializing d
   assert.equal(codes.has("approximated-surface-code"), true);
   assert.equal(codes.has("optional-field-unsupported"), true);
   assert.equal(codes.has("home-hero-unsupported"), true);
+});
+
+test("Doubao projects only verified consumers and exposes static background approximation", async () => {
+  const source = structuredClone(theme);
+  Object.assign(source.sharedCore.tokens.colors, {
+    surfaceCode: "#111111",
+    textStrong: "#FFFFFF",
+    actionHover: "#777777",
+    actionPressed: "#555555",
+    success: "#00AA00",
+    warning: "#AA8800",
+  });
+  const result = await compileThemeFamily(source, context, { targetAdapterIds: ["mac-doubao"] });
+  const doubao = result.themes["mac-doubao"];
+
+  assert.deepEqual(Object.keys(result.themes), ["mac-doubao"]);
+  assert.equal(doubao.backgroundVideo, undefined);
+  assert.equal(doubao.interactiveBackground, undefined);
+  assert.deepEqual(Object.keys(doubao.fonts), ["ui"]);
+  assert.equal(doubao.appearance.shellMode, undefined);
+  for (const dormant of ["surfaceCode", "textStrong", "actionHover", "actionPressed", "success", "warning"]) {
+    assert.equal(Object.hasOwn(doubao.semanticColors, dormant), false, dormant);
+  }
+  const codes = new Set(result.diagnostics["mac-doubao"].map(({ code }) => code));
+  assert.equal(codes.has("ripple-static-image-approximation"), true);
+  assert.equal(codes.has("font-consumer-unavailable"), true);
+  assert.equal(codes.has("host-shell-mode-authority"), true);
+  assert.equal(codes.has("optional-color-consumer-unavailable"), true);
+  assert.doesNotThrow(() => normalizeDoubaoTheme(doubao, "Manager Doubao static approximation"));
+});
+
+test("the standard example has a selected-only Doubao golden and complete visible diagnostics", async () => {
+  const source = JSON.parse(await readFile(path.join(managerRoot, "..", "themes", "example", "unified-theme.json"), "utf8"));
+  const result = await compileThemeFamily(source, context, { targetAdapterIds: ["mac-doubao"] });
+  const golden = await readFixture("golden/example.mac-doubao.theme.json");
+  assert.deepEqual(Object.keys(result.themes), ["mac-doubao"]);
+  assert.deepEqual(result.themes["mac-doubao"], golden);
+  assert.deepEqual(
+    result.diagnostics["mac-doubao"].map(({ field, decision, code }) => ({ field, decision, code })),
+    [
+      { field: "tokens.colors.surfaceRaised", decision: "approximated", code: "surface-raised-sidebar-approximation" },
+      { field: "tokens.colors.surfaceElevated", decision: "approximated", code: "surface-elevated-composer-approximation" },
+      { field: "tokens.colors.borderSubtle", decision: "approximated", code: "border-subtle-default-approximation" },
+      { field: "tokens.colors.textStrong", decision: "unsupported", code: "optional-color-consumer-unavailable" },
+      { field: "tokens.colors.actionHover", decision: "unsupported", code: "optional-color-consumer-unavailable" },
+      { field: "tokens.colors.actionPressed", decision: "unsupported", code: "optional-color-consumer-unavailable" },
+      { field: "tokens.colors.hoverSurface", decision: "unsupported", code: "optional-color-consumer-unavailable" },
+      { field: "tokens.colors.pressedSurface", decision: "unsupported", code: "optional-color-consumer-unavailable" },
+      { field: "tokens.colors.selectedSurface", decision: "unsupported", code: "optional-color-consumer-unavailable" },
+      { field: "tokens.colors.danger", decision: "unsupported", code: "optional-color-consumer-unavailable" },
+      { field: "tokens.colors.success", decision: "unsupported", code: "optional-color-consumer-unavailable" },
+      { field: "tokens.colors.warning", decision: "unsupported", code: "optional-color-consumer-unavailable" },
+      { field: "tokens.colors.headerSurface", decision: "unsupported", code: "optional-color-consumer-unavailable" },
+      { field: "tokens.fonts.display", decision: "unsupported", code: "font-consumer-unavailable" },
+      { field: "tokens.fonts.code", decision: "unsupported", code: "font-consumer-unavailable" },
+      { field: "tokens.appearance.shellMode", decision: "unsupported", code: "host-shell-mode-authority" },
+      { field: "accessibility.minimumTextContrast", decision: "unsupported", code: "contrast-audit-unavailable" },
+      { field: "accessibility.minimumLargeTextContrast", decision: "unsupported", code: "contrast-audit-unavailable" },
+      { field: "accessibility.preserveSystemFocusRing", decision: "approximated", code: "host-focus-preserved" },
+      { field: "accessibility.transparencyFallback", decision: "unsupported", code: "transparency-preference-unavailable" },
+    ],
+  );
 });
 
 test("WorkBuddy scoped compilation accepts the complete real Manager nine-key context with nullable or safe host facts", async () => {

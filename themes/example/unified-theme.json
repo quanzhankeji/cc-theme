@@ -60,5 +60,5 @@
       "transparencyFallback": "increased-scrim"
     }
   },
-  "targets": ["mac-codex", "mac-workbuddy"]
+  "targets": ["mac-codex", "mac-doubao", "mac-workbuddy"]
 }
