@@ -77,6 +77,7 @@ jobs:
           npm test
           npm run typecheck
           npm --prefix app run adapter:catalog:check
+          npm --prefix app run prepare:runtime
           cargo test --manifest-path app/src-tauri/Cargo.toml
           cargo fmt --manifest-path app/src-tauri/Cargo.toml --check
 

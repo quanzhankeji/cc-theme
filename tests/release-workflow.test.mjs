@@ -71,6 +71,10 @@ test("Adapter-only Release workflow is exact-tagged, manifest-derived, closed, a
   assert.match(workflow, /EXPECTED_CODEX_SHA256.*\^\[0-9a-f\]\{64\}\$/s);
   assert.match(workflow, /CODEX_SHA256.*EXPECTED_CODEX_SHA256/s);
   assert.match(workflow, /--status development-local/);
+  assert.ok(
+    workflow.indexOf("npm --prefix app run prepare:runtime")
+      < workflow.indexOf("cargo test --manifest-path app/src-tauri/Cargo.toml"),
+  );
   assert.match(workflow, /--verify-tag/);
   assert.match(workflow, /--draft/);
   assert.match(workflow, /\.isDraft/);
