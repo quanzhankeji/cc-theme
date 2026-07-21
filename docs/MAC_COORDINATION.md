@@ -1,16 +1,16 @@
 # Mac Adapter coordination record
 
 Last updated: 2026-07-21
-Status: **CC Theme scope: CodeX + WorkBuddy; Doubao admission in progress; Claude paused**
+Status: **CC Theme scope: CodeX + WorkBuddy + Doubao; Claude paused**
 
-This document is the coordination-level status shared by CC Theme, the two active macOS
+This document is the coordination-level status shared by CC Theme, the three active macOS
 Adapter owners, and the preserved Claude source owner. Detailed implementation evidence remains owned
 by the corresponding project.
 
 ## Current CC Theme product scope
 
-- `mac-codex` and `mac-workbuddy` are the only active Adapter identities for the current final
-  prepare.
+- `mac-codex`, `mac-doubao`, and `mac-workbuddy` are the active Adapter identities in the current
+  signed local Manager build.
 - `mac-claude` must be absent from the runtime Registry, client discovery/scanning, UI, compile and
   package entry points, installation resources, and final artifact manifest.
 - `adapters/mac-claude` source and privacy-safe evidence remain in the repository with status
@@ -19,30 +19,41 @@ by the corresponding project.
   apply/verify/pause/restore/rollback Seam, updated Capability, and real-client QA evidence.
 - Windows remains `paused-by-user`.
 
-### Open Doubao admission P0
+### Doubao admission P0 — closed for the verified local build
 
-The user has requested `mac-doubao` as the next active CC Theme Adapter. Source registration and a
-Doubao 2.19.9 Adapter exist, but the currently installed `/Applications/CC Theme.app` still packages
-only CodeX and WorkBuddy Engines. The installed EVA, Terrarium, and WOLP Motion themes also declare
-only `mac-codex` and `mac-workbuddy`, so their themed Doubao launch action is correctly disabled.
+- The frozen Adapter supports Doubao `2.19.9` with 25 exact, 8 approximated, and 34 unsupported
+  decisions. Video, ripple, and directional backgrounds use an explicit static-image approximation;
+  required unsupported fields remain fail closed.
+- Manager resources, the 22-file Engine manifest, Capability, Projector, Normalizer, Style/Surface
+  Catalogs, and the deterministic `.ccadapter` package all matched the owner freeze.
+- The standard `themes/example` source was packed and imported through the signed Manager UI. It was
+  not copied into the Adapter or written directly into Application Support.
+- Real UI apply-and-launch reached foreground Doubao with readable background, text, and Composer.
+  Verify reported one stable generation with 4 roles, 1 style, 1 background, and 18 variables.
+- Pause, reapply, restore, and a real no-Composer Surface failure rollback passed. Final cleanup left
+  no owned LaunchAgent, state, injector, or port 9343 listener, and Manager returned to
+  `Stopped / Native appearance` without a manual refresh.
+- The installed `/Applications/CC Theme.app` is Developer ID signed with Hardened Runtime and passes
+  deep/strict verification. It is not notarized and is therefore a local test build, not a formal
+  public release or DMG.
 
-Admission requires all of the following before `mac-doubao` becomes an active product identity:
+The stable online Catalog sequence 1 still publishes only CodeX and WorkBuddy assets. Local Manager
+registration and online publication are separate states; Doubao must not be advertised as an online
+download until a signed immutable release asset and later Catalog sequence exist.
 
-- current Doubao application, Browser, renderer, signature/process identity, and versioned Surface
-  evidence pass fail-closed verification;
-- Capability, Projector, Normalizer, Style/Surface Catalog, and the complete Manager Compile Context
-  agree;
-- every exact/approximated/unsupported decision is backed by a real renderer/CSS consumer and visible
-  diagnostics; Schema acceptance alone is not consumption;
-- video, ripple, and directional backgrounds are either implemented and tested or explicitly reduced
-  to a static image/poster approximation without silent field loss;
-- at least one declarative theme version explicitly targets `mac-doubao` and passes target-scoped
-  compile/normalize diagnostics;
-- one prepared and signed CC Theme package contains the frozen Doubao Engine and then completes real
-  apply-and-launch, verify, pause, reapply, restore, rollback, and cleanup testing.
+## Theme interpretation admission decision
 
-Until those gates pass, normal Doubao launch may remain available, but themed launch must stay
-disabled. Claude remains excluded and Windows remains paused throughout this admission work.
+The product contract accepts `targets` as a temporary legacy reader field only, not as an
+authoritative compatibility or apply gate. A future dedicated migration will make the selected
+Adapter's Capability, Projector, Normalizer, diagnostics, and live Compile Context the sole source of
+theme interpretation admission. Optional namespaced Target Profiles remain enhancements: absence
+means an empty profile, while a matching Adapter validates its own profile fail closed.
+
+Manager continues to own generic safety orchestration such as package integrity, Engine
+registration/installation, signed host discovery, compile-context construction, serialized apply,
+assessment caching, and the final runtime gate. The current Doubao P0 was intentionally completed
+under the frozen existing contract; no Schema, production theme, or `targets` migration was mixed
+into its build and real-client evidence.
 
 ## WOLP → WorkBuddy P0
 
