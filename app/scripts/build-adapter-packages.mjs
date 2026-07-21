@@ -58,16 +58,27 @@ export async function buildAdapterDistribution({
   const managerPackage = await readJson(path.join(layout.managerRoot, "package.json"));
   const themeSchema = await readJson(path.join(layout.contractsRoot, "unified-theme-v1.schema.json"));
   const unifiedThemeSchemaVersion = themeSchema?.properties?.schemaVersion?.const;
+  const localCatalog = await generateAdapterVersionCatalog({ workspaceRoot: layout.workspaceRoot });
+  const releasesByAdapter = new Map(
+    localCatalog.adapters.map((adapter) => [
+      adapter.adapterId,
+      adapter.releases.find((release) =>
+        release.adapterVersion === adapter.current.adapterVersion &&
+        release.adapterReleaseRevision === adapter.current.adapterReleaseRevision),
+    ]),
+  );
   const staging = await fs.mkdtemp(path.join(path.dirname(destination), `.${path.basename(destination)}.tmp-`));
   try {
     const packages = [];
     for (const adapterId of ADAPTER_IDS) {
+      const release = releasesByAdapter.get(adapterId);
+      if (!release) fail(`${adapterId} current release is missing from the tracked version catalog`);
       const built = await buildAdapterPackage({
         sourceRoot: path.join(layout.adaptersRoot, adapterId),
         outputDirectory: staging,
         adapterId,
         architecture,
-        minimumManagerVersion: managerPackage.version,
+        minimumManagerVersion: release.contracts.minimumManagerVersion,
         unifiedThemeSchemaVersion,
       });
       const verified = await verifyAdapterPackage(built.archivePath, {

@@ -10,6 +10,15 @@ async function read(relative) {
   return fs.readFile(path.join(root, relative), "utf8");
 }
 
+function compareCoreVersions(left, right) {
+  const a = left.split("-", 1)[0].split(".").map(Number);
+  const b = right.split("-", 1)[0].split(".").map(Number);
+  for (let index = 0; index < 3; index += 1) {
+    if (a[index] !== b[index]) return a[index] - b[index];
+  }
+  return 0;
+}
+
 test("application release versions remain aligned", async () => {
   const workspace = JSON.parse(await read("package.json"));
   const manager = JSON.parse(await read("app/package.json"));
@@ -17,13 +26,20 @@ test("application release versions remain aligned", async () => {
   const cargo = await read("app/src-tauri/Cargo.toml");
   const registry = JSON.parse(await read("app/registry/adapter-versions.json"));
 
-  assert.equal(workspace.version, "0.2.0");
+  assert.equal(workspace.version, "0.2.1");
   assert.equal(manager.version, workspace.version);
   assert.equal(tauri.version, workspace.version);
   assert.match(cargo, new RegExp(`^version = "${workspace.version.replaceAll(".", "\\.")}"$`, "m"));
+  assert.equal(
+    manager.scripts["tauri:build:transition"],
+    "npm run prepare:runtime && CC_THEME_RUNTIME_PROFILE=transition-baseline tauri build",
+  );
   for (const adapter of registry.adapters) {
     for (const release of adapter.releases) {
-      assert.equal(release.contracts.minimumManagerVersion, workspace.version);
+      assert.ok(
+        compareCoreVersions(workspace.version, release.contracts.minimumManagerVersion) >= 0,
+        `${adapter.adapterId} package minimum cannot exceed the Manager version`,
+      );
     }
   }
 });
@@ -36,19 +52,24 @@ test("formal Release workflow is manual, tag-pinned, non-overwriting, and exact"
   assert.match(workflow, /ref: refs\/tags\/\$\{\{ inputs\.tag \}\}/);
   assert.match(workflow, /EXPECTED_TAG="cc-theme-v\$\{VERSION\}"/);
   assert.match(workflow, /CC\.Theme_\$\{VERSION\}_aarch64\.dmg/);
+  assert.match(workflow, /runtime_manifest_sha256:/);
+  assert.match(workflow, /RUNTIME_MANIFEST_SHA256.*\^\[0-9a-f\]\{64\}\$/s);
   assert.match(workflow, /GitHub normalizes spaces/);
   assert.match(workflow, /git rev-list -n 1 "\$RELEASE_TAG"/);
-  assert.match(workflow, /npm --prefix app run adapter:build/);
-  assert.match(workflow, /mac-codex-26\.715\.31925-r1-macos-arm64\.ccadapter/);
-  assert.match(workflow, /mac-workbuddy-5\.2\.6-r1-macos-arm64\.ccadapter/);
+  assert.doesNotMatch(workflow, /npm --prefix app run adapter:build/);
+  assert.doesNotMatch(workflow, /\.ccadapter|CODEX_ASSET|WORKBUDDY_ASSET|DOUBAO_ASSET/);
   assert.match(workflow, /hdiutil verify/);
   assert.match(workflow, /xcrun stapler validate/);
-  assert.match(workflow, /-eq 2/);
+  assert.match(workflow, /-eq 1/);
   assert.match(workflow, /APPLICATIONS_LINK="\$MOUNT_POINT\/Applications"/);
   assert.match(workflow, /readlink "\$APPLICATIONS_LINK"/);
   assert.match(workflow, /== "\/Applications"/);
   assert.match(workflow, /codesign --verify --deep --strict/);
   assert.match(workflow, /TeamIdentifier/);
+  assert.match(workflow, /verify-runtime-resources\.mjs/);
+  assert.match(workflow, /transition-baseline\.json/);
+  assert.match(workflow, /shasum -a 256 "\$RESOURCES\/artifact-manifest\.json"/);
+  assert.match(workflow, /CodeX 26\.715\.31925-r1; Doubao 2\.19\.9-r1; WorkBuddy 5\.2\.6-r1/);
   assert.match(workflow, /wc -l < "\$FINAL_FILE"/);
   assert.doesNotMatch(workflow, /--clobber/);
   assert.doesNotMatch(workflow, /\bmapfile\b/);

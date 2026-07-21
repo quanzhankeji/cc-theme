@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Exact immutable release tag (for example, cc-theme-v0.2.0)
+        description: Exact immutable release tag (for example, cc-theme-v0.2.1)
         required: true
         type: string
       dmg_asset_name:
@@ -19,6 +19,10 @@ on:
         description: Apple notarytool submission UUID
         required: true
         type: string
+      runtime_manifest_sha256:
+        description: SHA-256 of the transition runtime artifact-manifest.json embedded in the DMG
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -29,7 +33,7 @@ concurrency:
 
 jobs:
   verify-and-stage:
-    name: Verify DMG and stage exact Adapter assets
+    name: Verify the exact DMG-only Release
     runs-on: macos-15
     timeout-minutes: 35
     env:
@@ -38,6 +42,7 @@ jobs:
       DMG_ASSET_NAME: ${{ inputs.dmg_asset_name }}
       DMG_SHA256: ${{ inputs.dmg_sha256 }}
       NOTARIZATION_ID: ${{ inputs.notarization_id }}
+      RUNTIME_MANIFEST_SHA256: ${{ inputs.runtime_manifest_sha256 }}
       CC_THEME_SKIP_APP_BOUND_DOCTOR_TESTS: "1"
     steps:
       - name: Check out the exact tag
@@ -65,15 +70,12 @@ jobs:
           [[ "$DMG_ASSET_NAME" == "$EXPECTED_DMG" ]]
           [[ "$DMG_SHA256" =~ ^[0-9a-f]{64}$ ]]
           [[ "$NOTARIZATION_ID" =~ ^[0-9A-Fa-f-]{36}$ ]]
+          [[ "$RUNTIME_MANIFEST_SHA256" =~ ^[0-9a-f]{64}$ ]]
           [[ "$(git rev-list -n 1 "$RELEASE_TAG")" == "$(git rev-parse HEAD)" ]]
           [[ "$(node -p "require('./package.json').version")" == "$VERSION" ]]
           [[ "$(node -p "require('./app/src-tauri/tauri.conf.json').version")" == "$VERSION" ]]
           grep -Fq "version = \"${VERSION}\"" app/src-tauri/Cargo.toml
-          {
-            echo "VERSION=$VERSION"
-            echo "CODEX_ASSET=mac-codex-26.715.31925-r1-macos-arm64.ccadapter"
-            echo "WORKBUDDY_ASSET=mac-workbuddy-5.2.6-r1-macos-arm64.ccadapter"
-          } >> "$GITHUB_ENV"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Install source dependencies
         run: npm ci
@@ -90,22 +92,7 @@ jobs:
           cargo test --manifest-path app/src-tauri/Cargo.toml
           cargo fmt --manifest-path app/src-tauri/Cargo.toml --check
 
-      - name: Rebuild exactly two Adapter packages from the tag
-        shell: bash
-        run: |
-          set -euo pipefail
-          ADAPTER_OUT="$RUNNER_TEMP/adapter-assets"
-          npm --prefix app run adapter:build -- \
-            --out "$ADAPTER_OUT" \
-            --architecture arm64 \
-            --status published \
-            --download-base-url "https://github.com/${GITHUB_REPOSITORY}/releases/download/${RELEASE_TAG}"
-          [[ -f "$ADAPTER_OUT/$CODEX_ASSET" ]]
-          [[ -f "$ADAPTER_OUT/$WORKBUDDY_ASSET" ]]
-          [[ "$(find "$ADAPTER_OUT" -maxdepth 1 -type f -name '*.ccadapter' -print | wc -l | tr -d ' ')" -eq 2 ]]
-          echo "ADAPTER_OUT=$ADAPTER_OUT" >> "$GITHUB_ENV"
-
-      - name: Require a draft Release with only the expected DMG or resumable assets
+      - name: Require a draft Release containing only the exact DMG
         shell: bash
         run: |
           set -euo pipefail
@@ -115,11 +102,12 @@ jobs:
           jq -r '.assets[].name' <<<"$RELEASE_JSON" | sort > "$EXISTING_FILE"
           while IFS= read -r NAME; do
             case "$NAME" in
-              "$DMG_ASSET_NAME"|"$CODEX_ASSET"|"$WORKBUDDY_ASSET") ;;
+              "$DMG_ASSET_NAME") ;;
               *) echo "Unexpected Release asset: $NAME" >&2; exit 1 ;;
             esac
           done < "$EXISTING_FILE"
           [[ "$(grep -Fxc "$DMG_ASSET_NAME" "$EXISTING_FILE" || true)" -eq 1 ]]
+          [[ "$(wc -l < "$EXISTING_FILE" | tr -d ' ')" -eq 1 ]]
 
       - name: Verify notarization, stapling, signature, version, and Team ID
         shell: bash
@@ -149,29 +137,14 @@ jobs:
           spctl -a -t exec -vv "$APP"
           [[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP/Contents/Info.plist")" == "$VERSION" ]]
           [[ "$(codesign -dv --verbose=4 "$APP" 2>&1 | sed -n 's/^TeamIdentifier=//p')" == "8UPRU238P7" ]]
+          RESOURCES="$APP/Contents/Resources"
+          [[ "$(shasum -a 256 "$RESOURCES/artifact-manifest.json" | awk '{print $1}')" == "$RUNTIME_MANIFEST_SHA256" ]]
+          node app/scripts/verify-runtime-resources.mjs \
+            "$RESOURCES" app/config/transition-baseline.json "$VERSION"
           hdiutil detach "$MOUNT_POINT"
           trap - EXIT
 
-      - name: Upload missing Adapter assets without replacing published bytes
-        shell: bash
-        run: |
-          set -euo pipefail
-          for NAME in "$CODEX_ASSET" "$WORKBUDDY_ASSET"; do
-            BUILT="$ADAPTER_OUT/$NAME"
-            if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json assets \
-              --jq '.assets[].name' | grep -Fxq "$NAME"; then
-              CURRENT_DIR="$RUNNER_TEMP/current-$NAME"
-              mkdir -p "$CURRENT_DIR"
-              gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
-                --pattern "$NAME" --dir "$CURRENT_DIR"
-              [[ "$(shasum -a 256 "$BUILT" | awk '{print $1}')" == \
-                 "$(shasum -a 256 "$CURRENT_DIR/$NAME" | awk '{print $1}')" ]]
-            else
-              gh release upload "$RELEASE_TAG" "$BUILT" --repo "$GITHUB_REPOSITORY"
-            fi
-          done
-
-      - name: Enforce the final three-asset draft
+      - name: Enforce the final one-asset draft
         shell: bash
         run: |
           set -euo pipefail
@@ -179,8 +152,8 @@ jobs:
           EXPECTED_FILE="$RUNNER_TEMP/expected-release-assets.txt"
           gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
             --json assets --jq '.assets[].name' | sort > "$FINAL_FILE"
-          printf '%s\n' "$DMG_ASSET_NAME" "$CODEX_ASSET" "$WORKBUDDY_ASSET" | sort > "$EXPECTED_FILE"
-          [[ "$(wc -l < "$FINAL_FILE" | tr -d ' ')" -eq 3 ]]
+          printf '%s\n' "$DMG_ASSET_NAME" > "$EXPECTED_FILE"
+          [[ "$(wc -l < "$FINAL_FILE" | tr -d ' ')" -eq 1 ]]
           diff -u "$EXPECTED_FILE" "$FINAL_FILE"
           {
             echo "## Verified draft Release"
@@ -188,9 +161,9 @@ jobs:
             echo "- Commit: \`$(git rev-parse HEAD)\`"
             echo "- Apple notarization: \`$NOTARIZATION_ID\`"
             echo "- DMG SHA-256: \`$DMG_SHA256\`"
-            for NAME in "$CODEX_ASSET" "$WORKBUDDY_ASSET"; do
-              echo "- \`$NAME\`: \`$(shasum -a 256 "$ADAPTER_OUT/$NAME" | awk '{print $1}')\`"
-            done
+            echo "- Transition runtime manifest SHA-256: \`$RUNTIME_MANIFEST_SHA256\`"
+            echo "- Bundled profile: transition-baseline (CodeX 26.715.31925-r1; Doubao 2.19.9-r1; WorkBuddy 5.2.6-r1)"
+            echo "- Product assets: one notarized and stapled DMG only"
             echo
             echo "The Release remains a draft for a maintainer to publish after reviewing this run."
           } >> "$GITHUB_STEP_SUMMARY"

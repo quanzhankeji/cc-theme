@@ -39,22 +39,28 @@ CC Theme distributes the actual declarative package—prepared assets, semantic 
 
 ## System requirements
 
-**CC Theme 0.2.0 currently supports Apple Silicon only.**
+**CC Theme 0.2.1 currently supports Apple Silicon only.**
 
 - macOS 13.5 or later
 - M1, M2, M3, M4, or a later Apple chip
 - Intel / x86_64 Macs are not supported
 - Windows is not supported
 
-The current public application release is [CC Theme 0.2.0](https://github.com/quanzhankeji/cc-theme/releases/tag/cc-theme-v0.2.0).
+The current public application release is [CC Theme 0.2.1](https://github.com/quanzhankeji/cc-theme/releases/tag/cc-theme-v0.2.1).
 The formal build uses `CC Theme.app`; GitHub exposes the notarized Apple Silicon DMG as
-`CC.Theme_0.2.0_aarch64.dmg` after normalizing the local filename's space to a period.
+`CC.Theme_0.2.1_aarch64.dmg` after normalizing the local filename's space to a period.
+
+CC Theme 0.2.1 is a transition baseline for validating signed online Adapter updates. Its bundled
+CodeX Adapter remains the previously published `26.715.31925-r1`; the application discovers,
+verifies, and installs newer official Adapter releases through the signed stable Catalog. Bundled
+Adapters are a last-known-good fallback and are not a claim that every bundled Engine is latest.
 
 ## Current client support
 
 | Adapter | Current boundary |
 | --- | --- |
 | [`mac-codex`](adapters/mac-codex/README.md) | CC Theme apply and restore verified on the documented Codex build |
+| [`mac-doubao`](adapters/mac-doubao/README.md) | CC Theme apply and restore supported on the documented Doubao build |
 | [`mac-workbuddy`](adapters/mac-workbuddy/README.md) | CC Theme apply and restore verified on WorkBuddy 5.2.6 |
 | `win-*` | `paused-by-user`; excluded from active CI, packaging, and Releases |
 

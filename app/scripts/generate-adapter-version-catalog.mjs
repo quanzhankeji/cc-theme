@@ -107,6 +107,35 @@ async function readTrimmed(filename, label) {
   return value;
 }
 
+async function readStableMinimumManagerVersions(workspaceRoot) {
+  const filename = path.join(workspaceRoot, "app", "registry", "adapter-versions.json");
+  let catalog;
+  try {
+    catalog = await readJson(filename, "tracked Adapter version catalog");
+  } catch (error) {
+    if (error.message.includes("ENOENT")) return new Map();
+    throw error;
+  }
+  assertObject(catalog, "tracked Adapter version catalog");
+  assert(Array.isArray(catalog.adapters), "tracked Adapter version catalog adapters must be an array");
+  const versions = new Map();
+  for (const adapter of catalog.adapters) {
+    assertObject(adapter, "tracked Adapter version catalog adapter");
+    assert(typeof adapter.adapterId === "string", "tracked Adapter version catalog adapterId must be a string");
+    assert(Array.isArray(adapter.releases), `tracked ${adapter.adapterId} releases must be an array`);
+    for (const release of adapter.releases) {
+      assertObject(release, `tracked ${adapter.adapterId} release`);
+      assert(typeof release.assetIdentity === "string", `tracked ${adapter.adapterId} assetIdentity must be a string`);
+      assertObject(release.contracts, `tracked ${release.assetIdentity} contracts`);
+      const minimumManagerVersion = release.contracts.minimumManagerVersion;
+      assertSemver(minimumManagerVersion, `tracked ${release.assetIdentity} minimumManagerVersion`);
+      assert(!versions.has(release.assetIdentity), `tracked catalog contains duplicate identity ${release.assetIdentity}`);
+      versions.set(release.assetIdentity, minimumManagerVersion);
+    }
+  }
+  return versions;
+}
+
 function normalizeCapabilityVersion(value, label) {
   if (typeof value === "string") {
     assertSemver(value, label);
@@ -166,7 +195,13 @@ function expectedAssetName(assetIdentity) {
   return `${assetIdentity}.ccadapter`;
 }
 
-async function readEngineFacts(workspaceRoot, adapterId, managerVersion, unifiedThemeSchemaVersion) {
+async function readEngineFacts(
+  workspaceRoot,
+  adapterId,
+  managerVersion,
+  unifiedThemeSchemaVersion,
+  stableMinimumManagerVersions,
+) {
   const adapterRoot = path.join(workspaceRoot, "adapters", adapterId);
   const [adapterVersion, packageDocument, capability, projectManifest, releaseManifest] = await Promise.all([
     readTrimmed(path.join(adapterRoot, "VERSION"), `${adapterId}/VERSION`),
@@ -219,6 +254,11 @@ async function readEngineFacts(workspaceRoot, adapterId, managerVersion, unified
   if (adapterDescriptor.assetIdentity !== undefined) {
     assert(adapterDescriptor.assetIdentity === assetIdentity, `${adapterId} package descriptor assetIdentity differs from release manifest`);
   }
+  const minimumManagerVersion = stableMinimumManagerVersions.get(assetIdentity) ?? managerVersion;
+  assert(
+    compareSemver(managerVersion, minimumManagerVersion) >= 0,
+    `${adapterId} Manager version is below the tracked package minimum`,
+  );
 
   return {
     adapterId,
@@ -228,7 +268,7 @@ async function readEngineFacts(workspaceRoot, adapterId, managerVersion, unified
     architecture,
     assetIdentity,
     contracts: {
-      minimumManagerVersion: managerVersion,
+      minimumManagerVersion,
       capabilityVersion: normalizeCapabilityVersion(capability.capabilityVersion, `${adapterId} capabilityVersion`),
       unifiedThemeSchemaVersion,
       adapterPackageSchemaVersion: PACKAGE_SCHEMA_VERSION,
@@ -439,10 +479,17 @@ export async function generateAdapterVersionCatalog({
   );
   const unifiedThemeSchemaVersion = unifiedThemeSchema?.properties?.schemaVersion?.const;
   assert(Number.isSafeInteger(unifiedThemeSchemaVersion) && unifiedThemeSchemaVersion >= 1, "Unified Theme schema version is invalid");
+  const stableMinimumManagerVersions = await readStableMinimumManagerVersions(workspaceRoot);
 
   const facts = await Promise.all(
     ADAPTER_IDS.map((adapterId) =>
-      readEngineFacts(workspaceRoot, adapterId, managerPackage.version, unifiedThemeSchemaVersion),
+      readEngineFacts(
+        workspaceRoot,
+        adapterId,
+        managerPackage.version,
+        unifiedThemeSchemaVersion,
+        stableMinimumManagerVersions,
+      ),
     ),
   );
   const factsByAdapter = new Map(facts.map((entry) => [entry.adapterId, entry]));

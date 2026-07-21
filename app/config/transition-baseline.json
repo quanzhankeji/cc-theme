@@ -1,0 +1,53 @@
+{
+  "kind": "cc-theme.manager-runtime-profile",
+  "schemaVersion": 1,
+  "managerVersion": "0.2.1",
+  "profile": "transition-baseline",
+  "adapters": [
+    {
+      "adapterId": "mac-codex",
+      "adapterVersion": "26.715.31925",
+      "adapterReleaseRevision": 1,
+      "assetIdentity": "mac-codex-26.715.31925-r1-macos-arm64",
+      "source": {
+        "kind": "github-release-asset",
+        "capabilityVersion": "2.0.0",
+        "releaseTag": "cc-theme-v0.2.0",
+        "downloadUrl": "https://github.com/quanzhankeji/cc-theme/releases/download/cc-theme-v0.2.0/mac-codex-26.715.31925-r1-macos-arm64.ccadapter",
+        "bytes": 1086322,
+        "archiveSha256": "59d0f1ef371004f6da0ed6a3947f036753da9eb04f3d21a5d63b893dd6ff54b4",
+        "manifestSha256": "68bf76d7bad45b69af717ac7edb255fd1229a507b032ac975028b861f5bc7493"
+      }
+    },
+    {
+      "adapterId": "mac-doubao",
+      "adapterVersion": "2.19.9",
+      "adapterReleaseRevision": 1,
+      "assetIdentity": "mac-doubao-2.19.9-r1-macos-arm64",
+      "source": {
+        "kind": "github-release-asset",
+        "capabilityVersion": "1.3.0",
+        "releaseTag": "cc-theme-v0.2.0-adapters.2",
+        "downloadUrl": "https://github.com/quanzhankeji/cc-theme/releases/download/cc-theme-v0.2.0-adapters.2/mac-doubao-2.19.9-r1-macos-arm64.ccadapter",
+        "bytes": 156913,
+        "archiveSha256": "fb2412cc21fe1821769a940e730ea38f372f8a7271d696b466488ff57c60bc1d",
+        "manifestSha256": "902cc26c3d3581346cb34bdcffa510e6e4571696cc37f32e2585e328d2443213"
+      }
+    },
+    {
+      "adapterId": "mac-workbuddy",
+      "adapterVersion": "5.2.6",
+      "adapterReleaseRevision": 1,
+      "assetIdentity": "mac-workbuddy-5.2.6-r1-macos-arm64",
+      "source": {
+        "kind": "github-release-asset",
+        "capabilityVersion": "1.0.0",
+        "releaseTag": "cc-theme-v0.2.0-adapters.2",
+        "downloadUrl": "https://github.com/quanzhankeji/cc-theme/releases/download/cc-theme-v0.2.0-adapters.2/mac-workbuddy-5.2.6-r1-macos-arm64.ccadapter",
+        "bytes": 729254,
+        "archiveSha256": "2accd2142ad6e5a868d150972859c0b07cee4e25a01f74d476e2570c65c8d886",
+        "manifestSha256": "c035da2c8615411ec35878b09ef7b47901f708d896c0713e93d2a10187951947"
+      }
+    }
+  ]
+}

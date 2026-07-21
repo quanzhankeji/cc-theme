@@ -22,6 +22,10 @@ test("staged runtime uses only registered macOS Adapter Engines and stable packa
   );
   assert.ok(manifest.entries.some(({ path: file }) => file === "theme-core/compiler.mjs"));
   assert.ok(manifest.entries.some(({ path: file }) => file === "adapter-sdk/adapter-registry.mjs"));
+  assert.equal(manifest.schemaVersion, 2);
+  assert.equal(manifest.managerVersion, "0.2.1");
+  assert.ok(["source-build", "transition-baseline"].includes(manifest.profile));
+  assert.ok(manifest.entries.some(({ path: file }) => file === "runtime-attestation.json"));
   assert.ok(manifest.entries.some(({ path: file }) => file === "adapters/mac-workbuddy/scripts/workbuddy-theme-projection.mjs"));
   assert.ok(manifest.entries.some(({ path: file }) => file === "adapters/mac-doubao/scripts/adapter-capability.mjs"));
   for (const { path: file } of manifest.entries) {
@@ -43,6 +47,7 @@ test("Tauri packages the staged Interface without repository-relative Adapter pa
     assert.equal(source.includes("mac-workbuddy"), false, source);
   }
   assert.equal(config.bundle.resources["../.runtime-resources/adapters"], "adapters");
+  assert.equal(config.bundle.resources["../.runtime-resources/runtime-attestation.json"], "runtime-attestation.json");
 });
 
 test("the public macOS application and runtime identity are consistently CC Theme", async () => {
@@ -101,4 +106,18 @@ test("packaged Node keeps the minimum V8 JIT entitlement and executes JavaScript
   const verify = launcher.indexOf("verify-packaged-runtime.sh");
   const open = launcher.indexOf("open_app");
   assert.ok(build >= 0 && localSeal > build && verify > localSeal && open > verify);
+});
+
+test("formal transition builds keep the transition profile across the Tauri beforeBuildCommand", async () => {
+  const [packageDocument, config] = await Promise.all([
+    readFile(path.join(managerRoot, "package.json"), "utf8").then(JSON.parse),
+    readFile(path.join(managerRoot, "src-tauri", "tauri.conf.json"), "utf8").then(JSON.parse),
+  ]);
+  assert.equal(
+    packageDocument.scripts["tauri:build:transition"],
+    "npm run prepare:runtime && CC_THEME_RUNTIME_PROFILE=transition-baseline tauri build",
+  );
+  assert.match(packageDocument.scripts["tauri:build"], /tauri build/);
+  assert.match(config.build.beforeBuildCommand, /npm run prepare:resources/);
+  assert.match(packageDocument.scripts["prepare:resources"], /prepare-runtime-resources\.mjs/);
 });

@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "CC Theme",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "identifier": "com.quanzhankeji.cc-theme",
   "build": {
     "beforeDevCommand": "npm run prepare:resources && npm run dev",
@@ -58,6 +58,7 @@
       "../.runtime-resources/capabilities": "capabilities",
       "../.runtime-resources/contracts": "contracts",
       "../.runtime-resources/theme-core": "theme-core",
+      "../.runtime-resources/runtime-attestation.json": "runtime-attestation.json",
       "../.runtime-cache/node-current": "runtime/node",
       "../.runtime-resources/artifact-manifest.json": "artifact-manifest.json"
     },

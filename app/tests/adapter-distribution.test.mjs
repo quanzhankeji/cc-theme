@@ -16,6 +16,23 @@ const expectedIdentities = new Map([
   ["mac-doubao", "mac-doubao-2.19.9-r1-macos-arm64"],
   ["mac-workbuddy", "mac-workbuddy-5.2.6-r1-macos-arm64"],
 ]);
+const expectedPublishedPackages = new Map([
+  ["mac-codex", {
+    bytes: 1_074_742,
+    sha256: "9510a2e6ac84fe930eebbf8d07e6b0b1dd3d4d1d9891ac41c944c59809fc97f7",
+    manifestSha256: "2a3df4f94dd19f4989606c4bd6458361b529f1ed461f8ad6bf27ed7275728d5c",
+  }],
+  ["mac-doubao", {
+    bytes: 156_913,
+    sha256: "fb2412cc21fe1821769a940e730ea38f372f8a7271d696b466488ff57c60bc1d",
+    manifestSha256: "902cc26c3d3581346cb34bdcffa510e6e4571696cc37f32e2585e328d2443213",
+  }],
+  ["mac-workbuddy", {
+    bytes: 729_254,
+    sha256: "2accd2142ad6e5a868d150972859c0b07cee4e25a01f74d476e2570c65c8d886",
+    manifestSha256: "c035da2c8615411ec35878b09ef7b47901f708d896c0713e93d2a10187951947",
+  }],
+]);
 
 test("one distribution build produces three verified Mac packages and one cacheable catalog", async (t) => {
   const outputDirectory = await fs.mkdtemp(path.join(os.tmpdir(), "cc-theme-adapter-distribution-"));
@@ -27,7 +44,13 @@ test("one distribution build produces three verified Mac packages and one cachea
   assert.equal(result.catalog.publicationStatus, "development-local");
   assert.equal(JSON.stringify(result.catalog).includes("windows"), false);
   for (const packageRecord of result.packages) {
+    const published = expectedPublishedPackages.get(packageRecord.adapterId);
     assert.equal(packageRecord.assetName, `${expectedIdentities.get(packageRecord.adapterId)}.ccadapter`);
+    assert.deepEqual(
+      { bytes: packageRecord.bytes, sha256: packageRecord.sha256, manifestSha256: packageRecord.manifestSha256 },
+      published,
+      `${packageRecord.adapterId} changed bytes without changing its immutable Adapter identity`,
+    );
     const verified = await verifyAdapterPackage(path.join(outputDirectory, packageRecord.assetName), {
       expectedArchiveSha256: packageRecord.sha256,
     });
@@ -35,6 +58,7 @@ test("one distribution build produces three verified Mac packages and one cachea
     assert.equal(verified.manifest.adapterId, packageRecord.adapterId);
     assert.equal(verified.manifest.assetIdentity, expectedIdentities.get(packageRecord.adapterId));
     assert.equal(verified.manifest.adapterReleaseRevision, 1);
+    assert.equal(verified.manifest.contracts.minimumManagerVersion, "0.2.0");
     const extracted = path.join(outputDirectory, `extracted-${packageRecord.adapterId}`);
     await fs.mkdir(extracted);
     await execute("/usr/bin/unzip", ["-q", path.join(outputDirectory, packageRecord.assetName), "-d", extracted]);
