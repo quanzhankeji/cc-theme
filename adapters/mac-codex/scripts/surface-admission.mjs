@@ -71,26 +71,29 @@ export function evaluateSurfaceAdmissionFacts(facts, catalog, { compatibilityAtt
   if (facts.teamId !== EXPECTED_TEAM_ID || catalog?.bundleEvidence?.bundleTeamId !== EXPECTED_TEAM_ID) {
     deny("surface-evidence-signature-mismatch", "bundleEvidence.bundleTeamId", "The installed app signer does not match the verified Surface evidence.");
   }
-  const newerHost = compareVersions(facts.version, catalog?.client?.version) === 1;
-  if (compatibilityAttempt && !newerHost) {
-    deny("older-adapter-compatibility-direction-invalid", "client.version", "Compatibility mode only permits an older Adapter catalog to be tried on a newer official client.");
-  } else if (!compatibilityAttempt && facts.version !== catalog?.client?.version) {
+  if (facts.version !== catalog?.client?.version) {
     deny("surface-evidence-client-version-mismatch", "client.version", `Surface evidence is for ${String(catalog?.client?.version)} but the installed client is ${String(facts.version)}.`);
   }
-  if (!compatibilityAttempt && facts.build !== catalog?.client?.build) {
+  if (facts.build !== catalog?.client?.build) {
     deny("surface-evidence-client-build-mismatch", "client.build", `Surface evidence build ${String(catalog?.client?.build)} does not match installed build ${String(facts.build)}.`);
   }
-  if (!compatibilityAttempt && facts.chromium !== catalog?.client?.chromium) {
+  if (facts.chromium !== catalog?.client?.chromium) {
     deny("surface-evidence-runtime-mismatch", "client.chromium", "The installed Chromium runtime does not match the current Surface evidence.");
   }
-  if (!compatibilityAttempt && facts.asarSha256 !== catalog?.bundleEvidence?.asarSha256) {
+  if (facts.asarSha256 !== catalog?.bundleEvidence?.asarSha256) {
     deny("surface-evidence-asar-mismatch", "bundleEvidence.asarSha256", "The packaged renderer does not match the verified current Surface evidence.");
   }
-  if (compatibilityAttempt && newerHost) diagnostics.push(warning(
-    "older-adapter-compatibility-attempt",
+  if (compatibilityAttempt) diagnostics.push(warning(
+    "older-adapter-compatibility-disabled",
     "client.version",
-    `The verified ${String(catalog?.client?.version)} structural recipe is being tried on newer client ${String(facts.version)}; exact build, runtime and archive identity are intentionally not treated as verified.`,
+    "This Adapter release requires exact current-host evidence; structural compatibility attempts cannot authorize apply.",
   ));
+  if (catalog?.processEvidence?.status !== "verified") {
+    deny("surface-evidence-process-unverified", "processEvidence.status", "The current trusted process-tree and loopback listener evidence has not completed.");
+  }
+  if (catalog?.liveEvidence?.captureResult !== "passed" || (catalog?.liveEvidence?.pendingRouteCoverage?.length ?? 0) !== 0) {
+    deny("surface-evidence-live-unverified", "liveEvidence.captureResult", "The current privacy-preserving route evidence has not completed.");
+  }
   let required = {};
   try {
     required = requiredCatalogMarkers(catalog);
@@ -108,9 +111,7 @@ export function evaluateSurfaceAdmissionFacts(facts, catalog, { compatibilityAtt
     allowed: !diagnostics.some((item) => item.severity === "error"),
     code: diagnostics.find((item) => item.severity === "error")?.code ?? "ok",
     clientVersionPolicy: "always-latest",
-    evidencePolicy: compatibilityAttempt
-      ? "older-adapter-structural-probe-required"
-      : "current-host-evidence-required",
+    evidencePolicy: "current-host-evidence-required",
     compatibilityAttempt,
     installedClient: {
       bundleId: facts.bundleId ?? null,

@@ -10,25 +10,17 @@
   },
   "semanticColors": {
     "surfaceBase": "#10151F",
-    "placeholder": "#8390A3",
-    "borderDefault": "#34445B",
+    "surfaceRaised": "#18202D",
     "action": "#2F7D57",
     "actionForeground": "#FFFFFF",
     "focusRing": "#7BCFA8",
-    "link": "#8EB1FF",
     "sidebarSurface": "#121925",
-    "composerSurface": "#1A2432"
-  },
-  "fonts": {
-    "ui": [
-      "SF Pro Text",
-      "system-ui"
-    ]
+    "headerSurface": "#141C28"
   },
   "appearance": {
+    "paletteStrategy": "system",
     "backdropBlurPx": 16,
     "backdropSaturation": 1,
-    "radiusScale": 1,
     "backgroundPosition": {
       "xPercent": 50,
       "yPercent": 50

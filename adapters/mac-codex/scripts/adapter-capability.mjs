@@ -58,6 +58,14 @@ const POSITION_KEYS = new Set(["xPercent", "yPercent"]);
 const COLOR = /^(?:#[0-9A-Fa-f]{6}|rgba?\([0-9., %]+\))$/;
 const ASSET_ID = /^[A-Za-z][A-Za-z0-9_-]{0,63}$/;
 const SAFE_FILE = /^[A-Za-z0-9_.-]+$/;
+const MANAGER_COMPILE_CONTEXT_KEYS = new Set([
+  "detectedClientVersion", "detectedClientBuild", "surfaceCatalogId", "surfaceCatalogVersion",
+  "probeStatus", "compileAllowed", "applyAllowed", "reasonCode", "localRuntimeOverrides",
+]);
+const LOCAL_RUNTIME_OVERRIDE_KEYS = new Set(["baseThemeHash", "entries"]);
+const LOCAL_RUNTIME_OVERRIDE_ENTRY_KEYS = new Set(["tokenId", "baseHash", "value"]);
+const SAFE_CONTEXT_TEXT = /^[A-Za-z0-9._:+-]{1,160}$/;
+const SHA256 = /^[0-9a-f]{64}$/;
 
 function plainObject(value, label) {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error(`${label} must be an object`);
@@ -70,6 +78,44 @@ function allowedObject(value, keys, label, optional = false) {
   const unknown = Object.keys(object).filter((key) => !keys.has(key));
   if (unknown.length) throw new Error(`${label} contains unsupported fields: ${unknown.join(", ")}`);
   return object;
+}
+
+function managerCompileContext(value) {
+  const context = allowedObject(value, MANAGER_COMPILE_CONTEXT_KEYS, "Adapter projector compile context");
+  const missing = [...MANAGER_COMPILE_CONTEXT_KEYS].filter((key) => !Object.hasOwn(context, key));
+  if (missing.length) throw new Error(`Adapter projector compile context is missing fields: ${missing.join(", ")}`);
+  for (const key of ["detectedClientVersion", "detectedClientBuild", "surfaceCatalogId"]) {
+    if (context[key] !== null && (typeof context[key] !== "string" || !SAFE_CONTEXT_TEXT.test(context[key]))) {
+      throw new Error(`Adapter projector compile context ${key} is invalid`);
+    }
+  }
+  if (!Number.isSafeInteger(context.surfaceCatalogVersion) || context.surfaceCatalogVersion < 1) {
+    throw new Error("Adapter projector compile context surfaceCatalogVersion must be a positive integer");
+  }
+  enumValue(context.probeStatus, ["passed", "failed", "not-run", "unavailable"], "Adapter projector compile context probeStatus");
+  if (typeof context.compileAllowed !== "boolean" || typeof context.applyAllowed !== "boolean") {
+    throw new Error("Adapter projector compile context admission values must be booleans");
+  }
+  if (context.reasonCode !== null && (typeof context.reasonCode !== "string" || !SAFE_CONTEXT_TEXT.test(context.reasonCode))) {
+    throw new Error("Adapter projector compile context reasonCode is invalid");
+  }
+  const overrides = allowedObject(context.localRuntimeOverrides, LOCAL_RUNTIME_OVERRIDE_KEYS,
+    "Adapter projector compile context localRuntimeOverrides");
+  if (overrides.baseThemeHash !== null && (typeof overrides.baseThemeHash !== "string" || !SHA256.test(overrides.baseThemeHash))) {
+    throw new Error("Adapter projector compile context localRuntimeOverrides.baseThemeHash is invalid");
+  }
+  if (!Array.isArray(overrides.entries) || overrides.entries.length > 256) {
+    throw new Error("Adapter projector compile context localRuntimeOverrides.entries is invalid");
+  }
+  for (const entry of overrides.entries) {
+    const item = allowedObject(entry, LOCAL_RUNTIME_OVERRIDE_ENTRY_KEYS,
+      "Adapter projector compile context localRuntimeOverrides entry");
+    if (typeof item.tokenId !== "string" || !/^[a-z][A-Za-z0-9.-]{0,119}$/.test(item.tokenId) ||
+        typeof item.baseHash !== "string" || !SHA256.test(item.baseHash) || !Object.hasOwn(item, "value")) {
+      throw new Error("Adapter projector compile context localRuntimeOverrides entry is invalid");
+    }
+  }
+  return context;
 }
 
 function localAssetId(value, label) {
@@ -449,7 +495,7 @@ function neutralInvocation(value) {
   const core = allowedObject(invocation.sharedCore, new Set(["tokens", "background", "accessibility"]), "Adapter projector Shared Core");
   const profiles = allowedObject(invocation.targetProfiles, new Set([ADAPTER_ID]), "Adapter projector Target Profiles");
   const assets = allowedObject(invocation.assetBindings, new Set(["background", "homeHero", "video", "atlas"]), "Adapter projector asset bindings");
-  const compileContext = plainObject(invocation.compileContext, "Adapter projector compile context");
+  const compileContext = managerCompileContext(invocation.compileContext);
   if (typeof identity.version !== "string" || !/^[0-9]+\.[0-9]+\.[0-9]+(?:-[A-Za-z0-9.-]+)?$/.test(identity.version)) {
     throw new Error("Adapter projector identity.version is invalid");
   }
@@ -480,43 +526,23 @@ function compileAdmission(capability, context) {
   const deny = (code, field, message) => diagnostics.push({
     code, field, decision: "unsupported", severity: "error", message,
   });
-  const compatibilityAttempt = context.reasonCode === "older-adapter-compatibility-attempt";
-  const numericVersion = (value) => {
-    if (typeof value !== "string" || !/^\d+(?:\.\d+){2}$/.test(value)) return null;
-    return value.split(".").map((part) => BigInt(part));
-  };
-  const isNewerHost = (() => {
-    const host = numericVersion(context.detectedClientVersion);
-    const adapter = numericVersion(expected.clientVersion);
-    if (!host || !adapter) return false;
-    for (let index = 0; index < 3; index += 1) {
-      if (host[index] !== adapter[index]) return host[index] > adapter[index];
-    }
-    return false;
-  })();
   if (context.compileAllowed !== true) deny("adapter-compile-context-denied", "compileContext.compileAllowed", "The Manager compile context did not admit this Adapter compilation.");
   if (context.applyAllowed !== true) deny("adapter-apply-context-denied", "compileContext.applyAllowed", "The Manager compile context did not admit runtime application.");
-  if (compatibilityAttempt && !isNewerHost) {
-    deny("older-adapter-compatibility-direction-invalid", "compileContext.detectedClientVersion", "Compatibility mode only permits an older Adapter to be tried on a newer official client.");
-  } else if (!compatibilityAttempt && context.detectedClientVersion !== expected.clientVersion) {
+  if (context.detectedClientVersion !== expected.clientVersion) {
     deny("surface-evidence-client-version-mismatch", "compileContext.detectedClientVersion", `Current Mac Codex evidence is for ${expected.clientVersion}; received ${String(context.detectedClientVersion)}.`);
   }
-  if (!compatibilityAttempt && context.detectedClientBuild !== expected.clientBuild) {
+  if (context.detectedClientBuild !== expected.clientBuild) {
     deny("surface-evidence-client-build-mismatch", "compileContext.detectedClientBuild", `Current Mac Codex evidence is for build ${expected.clientBuild}; received ${String(context.detectedClientBuild)}.`);
   }
-  if (!compatibilityAttempt && context.probeStatus !== "passed") {
+  if (context.probeStatus !== "passed") {
     deny("surface-evidence-probe-not-passed", "compileContext.probeStatus", "Current privacy-preserving Surface evidence has not passed for this compile context.");
   }
   if (context.surfaceCatalogId !== expected.surfaceCatalogId) {
     deny("surface-evidence-catalog-mismatch", "compileContext.surfaceCatalogId", `Expected Surface Catalog ${expected.surfaceCatalogId}.`);
   }
-  if (compatibilityAttempt && isNewerHost) diagnostics.push({
-    code: "older-adapter-runtime-probe-required",
-    field: "compileContext.reasonCode",
-    decision: "approximated",
-    severity: "warning",
-    message: "Projection uses the older Adapter recipe; the current official client must still pass the Adapter-owned structural runtime probe before commit.",
-  });
+  if (context.surfaceCatalogVersion !== expected.surfaceCatalogVersion) {
+    deny("surface-evidence-catalog-version-mismatch", "compileContext.surfaceCatalogVersion", `Expected Surface Catalog version ${expected.surfaceCatalogVersion}.`);
+  }
   return { applyAllowed: !diagnostics.some((item) => item.severity === "error"), diagnostics };
 }
 

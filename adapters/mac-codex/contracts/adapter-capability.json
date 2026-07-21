@@ -2,12 +2,12 @@
   "kind": "cc-theme.adapter-capability",
   "revision": 2,
   "adapterId": "mac-codex",
-  "adapterVersion": "26.715.31925",
+  "adapterVersion": "26.715.61943",
   "adapterReleaseRevision": 1,
   "releaseTarget": {
     "os": "macos",
     "arch": "arm64",
-    "assetIdentity": "mac-codex-26.715.31925-r1-macos-arm64"
+    "assetIdentity": "mac-codex-26.715.61943-r1-macos-arm64"
   },
   "displayName": "Mac Codex",
   "availability": "available",
@@ -26,7 +26,7 @@
     "localeCatalog": "theme-editor-locales.json",
     "localeAuthority": "document.documentElement.lang",
     "uiSurfaceCatalogPolicy": "current-evidence-required",
-    "uiSurfaceCatalog": "../compatibility/chatgpt-macos/26.715.31925/ui-surface-catalog.json"
+    "uiSurfaceCatalog": "../compatibility/chatgpt-macos/26.715.61943/ui-surface-catalog.json"
   },
   "interfaces": {
     "compile": "scripts/adapter-capability.mjs",
@@ -38,10 +38,11 @@
     "applyAdmission": "official-signature-plus-current-surface-evidence-plus-live-adapter-verification",
     "surfaceEvidenceIsGate": true,
     "currentEvidence": {
-      "clientVersion": "26.715.31925",
-      "clientBuild": "5551",
-      "surfaceCatalogId": "chatgpt-macos-26.715.31925",
-      "verifiedAt": "2026-07-18"
+      "clientVersion": "26.715.61943",
+      "clientBuild": "5628",
+      "surfaceCatalogId": "chatgpt-macos-26.715.61943",
+      "surfaceCatalogVersion": 1,
+      "verifiedAt": "2026-07-21"
     }
   },
   "semanticContractStatus": "blocked-pending-manager-cross-validation",

@@ -17,6 +17,7 @@
     "compatibility/doubao-macos/2.19.9/ui-surface-catalog.json",
     "contracts/adapter-capability.json",
     "contracts/adapter-release-manifest.json",
+    "contracts/target-profile.schema.json",
     "contracts/theme-style-catalog.json",
     "scripts/adapter-capability.mjs",
     "scripts/adapter-release.mjs",

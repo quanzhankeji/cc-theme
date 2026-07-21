@@ -70,6 +70,21 @@ jobs:
           # The default local test path still runs these app-bound doctor checks.
           CC_THEME_SKIP_APP_BOUND_DOCTOR_TESTS: "1"
         run: NODE="$(command -v node)" ./adapters/mac-codex/tests/run-tests.sh
+  mac-doubao:
+    name: mac-doubao checks
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          package-manager-cache: false
+      - name: Validate scripts, contracts, projector, and runtime
+        run: npm test
+        working-directory: adapters/mac-doubao
   mac-workbuddy:
     name: mac-workbuddy checks
     runs-on: macos-15

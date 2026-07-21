@@ -42,7 +42,7 @@ validate_bundle() {
   local bundle="$1"
   local executable="$bundle/Contents/MacOS/cc-theme-launcher"
   local plist="$bundle/Contents/Info.plist"
-  [ -d "$bundle" ] && [ ! -L "$bundle" ] || fail "Launcher bundle is missing or unsafe: $bundle"
+  [ -d "$bundle" ] && [ ! -L "$bundle" ] || fail "The launcher bundle is missing or unsafe."
   is_owned_bundle "$bundle" || fail "Launcher ownership marker is missing: $bundle"
   [ -x "$executable" ] || fail "Launcher executable is missing: $executable"
   [ -f "$plist" ] && [ ! -L "$plist" ] || fail "Launcher Info.plist is missing or unsafe."
@@ -70,7 +70,7 @@ if [ "$MODE" = "remove" ]; then
 fi
 
 case "$ENGINE_ROOT" in /*) ;; *) fail "--engine-root must be absolute." ;; esac
-[ -d "$ENGINE_ROOT" ] && [ ! -L "$ENGINE_ROOT" ] || fail "Engine root is missing or unsafe: $ENGINE_ROOT"
+[ -d "$ENGINE_ROOT" ] && [ ! -L "$ENGINE_ROOT" ] || fail "The Engine root is missing or unsafe."
 ENGINE_ROOT="$(cd "$ENGINE_ROOT" && pwd -P)"
 [ -x "$ENGINE_ROOT/scripts/start-skin-macos.sh" ] \
   || fail "Engine start script is missing or not executable."

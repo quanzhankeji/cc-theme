@@ -48,7 +48,7 @@ try {
   const unsafeLockBackup = path.join(tempRoot, "unsafe-lock.json");
   await fs.writeFile(unsafeLockConfig, "[desktop]\nkeepMe=true\n");
   await fs.symlink(tempRoot, `${unsafeLockConfig}.skin.lock`);
-  await assert.rejects(run("install", unsafeLockConfig, unsafeLockBackup), /Unsafe config lock path/);
+  await assert.rejects(run("install", unsafeLockConfig, unsafeLockBackup), /configuration lock location is unsafe/);
 
   const symlinkTarget = path.join(tempRoot, "target.toml");
   const symlinkConfig = path.join(tempRoot, "symlink.toml");

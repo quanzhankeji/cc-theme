@@ -69,7 +69,7 @@ export function normalizeSurfaceEvidence(raw) {
   });
   const landmarkSource = source.landmarks && typeof source.landmarks === "object" ? source.landmarks : {};
   const landmarks = {};
-  for (const key of ["shell", "sidebar", "main", "composer", "settings", "themeOwnedRoot"]) landmarks[key] = Boolean(landmarkSource[key]);
+  for (const key of ["shell", "sidebar", "main", "composer", "settings", "overlay", "themeOwnedRoot"]) landmarks[key] = Boolean(landmarkSource[key]);
   return {
     kind: LIVE_SURFACE_EVIDENCE_KIND,
     revision: LIVE_SURFACE_EVIDENCE_REVISION,
@@ -113,7 +113,14 @@ export function buildSurfaceEvidenceExpression() {
     const dynamic = /[0-9a-f]{12,}|\\d{8,}|[0-9a-f]{8}-[0-9a-f-]{20,}/i;
     const stableToken = (value) => typeof value === 'string' && simple.test(value) && !dynamic.test(value) ? value : null;
     const classes = (node) => [...new Set([...node.classList].map(stableToken).filter(Boolean))].slice(0, 24);
-    const candidates = [...document.querySelectorAll('main,aside,header,nav,footer,dialog,button,input,textarea,select,[role],[data-testid],[data-skin-role]')];
+    const priorityCandidates = [...document.querySelectorAll(
+      'dialog,[role="dialog"],[role="menu"],[role="menuitem"],[role="listbox"],[role="tooltip"],' +
+      '[data-radix-popper-content-wrapper],[data-settings-panel-slug],[data-skin-role]'
+    )];
+    const candidates = [...new Set([
+      ...priorityCandidates,
+      ...document.querySelectorAll('main,aside,header,nav,footer,dialog,button,input,textarea,select,[role],[data-testid],[data-skin-role]'),
+    ])];
     const selected = candidates.slice(0, maximum);
     const index = new Map(selected.map((node, position) => [node, position]));
     const stateValue = (node, attribute) => {
@@ -163,6 +170,7 @@ export function buildSurfaceEvidenceExpression() {
         main: Boolean(document.querySelector('[role="main"]')),
         composer: Boolean(document.querySelector('.composer-surface-chrome')),
         settings: Boolean(document.querySelector('[data-settings-panel-slug],[data-skin-role="settings-shell"]')),
+        overlay: Boolean(document.querySelector('dialog,[role="dialog"],[role="menu"],[role="listbox"],[data-radix-popper-content-wrapper]')),
         themeOwnedRoot: Boolean(document.documentElement.classList.contains('cc-theme')),
       },
       counts: { considered: candidates.length, captured: nodes.length, truncated: candidates.length > maximum },

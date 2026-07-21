@@ -60,7 +60,7 @@ fi
 # The installed copy rechecks the signed local runtime, independent of app version.
 require_macos_runtime
 ensure_state_root
-[ -f "$CONFIG_PATH" ] || fail "Codex config not found: $CONFIG_PATH. Launch Codex once, close it, and rerun the installer."
+[ -f "$CONFIG_PATH" ] || fail "Codex configuration was not found. Launch Codex once, close it, and rerun the installer."
 if [ -f "$THEME_DIR/theme.json" ]; then
   "$NODE" "$INJECTOR" --check-payload --theme-dir "$THEME_DIR" >/dev/null \
     || fail "The existing external active theme is invalid; the Adapter was not applied."

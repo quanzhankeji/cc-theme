@@ -1,11 +1,11 @@
 import { normalizeSkinTheme } from "./skin-theme.mjs";
 
 export const ADAPTER_ID = "mac-doubao";
-export const CAPABILITY_VERSION = "1.0.0";
+export const CAPABILITY_VERSION = "1.3.0";
 export const VERIFIED_CLIENT_VERSION = "2.19.9";
 export const VERIFIED_CLIENT_BUILD = "2.19.9";
 export const SURFACE_CATALOG_ID = "doubao-macos-2.19.9";
-export const SURFACE_CATALOG_VERSION = 1;
+export const SURFACE_CATALOG_VERSION = 4;
 export const PROJECTION_RESULT_KIND = "cc-theme.adapter-projection-result";
 
 const INVOCATION_KEYS = new Set([
@@ -102,10 +102,24 @@ function validateInvocation(value) {
   requireKeys(core, ["tokens", "background", "accessibility"], "Adapter Shared Core");
   const profiles = objectWithKeys(invocation.targetProfiles, new Set([ADAPTER_ID]), "Adapter Target Profiles");
   requireKeys(profiles, [ADAPTER_ID], "Adapter Target Profiles");
-  objectWithKeys(profiles[ADAPTER_ID], new Set(), "mac-doubao Target Profile");
+  const rawProfile = objectWithKeys(profiles[ADAPTER_ID], new Set([
+    "kind", "schemaVersion", "adapterId", "values",
+  ]), "mac-doubao Target Profile");
+  let paletteStrategy = "system";
+  if (Object.keys(rawProfile).length) {
+    requireKeys(rawProfile, ["kind", "schemaVersion", "adapterId", "values"], "mac-doubao Target Profile");
+    if (rawProfile.kind !== "cc-theme.target-profile" || rawProfile.schemaVersion !== 1 || rawProfile.adapterId !== ADAPTER_ID) {
+      throw new Error("mac-doubao Target Profile has an invalid identity");
+    }
+    const values = objectWithKeys(rawProfile.values, new Set(["paletteStrategy"]), "mac-doubao Target Profile values");
+    if (values.paletteStrategy !== undefined && !["system", "adaptive"].includes(values.paletteStrategy)) {
+      throw new Error("mac-doubao Target Profile values.paletteStrategy is invalid");
+    }
+    paletteStrategy = values.paletteStrategy ?? paletteStrategy;
+  }
   const context = validateCompileContext(invocation.compileContext);
   const assets = objectWithKeys(invocation.assetBindings, new Set(["background", "homeHero", "video", "atlas"]), "Adapter asset bindings");
-  return { identity, core, context, assets };
+  return { identity, core, context, assets, paletteStrategy };
 }
 
 function position(value, label) {
@@ -161,83 +175,74 @@ function diagnostic(field, decision, code, message) {
   return { severity: "warning", field, decision, code, message };
 }
 
-function projectColors(colors, diagnostics) {
+function projectColors(colors, diagnostics, paletteStrategy) {
   const semanticColors = {};
   for (const key of [
-    "surfaceBase", "placeholder", "borderDefault", "action", "actionForeground", "focusRing", "link",
-    "sidebarSurface", "mainScrimStart", "mainScrimMid", "mainScrimEnd", "composerSurface",
+    "surfaceBase", "surfaceRaised", "action", "actionForeground", "focusRing",
+    "sidebarSurface", "headerSurface", "mainScrimStart", "mainScrimMid", "mainScrimEnd",
   ]) {
     if (colors[key] !== undefined) semanticColors[key] = colors[key];
   }
+  if (semanticColors.sidebarSurface === undefined && colors.surfaceRaised !== undefined) semanticColors.sidebarSurface = colors.surfaceRaised;
 
-  if (colors.surfaceRaised !== undefined) {
-    if (colors.sidebarSurface === undefined) semanticColors.sidebarSurface = colors.surfaceRaised;
+  const paletteDiagnostic = paletteStrategy === "system"
+    ? ["approximated", "host-native-control-palette", "Doubao owns native text, controls, focus, borders, overlays, and motion; the theme supplies media and structural translucency only."]
+    : ["approximated", "host-native-control-palette", "Doubao owns native controls while structural surfaces receive a bounded host-safe tint from the Unified Theme."];
+  diagnostics.push(diagnostic("tokens.colors", ...paletteDiagnostic));
+
+  for (const key of ["text", "textMuted", "action", "actionForeground", "focusRing"]) {
     diagnostics.push(diagnostic(
-      "tokens.colors.surfaceRaised", "approximated", "surface-raised-sidebar-approximation",
-      colors.sidebarSurface === undefined
-        ? "Doubao maps surfaceRaised to its verified sidebar surface."
-        : "Doubao ignores surfaceRaised because the dedicated sidebarSurface token is present.",
-    ));
-  }
-  if (colors.surfaceElevated !== undefined) {
-    if (colors.composerSurface === undefined) semanticColors.composerSurface = colors.surfaceElevated;
-    diagnostics.push(diagnostic(
-      "tokens.colors.surfaceElevated", "approximated", "surface-elevated-composer-approximation",
-      colors.composerSurface === undefined
-        ? "Doubao maps surfaceElevated to its verified composer surface."
-        : "Doubao ignores surfaceElevated because the dedicated composerSurface token is present.",
-    ));
-  }
-  if (colors.borderSubtle !== undefined) {
-    if (colors.borderDefault === undefined) semanticColors.borderDefault = colors.borderSubtle;
-    diagnostics.push(diagnostic(
-      "tokens.colors.borderSubtle", "approximated", "border-subtle-default-approximation",
-      colors.borderDefault === undefined
-        ? "Doubao maps borderSubtle to the verified sidebar and composer border."
-        : "Doubao ignores borderSubtle because borderDefault is present.",
+      `tokens.colors.${key}`, "approximated", "host-native-control-paint",
+      `Doubao preserves its native ${key} paint; the validated Unified Theme value remains dormant for target compatibility.`,
     ));
   }
 
   const unsupported = {
-    surfaceCode: "No verified Doubao code surface consumer is owned by this Adapter.",
-    textStrong: "No independently verified Doubao strong-text consumer is owned by this Adapter.",
-    borderStrong: "No independently verified Doubao strong-border consumer is owned by this Adapter.",
-    actionHover: "No verified Doubao action-hover consumer is owned by this Adapter.",
-    actionPressed: "No verified Doubao action-pressed consumer is owned by this Adapter.",
-    hoverSurface: "No verified Doubao hover-surface consumer is owned by this Adapter.",
-    pressedSurface: "No verified Doubao pressed-surface consumer is owned by this Adapter.",
-    selectedSurface: "No verified Doubao selected-surface consumer is owned by this Adapter.",
-    selectedHoverSurface: "No verified Doubao selected-hover consumer is owned by this Adapter.",
-    danger: "No verified Doubao danger role is owned by this Adapter.",
-    success: "No verified Doubao success role is owned by this Adapter.",
-    warning: "No verified Doubao warning role is owned by this Adapter.",
-    headerSurface: "No verified Doubao header surface is owned by this Adapter.",
+    borderStrong: "Doubao has no separately verified strong-border consumer and keeps the default border token.",
   };
   for (const [key, message] of Object.entries(unsupported)) {
     if (colors[key] !== undefined) diagnostics.push(diagnostic(
       `tokens.colors.${key}`, "unsupported", "optional-color-consumer-unavailable", message,
     ));
   }
+  for (const key of ["danger", "success", "warning"]) {
+    if (colors[key] !== undefined) diagnostics.push(diagnostic(
+      `tokens.colors.${key}`, "unsupported", "status-consumer-unverified",
+      `Doubao has no stable, independently verified ${key} status consumer and leaves the host status paint unchanged.`,
+    ));
+  }
+  for (const key of [
+    "surfaceElevated", "surfaceCode", "textStrong", "placeholder", "borderSubtle", "borderDefault",
+    "actionHover", "actionPressed", "hoverSurface", "pressedSurface", "selectedSurface",
+    "selectedHoverSurface", "link", "composerSurface",
+  ]) {
+    if (colors[key] !== undefined) diagnostics.push(diagnostic(
+      `tokens.colors.${key}`, "unsupported", "host-native-control-paint",
+      `Doubao preserves the corresponding native control or content paint and does not consume ${key}.`,
+    ));
+  }
   return semanticColors;
 }
 
 function projectFonts(fonts, diagnostics) {
-  const target = {};
-  if (fonts.ui !== undefined) target.ui = structuredClone(fonts.ui);
-  for (const key of ["display", "code"]) {
+  for (const key of ["ui", "display", "code"]) {
     if (fonts[key] !== undefined) diagnostics.push(diagnostic(
-      `tokens.fonts.${key}`, "unsupported", "font-consumer-unavailable",
-      `Doubao has no independently verified ${key} font consumer owned by this Adapter.`,
+      `tokens.fonts.${key}`, "unsupported", "host-native-typography",
+      `Doubao keeps its native ${key} font metrics so wording, truncation, and control layout remain stable.`,
     ));
   }
-  return target;
+  return {};
 }
 
-function projectAppearance(appearance, diagnostics) {
-  const target = {};
-  for (const key of ["backdropBlurPx", "backdropSaturation", "radiusScale"]) {
+function projectAppearance(appearance, diagnostics, paletteStrategy) {
+  const target = { paletteStrategy };
+  for (const key of ["backdropBlurPx", "backdropSaturation"]) {
     if (appearance[key] !== undefined) target[key] = appearance[key];
   }
+  if (appearance.radiusScale !== undefined) diagnostics.push(diagnostic(
+    "tokens.appearance.radiusScale", "unsupported", "geometry-policy-native",
+    "Doubao preserves native component geometry and does not scale host corner radii.",
+  ));
   if (appearance.shellMode !== undefined) diagnostics.push(diagnostic(
     "tokens.appearance.shellMode", "unsupported", "host-shell-mode-authority",
     "Doubao remains the sole authority for its effective shell color scheme.",
@@ -278,24 +283,18 @@ function projectBackground(background, assets, appearance, diagnostics) {
     const allowed = objectWithKeys(input, new Set(["mode", "image", "homeHeroImage", "video", "posterMode", "scrimOpacity", "position"]), "Shared Core media background");
     if (allowed.video !== undefined) {
       if (assets.video !== allowed.video) throw new Error("Video asset binding does not match the Shared Core video");
-      diagnostics.push(diagnostic(
-        "background.video", "approximated", "video-static-image-approximation",
-        "Doubao displays the declared background image as a static approximation; video playback is not implemented.",
-      ));
+      result.backgroundVideo = assets.video;
+      result.backgroundVideoPosition = structuredClone(authoritativePosition ?? { xPercent: 50, yPercent: 50 });
     }
     if (allowed.posterMode !== undefined) {
       if (!["none", "image"].includes(allowed.posterMode)) throw new Error("Shared Core media posterMode is invalid");
-      diagnostics.push(diagnostic(
-        "background.posterMode", "unsupported", "video-poster-mode-unused",
-        "Doubao always uses the required static background image while video playback is unavailable.",
-      ));
+      if (allowed.video === undefined) throw new Error("Shared Core media posterMode requires video");
+      result.backgroundVideoPosterMode = allowed.posterMode;
     }
     if (allowed.scrimOpacity !== undefined) {
       boundedNumber(allowed.scrimOpacity, 0, 0.8, "Shared Core media scrimOpacity");
-      diagnostics.push(diagnostic(
-        "background.scrimOpacity", "unsupported", "background-scrim-opacity-unavailable",
-        "Doubao uses explicit semantic scrim colors and does not consume the media scrimOpacity field.",
-      ));
+      if (allowed.video === undefined) throw new Error("Shared Core media scrimOpacity requires video");
+      result.backgroundVideoScrimOpacity = allowed.scrimOpacity;
     }
   } else if (input.mode === "ripple") {
     const allowed = objectWithKeys(input, new Set(["mode", "image", "homeHeroImage", "intensity", "radiusPx", "quality", "scrimOpacity", "position"]), "Shared Core ripple background");
@@ -372,7 +371,7 @@ function admission(context) {
 }
 
 export async function projectThemeFamilyAdapter(value) {
-  const { identity, core, context, assets } = validateInvocation(value);
+  const { identity, core, context, assets, paletteStrategy } = validateInvocation(value);
   const tokens = objectWithKeys(core.tokens, new Set(["colors", "fonts", "appearance"]), "Shared Core tokens");
   requireKeys(tokens, ["colors", "fonts"], "Shared Core tokens");
   const colors = validateColors(tokens.colors);
@@ -380,11 +379,14 @@ export async function projectThemeFamilyAdapter(value) {
   const appearance = validateAppearance(tokens.appearance ?? {});
   const accessibility = validateAccessibility(core.accessibility);
   const diagnostics = [];
-  const semanticColors = projectColors(colors, diagnostics);
+  const semanticColors = projectColors(colors, diagnostics, paletteStrategy);
   const targetFonts = projectFonts(fonts, diagnostics);
-  const targetAppearance = projectAppearance(appearance, diagnostics);
+  const targetAppearance = projectAppearance(appearance, diagnostics, paletteStrategy);
   const background = projectBackground(core.background, assets, appearance, diagnostics);
   if (background.backgroundPosition) targetAppearance.backgroundPosition = background.backgroundPosition;
+  if (background.backgroundVideoPosition) targetAppearance.backgroundVideoPosition = background.backgroundVideoPosition;
+  if (background.backgroundVideoPosterMode !== undefined) targetAppearance.backgroundVideoPosterMode = background.backgroundVideoPosterMode;
+  if (background.backgroundVideoScrimOpacity !== undefined) targetAppearance.backgroundVideoScrimOpacity = background.backgroundVideoScrimOpacity;
 
   const theme = {
     kind: "skin.theme",
@@ -392,6 +394,7 @@ export async function projectThemeFamilyAdapter(value) {
     name: identity.name.trim(),
     sourceVersion: identity.version,
     image: background.image,
+    ...(background.backgroundVideo ? { backgroundVideo: background.backgroundVideo } : {}),
     colors: { text: colors.text, muted: colors.textMuted },
     semanticColors,
     ...(Object.keys(targetFonts).length ? { fonts: targetFonts } : {}),
@@ -402,7 +405,7 @@ export async function projectThemeFamilyAdapter(value) {
   for (const [field, decision, code, message] of [
     ["minimumTextContrast", "unsupported", "contrast-audit-unavailable", "Doubao does not claim a runtime contrast audit for arbitrary host content."],
     ["minimumLargeTextContrast", "unsupported", "contrast-audit-unavailable", "Doubao does not claim a runtime large-text contrast audit for arbitrary host content."],
-    ["preserveSystemFocusRing", "approximated", "host-focus-preserved", "Doubao preserves native focus and adds an Adapter-owned semantic focus outline."],
+    ["preserveSystemFocusRing", "exact", "host-focus-preserved", "Doubao preserves the native focus indicator without adding an Adapter-owned outline."],
     ["transparencyFallback", "unsupported", "transparency-preference-unavailable", "Doubao does not consume an Adapter-owned transparency preference."],
   ]) {
     if (accessibility[field] !== undefined) diagnostics.push(diagnostic(

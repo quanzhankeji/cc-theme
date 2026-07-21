@@ -3,9 +3,9 @@
   "schemaVersion": 1,
   "adapters": {
     "mac-codex": {
-      "detectedClientVersion": "26.715.31925",
-      "detectedClientBuild": "5551",
-      "surfaceCatalogId": "chatgpt-macos-26.715.31925",
+      "detectedClientVersion": "26.715.61943",
+      "detectedClientBuild": "5628",
+      "surfaceCatalogId": "chatgpt-macos-26.715.61943",
       "surfaceCatalogVersion": 1,
       "probeStatus": "passed",
       "compileAllowed": true,
@@ -20,7 +20,7 @@
       "detectedClientVersion": "2.19.9",
       "detectedClientBuild": "2.19.9",
       "surfaceCatalogId": "doubao-macos-2.19.9",
-      "surfaceCatalogVersion": 1,
+      "surfaceCatalogVersion": 4,
       "probeStatus": "passed",
       "compileAllowed": true,
       "applyAllowed": true,

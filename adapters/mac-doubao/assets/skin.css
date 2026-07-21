@@ -1,18 +1,79 @@
+/* The host owns Light/Dark. The Adapter owns only its bounded paint bridge. */
+html[data-cc-theme-doubao-version][data-cc-theme-doubao-palette-strategy="adaptive"][data-cc-theme-doubao-appearance="dark"] {
+  color-scheme: dark !important;
+  --cc-doubao-surface-base: color-mix(in srgb, rgba(28, 28, 31, .84) 88%, var(--cc-doubao-theme-surface-base) 12%) !important;
+  --cc-doubao-surface-raised: color-mix(in srgb, rgba(36, 36, 40, .90) 88%, var(--cc-doubao-theme-surface-raised) 12%) !important;
+  --cc-doubao-sidebar-surface: color-mix(in srgb, rgba(27, 27, 31, .94) 88%, var(--cc-doubao-theme-sidebar-surface) 12%) !important;
+  --cc-doubao-header-surface: color-mix(in srgb, rgba(28, 28, 31, .91) 90%, var(--cc-doubao-theme-header-surface) 10%) !important;
+  --cc-doubao-main-scrim-start: color-mix(in srgb, rgba(13, 15, 21, .70) 90%, var(--cc-doubao-theme-main-scrim-start) 10%) !important;
+  --cc-doubao-main-scrim-mid: color-mix(in srgb, rgba(14, 17, 23, .42) 90%, var(--cc-doubao-theme-main-scrim-mid) 10%) !important;
+  --cc-doubao-main-scrim-end: color-mix(in srgb, rgba(14, 17, 23, .24) 90%, var(--cc-doubao-theme-main-scrim-end) 10%) !important;
+}
+
+html[data-cc-theme-doubao-version][data-cc-theme-doubao-palette-strategy="adaptive"][data-cc-theme-doubao-appearance="light"] {
+  color-scheme: light !important;
+  --cc-doubao-surface-base: color-mix(in srgb, rgba(252, 252, 252, .82) 92%, var(--cc-doubao-theme-surface-base) 8%) !important;
+  --cc-doubao-surface-raised: color-mix(in srgb, rgba(249, 249, 249, .90) 92%, var(--cc-doubao-theme-surface-raised) 8%) !important;
+  --cc-doubao-sidebar-surface: color-mix(in srgb, rgba(249, 249, 249, .92) 92%, var(--cc-doubao-theme-sidebar-surface) 8%) !important;
+  --cc-doubao-header-surface: color-mix(in srgb, rgba(252, 252, 252, .90) 94%, var(--cc-doubao-theme-header-surface) 6%) !important;
+  --cc-doubao-main-scrim-start: color-mix(in srgb, rgba(252, 252, 252, .68) 94%, var(--cc-doubao-theme-main-scrim-start) 6%) !important;
+  --cc-doubao-main-scrim-mid: color-mix(in srgb, rgba(252, 252, 252, .42) 94%, var(--cc-doubao-theme-main-scrim-mid) 6%) !important;
+  --cc-doubao-main-scrim-end: color-mix(in srgb, rgba(252, 252, 252, .24) 94%, var(--cc-doubao-theme-main-scrim-end) 6%) !important;
+}
+
+html[data-cc-theme-doubao-version][data-cc-theme-doubao-palette-strategy="system"][data-cc-theme-doubao-appearance="light"] {
+  color-scheme: light !important;
+  --cc-doubao-surface-base: rgba(252, 252, 252, .82) !important;
+  --cc-doubao-surface-raised: rgba(249, 249, 249, .90) !important;
+  --cc-doubao-sidebar-surface: rgba(249, 249, 249, .92) !important;
+  --cc-doubao-header-surface: rgba(252, 252, 252, .90) !important;
+  --cc-doubao-main-scrim-start: rgba(252, 252, 252, .68) !important;
+  --cc-doubao-main-scrim-mid: rgba(252, 252, 252, .42) !important;
+  --cc-doubao-main-scrim-end: rgba(252, 252, 252, .24) !important;
+}
+
+html[data-cc-theme-doubao-version][data-cc-theme-doubao-palette-strategy="system"][data-cc-theme-doubao-appearance="dark"] {
+  color-scheme: dark !important;
+  --cc-doubao-surface-base: rgba(28, 28, 31, .84) !important;
+  --cc-doubao-surface-raised: rgba(36, 36, 40, .90) !important;
+  --cc-doubao-sidebar-surface: rgba(27, 27, 31, .94) !important;
+  --cc-doubao-header-surface: rgba(28, 28, 31, .91) !important;
+  --cc-doubao-main-scrim-start: rgba(13, 15, 21, .70) !important;
+  --cc-doubao-main-scrim-mid: rgba(14, 17, 23, .42) !important;
+  --cc-doubao-main-scrim-end: rgba(14, 17, 23, .24) !important;
+}
+
 html[data-cc-theme-doubao-version],
 html[data-cc-theme-doubao-version] body {
   background: transparent !important;
-  color: var(--cc-doubao-text) !important;
-  font-family: var(--cc-doubao-font-ui) !important;
 }
 
 #cc-theme-doubao-background {
   position: fixed;
   inset: 0;
   z-index: 0;
+  overflow: hidden;
   pointer-events: none;
-  background-repeat: no-repeat;
-  background-size: cover;
   background-color: var(--cc-doubao-surface-base);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+}
+
+#cc-theme-doubao-background-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+#cc-theme-doubao-video-scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--cc-doubao-surface-base);
 }
 
 html[data-cc-theme-doubao-version] #root {
@@ -23,115 +84,67 @@ html[data-cc-theme-doubao-version] #root {
 
 html[data-cc-theme-doubao-version] [data-cc-theme-doubao-role="shell"] {
   background: linear-gradient(
-    180deg,
+    90deg,
     var(--cc-doubao-main-scrim-start),
-    var(--cc-doubao-main-scrim-mid) 55%,
+    var(--cc-doubao-main-scrim-mid) 58%,
     var(--cc-doubao-main-scrim-end)
   ) !important;
-  color: var(--cc-doubao-text) !important;
 }
 
-html[data-cc-theme-doubao-version] [data-cc-theme-doubao-role="shell"] #chat-route-main,
-html[data-cc-theme-doubao-version] [data-cc-theme-doubao-role="shell"] #chat-route-main > main {
-  background: transparent !important;
+html[data-cc-theme-doubao-version][data-cc-theme-doubao-surface-context="home"]
+[data-cc-theme-doubao-role="shell"] {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--cc-doubao-main-scrim-start) 72%, transparent),
+    color-mix(in srgb, var(--cc-doubao-main-scrim-mid) 58%, transparent) 58%,
+    color-mix(in srgb, var(--cc-doubao-main-scrim-end) 42%, transparent)
+  ) !important;
 }
 
-html[data-cc-theme-doubao-version] [data-cc-theme-doubao-role="shell"] #chat-route-main :where(h1, h2, h3) {
-  color: var(--cc-doubao-text) !important;
+html[data-cc-theme-doubao-version] :where(
+  #chat-route-main,
+  [data-cc-theme-doubao-role="main-surface"],
+  [data-cc-theme-doubao-role="home-surface"],
+  [data-cc-theme-doubao-role="message-list"]
+) {
+  background-color: transparent !important;
+  background-image: none !important;
 }
 
-html[data-cc-theme-doubao-version] [data-cc-theme-doubao-role="shell"] :where(#chat-route-main) * {
-  color: var(--cc-doubao-text) !important;
+/* Doubao's native greeting reveal leaves its body-colored ::after mask translated
+   beside the title. Clip only that overflow so the native animation remains intact
+   without exposing the mask over a transparent themed canvas. */
+html[data-cc-theme-doubao-version] [data-cc-theme-doubao-role="home-title"] {
+  overflow: clip !important;
 }
 
-html[data-cc-theme-doubao-version] [data-testid="onboarding_sug_item"] {
-  background: var(--cc-doubao-composer-surface) !important;
-  border: 1px solid var(--cc-doubao-border) !important;
+html[data-cc-theme-doubao-version] [data-cc-theme-doubao-role="header-surface"] {
+  background: var(--cc-doubao-header-surface) !important;
+  -webkit-backdrop-filter: blur(var(--cc-doubao-backdrop-blur)) saturate(var(--cc-doubao-saturation));
+  backdrop-filter: blur(var(--cc-doubao-backdrop-blur)) saturate(var(--cc-doubao-saturation));
 }
 
 html[data-cc-theme-doubao-version] [data-cc-theme-doubao-role="sidebar"] {
   background: var(--cc-doubao-sidebar-surface) !important;
-  border-color: var(--cc-doubao-border) !important;
+  -webkit-backdrop-filter: blur(var(--cc-doubao-backdrop-blur)) saturate(var(--cc-doubao-saturation));
   backdrop-filter: blur(var(--cc-doubao-backdrop-blur)) saturate(var(--cc-doubao-saturation));
 }
 
-html[data-cc-theme-doubao-version] [data-cc-theme-doubao-role="sidebar"] #flow_chat_sidebar {
+html[data-cc-theme-doubao-version] [data-cc-theme-doubao-role="sidebar-inner"] {
   background: transparent !important;
-  color: var(--cc-doubao-text) !important;
-  border-color: var(--cc-doubao-border) !important;
 }
 
-html[data-cc-theme-doubao-version] [data-cc-theme-doubao-role="sidebar"] #flow_chat_sidebar :where(a, button, [role="button"]) {
-  color: var(--cc-doubao-text) !important;
-}
-
-html[data-cc-theme-doubao-version] [data-cc-theme-doubao-role="sidebar"] :where(#flow_chat_sidebar) * {
-  color: var(--cc-doubao-text) !important;
-}
-
-html[data-cc-theme-doubao-version] [data-cc-theme-doubao-role="sidebar"] #flow_chat_sidebar input::placeholder {
-  color: var(--cc-doubao-placeholder) !important;
-}
-
-html[data-cc-theme-doubao-version] [data-cc-theme-doubao-role="composer"] {
-  background: var(--cc-doubao-composer-surface) !important;
-  border: 1px solid var(--cc-doubao-border) !important;
-  border-radius: calc(16px * var(--cc-doubao-radius-scale)) !important;
-  backdrop-filter: blur(var(--cc-doubao-backdrop-blur)) saturate(var(--cc-doubao-saturation));
-}
-
-html[data-cc-theme-doubao-version] [data-cc-theme-doubao-role="composer"] > div:first-child {
-  background: transparent !important;
-  border-color: var(--cc-doubao-border) !important;
-}
-
-html[data-cc-theme-doubao-version] [data-cc-theme-doubao-role="composer"]::after {
-  border-color: var(--cc-doubao-border) !important;
-}
-
+/* Native controls, content, typography, icons, focus rings, overlays, and motion
+   deliberately remain host-owned. Only large structural paint surfaces are themed. */
 html[data-cc-theme-doubao-version] [data-cc-theme-doubao-role="right-side"] {
-  background: var(--cc-doubao-sidebar-surface) !important;
-  border-color: var(--cc-doubao-border) !important;
+  background: var(--cc-doubao-surface-raised) !important;
+  -webkit-backdrop-filter: blur(var(--cc-doubao-backdrop-blur)) saturate(var(--cc-doubao-saturation));
   backdrop-filter: blur(var(--cc-doubao-backdrop-blur)) saturate(var(--cc-doubao-saturation));
 }
 
-html[data-cc-theme-doubao-version] :where(
-  [data-testid="chat_list_item_title"],
-  [data-testid="editable_conversation_name"]
-) {
-  color: var(--cc-doubao-text) !important;
-}
-
-html[data-cc-theme-doubao-version] [data-testid="conversation_header_tip_text"] {
-  color: var(--cc-doubao-muted) !important;
-}
-
-html[data-cc-theme-doubao-version] :where(
-  textarea,
-  input,
-  [contenteditable="true"]
-) {
-  color: var(--cc-doubao-text) !important;
-  caret-color: var(--cc-doubao-action) !important;
-}
-
-html[data-cc-theme-doubao-version] [data-testid="chat_input_input"]::placeholder {
-  color: var(--cc-doubao-placeholder) !important;
-  opacity: 1;
-}
-
-html[data-cc-theme-doubao-version] [data-testid="create_conversation_button"] {
-  background-color: var(--cc-doubao-action) !important;
-  color: var(--cc-doubao-action-foreground) !important;
-}
-
-html[data-cc-theme-doubao-version] a {
-  color: var(--cc-doubao-link) !important;
-}
-
-html[data-cc-theme-doubao-version] :where(a, button, [role="button"]):focus-visible {
-  outline: 2px solid var(--cc-doubao-focus-ring) !important;
-  outline-offset: 2px;
+/* Keep this semantic landmark in the stylesheet without changing host link paint. */
+html[data-cc-theme-doubao-version] [data-cc-theme-doubao-role="content-link"] {
+  text-decoration-color: currentColor;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,0 +1,281 @@
+name: Publish immutable Adapter release assets
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Exact Adapter-only tag (for example, cc-theme-v0.2.0-adapters.1)
+        required: true
+        type: string
+      expected_codex_sha256:
+        description: Frozen lowercase SHA-256 for the exact-tag mac-codex .ccadapter
+        required: true
+        type: string
+      publish:
+        description: Publish the verified draft after all immutable-release gates pass
+        required: true
+        default: false
+        type: boolean
+      publish_confirmation:
+        description: When publishing, repeat the exact tag; leave empty to keep a draft
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: adapter-release-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-stage:
+    name: Rebuild and stage the exact three Adapter assets
+    runs-on: macos-15
+    timeout-minutes: 35
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: ${{ inputs.tag }}
+      EXPECTED_CODEX_SHA256: ${{ inputs.expected_codex_sha256 }}
+      PUBLISH_RELEASE: ${{ inputs.publish }}
+      PUBLISH_CONFIRMATION: ${{ inputs.publish_confirmation }}
+      CC_THEME_SKIP_APP_BOUND_DOCTOR_TESTS: "1"
+    steps:
+      - name: Check out the exact tag
+        uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ inputs.tag }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          package-manager-cache: false
+
+      - name: Validate exact tag and immutable repository boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          MANAGER_VERSION="$(node -p "require('./app/package.json').version")"
+          EXPECTED_PATTERN="^cc-theme-v${MANAGER_VERSION//./\\.}-adapters\\.[1-9][0-9]*$"
+          [[ "$RELEASE_TAG" =~ $EXPECTED_PATTERN ]]
+          [[ "$EXPECTED_CODEX_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$(git rev-list -n 1 "$RELEASE_TAG")" == "$(git rev-parse HEAD)" ]]
+          [[ "$(node -p "require('./package.json').version")" == "$MANAGER_VERSION" ]]
+          [[ "$(gh api "repos/${GITHUB_REPOSITORY}/immutable-releases" --jq '.enabled')" == "true" ]]
+          echo "MANAGER_VERSION=$MANAGER_VERSION" >> "$GITHUB_ENV"
+
+      - name: Install source dependencies
+        run: npm ci
+
+      - name: Run source-only release gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm test
+          npm run typecheck
+          npm --prefix app run adapter:catalog:check
+          cargo test --manifest-path app/src-tauri/Cargo.toml
+          cargo fmt --manifest-path app/src-tauri/Cargo.toml --check
+
+      - name: Build and validate the three manifest-derived Adapter assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          ADAPTER_OUT="$RUNNER_TEMP/adapter-assets"
+          BUILD_RESULT="$RUNNER_TEMP/adapter-build-result.json"
+          EXPECTED_ASSETS_FILE="$RUNNER_TEMP/expected-adapter-assets.txt"
+          ACTUAL_ASSETS_FILE="$RUNNER_TEMP/actual-adapter-assets.txt"
+          npm --silent --prefix app run adapter:build -- \
+            --out "$ADAPTER_OUT" \
+            --architecture arm64 \
+            --status development-local > "$BUILD_RESULT"
+
+          export ADAPTER_OUT BUILD_RESULT
+          node --input-type=module <<'NODE'
+          import fs from "node:fs";
+          import path from "node:path";
+
+          const officialAdapters = ["mac-codex", "mac-doubao", "mac-workbuddy"];
+          const result = JSON.parse(fs.readFileSync(process.env.BUILD_RESULT, "utf8"));
+          if (result.kind !== "cc-theme.adapter-distribution-build" || result.schemaVersion !== 1) {
+            throw new Error("Adapter build result identity is invalid");
+          }
+          const packages = [...result.packages].sort((left, right) => left.adapterId.localeCompare(right.adapterId));
+          if (JSON.stringify(packages.map(({ adapterId }) => adapterId)) !== JSON.stringify(officialAdapters)) {
+            throw new Error("Adapter build must contain exactly the three official Mac Adapter IDs");
+          }
+          for (const packageEntry of packages) {
+            const manifestPath = path.join(
+              "adapters",
+              packageEntry.adapterId,
+              "contracts",
+              "adapter-release-manifest.json",
+            );
+            const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+            const platform = manifest.platform ?? manifest.os;
+            const architecture = manifest.architecture ?? manifest.arch;
+            const expectedIdentity = `${manifest.adapterId}-${manifest.adapterVersion}`
+              + `-r${manifest.adapterReleaseRevision}-${platform}-${architecture}`;
+            const expectedAssetName = `${expectedIdentity}.ccadapter`;
+            if (manifest.adapterId !== packageEntry.adapterId
+              || manifest.assetIdentity !== expectedIdentity
+              || platform !== "macos"
+              || architecture !== "arm64"
+              || packageEntry.assetName !== expectedAssetName
+              || !Number.isSafeInteger(packageEntry.bytes)
+              || packageEntry.bytes < 1
+              || !/^[0-9a-f]{64}$/.test(packageEntry.sha256)
+              || !/^[0-9a-f]{64}$/.test(packageEntry.manifestSha256)
+              || !fs.existsSync(path.join(process.env.ADAPTER_OUT, expectedAssetName))) {
+              throw new Error(`${packageEntry.adapterId} package drifted from its exact-tag release manifest`);
+            }
+          }
+          NODE
+
+          jq -r '.packages[].assetName' "$BUILD_RESULT" | sort > "$EXPECTED_ASSETS_FILE"
+          find "$ADAPTER_OUT" -maxdepth 1 -type f -name '*.ccadapter' -exec basename {} \; \
+            | sort > "$ACTUAL_ASSETS_FILE"
+          [[ "$(wc -l < "$EXPECTED_ASSETS_FILE" | tr -d ' ')" -eq 3 ]]
+          [[ "$(sort -u "$EXPECTED_ASSETS_FILE" | wc -l | tr -d ' ')" -eq 3 ]]
+          diff -u "$EXPECTED_ASSETS_FILE" "$ACTUAL_ASSETS_FILE"
+          CODEX_SHA256="$(jq -r '.packages[] | select(.adapterId == "mac-codex") | .sha256' "$BUILD_RESULT")"
+          [[ "$CODEX_SHA256" == "$EXPECTED_CODEX_SHA256" ]]
+          {
+            echo "ADAPTER_OUT=$ADAPTER_OUT"
+            echo "BUILD_RESULT=$BUILD_RESULT"
+            echo "EXPECTED_ASSETS_FILE=$EXPECTED_ASSETS_FILE"
+          } >> "$GITHUB_ENV"
+
+      - name: Enforce cross-Release Adapter identity immutability
+        shell: bash
+        run: |
+          set -euo pipefail
+          PUBLISHED_ASSETS_FILE="$RUNNER_TEMP/published-adapter-assets.tsv"
+          # $tag is a jq binding, not a shell variable.
+          # shellcheck disable=SC2016
+          gh api --paginate --method GET \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "repos/${GITHUB_REPOSITORY}/releases?per_page=100" \
+            --jq '.[] | select(.draft == false) | .tag_name as $tag | .assets[] | [$tag, (.id | tostring), .name] | @tsv' \
+            > "$PUBLISHED_ASSETS_FILE"
+
+          while IFS= read -r NAME; do
+            BUILT="$ADAPTER_OUT/$NAME"
+            BUILT_SHA256="$(shasum -a 256 "$BUILT" | awk '{print $1}')"
+            MATCH_INDEX=0
+            while IFS=$'\t' read -r PUBLISHED_TAG ASSET_ID PUBLISHED_NAME; do
+              [[ "$PUBLISHED_NAME" == "$NAME" ]] || continue
+              [[ "$ASSET_ID" =~ ^[1-9][0-9]*$ ]]
+              MATCH_INDEX=$((MATCH_INDEX + 1))
+              PUBLISHED_ASSET="$RUNNER_TEMP/published-${MATCH_INDEX}-${ASSET_ID}.ccadapter"
+              gh api --method GET \
+                -H "Accept: application/octet-stream" \
+                -H "X-GitHub-Api-Version: 2022-11-28" \
+                "repos/${GITHUB_REPOSITORY}/releases/assets/${ASSET_ID}" \
+                > "$PUBLISHED_ASSET"
+              PUBLISHED_SHA256="$(shasum -a 256 "$PUBLISHED_ASSET" | awk '{print $1}')"
+              if [[ "$PUBLISHED_SHA256" != "$BUILT_SHA256" ]]; then
+                echo "Cross-Release Adapter identity collision: $NAME in $PUBLISHED_TAG has different bytes" >&2
+                exit 1
+              fi
+            done < "$PUBLISHED_ASSETS_FILE"
+          done < "$EXPECTED_ASSETS_FILE"
+
+      - name: Create or resume an exact-tag draft with a closed asset allowlist
+        shell: bash
+        run: |
+          set -euo pipefail
+          if RELEASE_JSON="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,assets 2>/dev/null)"; then
+            [[ "$(jq -r '.isDraft' <<<"$RELEASE_JSON")" == "true" ]]
+          else
+            gh release create "$RELEASE_TAG" \
+              --repo "$GITHUB_REPOSITORY" \
+              --verify-tag \
+              --draft \
+              --title "CC Theme Adapters ${RELEASE_TAG}" \
+              --notes "Exact-tag macOS ARM64 Adapter Engine assets for CC Theme. Metadata publication is signed offline and occurs separately."
+            RELEASE_JSON="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,assets)"
+          fi
+          [[ "$(jq -r '.isDraft' <<<"$RELEASE_JSON")" == "true" ]]
+          EXISTING_ASSETS_FILE="$RUNNER_TEMP/existing-adapter-assets.txt"
+          jq -r '.assets[].name' <<<"$RELEASE_JSON" | sort > "$EXISTING_ASSETS_FILE"
+          while IFS= read -r NAME; do
+            [[ -z "$NAME" ]] || grep -Fxq "$NAME" "$EXPECTED_ASSETS_FILE" || {
+              echo "Unexpected Adapter Release asset: $NAME" >&2
+              exit 1
+            }
+          done < "$EXISTING_ASSETS_FILE"
+
+      - name: Upload missing assets without replacing any existing bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r NAME; do
+            BUILT="$ADAPTER_OUT/$NAME"
+            if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json assets \
+              --jq '.assets[].name' | grep -Fxq "$NAME"; then
+              CURRENT_DIR="$RUNNER_TEMP/current-$NAME"
+              mkdir -p "$CURRENT_DIR"
+              gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
+                --pattern "$NAME" --dir "$CURRENT_DIR"
+              [[ "$(shasum -a 256 "$BUILT" | awk '{print $1}')" == \
+                 "$(shasum -a 256 "$CURRENT_DIR/$NAME" | awk '{print $1}')" ]]
+            else
+              gh release upload "$RELEASE_TAG" "$BUILT" --repo "$GITHUB_REPOSITORY"
+            fi
+          done < "$EXPECTED_ASSETS_FILE"
+
+      - name: Enforce the exact three-asset draft
+        shell: bash
+        run: |
+          set -euo pipefail
+          RELEASE_JSON="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,assets)"
+          [[ "$(jq -r '.isDraft' <<<"$RELEASE_JSON")" == "true" ]]
+          FINAL_ASSETS_FILE="$RUNNER_TEMP/final-adapter-assets.txt"
+          jq -r '.assets[].name' <<<"$RELEASE_JSON" | sort > "$FINAL_ASSETS_FILE"
+          [[ "$(wc -l < "$FINAL_ASSETS_FILE" | tr -d ' ')" -eq 3 ]]
+          diff -u "$EXPECTED_ASSETS_FILE" "$FINAL_ASSETS_FILE"
+
+      - name: Publish only after explicit confirmation at the immutable boundary
+        if: ${{ inputs.publish }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$PUBLISH_RELEASE" == "true" ]]
+          [[ "$PUBLISH_CONFIRMATION" == "$RELEASE_TAG" ]]
+          [[ "$(gh api "repos/${GITHUB_REPOSITORY}/immutable-releases" --jq '.enabled')" == "true" ]]
+          [[ "$(git rev-list -n 1 "$RELEASE_TAG")" == "$(git rev-parse HEAD)" ]]
+          RELEASE_JSON="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,assets)"
+          [[ "$(jq -r '.isDraft' <<<"$RELEASE_JSON")" == "true" ]]
+          PUBLISH_ASSETS_FILE="$RUNNER_TEMP/publish-adapter-assets.txt"
+          jq -r '.assets[].name' <<<"$RELEASE_JSON" | sort > "$PUBLISH_ASSETS_FILE"
+          [[ "$(wc -l < "$PUBLISH_ASSETS_FILE" | tr -d ' ')" -eq 3 ]]
+          diff -u "$EXPECTED_ASSETS_FILE" "$PUBLISH_ASSETS_FILE"
+          gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --draft=false
+          [[ "$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq '.isDraft')" == "false" ]]
+
+      - name: Record the exact package identities
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "## Adapter-only Release workflow"
+            echo "- Tag: \`$RELEASE_TAG\`"
+            echo "- Commit: \`$(git rev-parse HEAD)\`"
+            if [[ "$PUBLISH_RELEASE" == "true" ]]; then
+              echo "- Result: published behind repository Release immutability"
+            else
+              echo "- Result: draft only; no publication was requested"
+            fi
+            if [[ -f "${EXPECTED_ASSETS_FILE:-}" ]]; then
+              while IFS= read -r NAME; do
+                echo "- \`$NAME\`: \`$(shasum -a 256 "$ADAPTER_OUT/$NAME" | awk '{print $1}')\`"
+              done < "$EXPECTED_ASSETS_FILE"
+            fi
+            echo
+            echo "Signed stable Catalog metadata is produced separately with the offline root key."
+          } >> "$GITHUB_STEP_SUMMARY"

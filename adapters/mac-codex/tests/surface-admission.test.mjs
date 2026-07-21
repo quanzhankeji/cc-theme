@@ -5,8 +5,8 @@ import { fileURLToPath } from "node:url";
 import { evaluateSurfaceAdmissionFacts } from "../scripts/surface-admission.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const catalog = JSON.parse(await fs.readFile(path.join(root, "compatibility", "chatgpt-macos", "26.715.31925", "ui-surface-catalog.json"), "utf8"));
-const visualReport = JSON.parse(await fs.readFile(path.join(root, "compatibility", "chatgpt-macos", "26.715.31925", "semantic-role-visual-report.json"), "utf8"));
+const catalog = JSON.parse(await fs.readFile(path.join(root, "compatibility", "chatgpt-macos", "26.715.61943", "ui-surface-catalog.json"), "utf8"));
+const visualReport = JSON.parse(await fs.readFile(path.join(root, "compatibility", "chatgpt-macos", "26.715.61943", "semantic-role-visual-report.json"), "utf8"));
 assert(catalog.styleEvidence.consumers["colors.text"].includes("--skin-text"));
 assert(catalog.styleEvidence.consumers["colors.muted"].includes("--skin-muted"));
 assert.match(catalog.styleEvidence.unsupportedConsumers["fonts.code"], /no verified/);
@@ -17,20 +17,25 @@ assert.equal(visualReport.client.asarSha256, catalog.bundleEvidence.asarSha256);
 assert.equal(visualReport.applyAdmission.surfaceEvidenceIsGate, true);
 assert.equal(visualReport.homeAcceptance.forbiddenAssumption, "exactly-four-demo-cards");
 assert.equal(visualReport.homeAcceptance.pass, true);
-assert.equal(visualReport.lifecycle.restoreThenSwitch.pass, true);
-assert.equal(visualReport.result.pass, true);
+assert.equal(visualReport.result.adapterReleaseQualificationPass, true);
+assert.equal(visualReport.result.managerEndToEndDeferred, true);
 assert(visualReport.privacy.excluded.includes("accessible names"));
+assert.equal(catalog.admission.status, "verified");
+assert.equal(catalog.processEvidence.status, "verified");
+assert.equal(catalog.liveEvidence.captureResult, "passed");
+assert.deepEqual(catalog.liveEvidence.pendingRouteCoverage, []);
+const verifiedCatalog = structuredClone(catalog);
 const facts = {
   bundleId: "com.openai.codex",
-  version: "26.715.31925",
-  build: "5551",
+  version: "26.715.61943",
+  build: "5628",
   chromium: "150.0.7871.124",
   teamId: "2DC432GLL2",
-  asarSha256: "0c9dd677134340cb944e7642b8bc2504c7b73c7dc334d9d756547858171eea41",
-  markerCounts: structuredClone(catalog.bundleEvidence.stableSelectorCounts),
+  asarSha256: "7501dd25c22e090bb131fe3fe6423e5c3b21b7f275c7e45b86ebe00a68052c80",
+  markerCounts: structuredClone(verifiedCatalog.bundleEvidence.stableSelectorCounts),
 };
 
-const allowed = evaluateSurfaceAdmissionFacts(facts, catalog);
+const allowed = evaluateSurfaceAdmissionFacts(facts, verifiedCatalog);
 assert.equal(allowed.allowed, true);
 assert.equal(allowed.code, "ok");
 assert.equal(allowed.clientVersionPolicy, "always-latest");
@@ -42,18 +47,26 @@ newerCompatibleFacts.version = "26.715.52143";
 newerCompatibleFacts.build = "6000";
 newerCompatibleFacts.chromium = "151.0.8000.1";
 newerCompatibleFacts.asarSha256 = "1".repeat(64);
-const compatibilityAttempt = evaluateSurfaceAdmissionFacts(newerCompatibleFacts, catalog, {
+const compatibilityAttempt = evaluateSurfaceAdmissionFacts(newerCompatibleFacts, verifiedCatalog, {
   compatibilityAttempt: true,
 });
-assert.equal(compatibilityAttempt.allowed, true);
+assert.equal(compatibilityAttempt.allowed, false);
 assert.equal(compatibilityAttempt.compatibilityAttempt, true);
-assert.equal(compatibilityAttempt.evidencePolicy, "older-adapter-structural-probe-required");
+assert.equal(compatibilityAttempt.evidencePolicy, "current-host-evidence-required");
 assert(compatibilityAttempt.diagnostics.some((item) =>
-  item.code === "older-adapter-compatibility-attempt" && item.severity === "warning"));
+  item.code === "surface-evidence-client-version-mismatch" && item.severity === "error"));
+
+const oldHostFacts = structuredClone(facts);
+oldHostFacts.version = "26.715.31925";
+oldHostFacts.build = "5551";
+oldHostFacts.asarSha256 = "0c9dd677134340cb944e7642b8bc2504c7b73c7dc334d9d756547858171eea41";
+const oldHost = evaluateSurfaceAdmissionFacts(oldHostFacts, verifiedCatalog);
+assert.equal(oldHost.allowed, false, "26.715.61943-r1 must reject the stale 26.715.31925 host context");
+assert(oldHost.diagnostics.some((item) => item.code === "surface-evidence-client-version-mismatch"));
 
 const incompatibleStructure = structuredClone(newerCompatibleFacts);
 incompatibleStructure.markerCounts["data-settings-panel-slug"] = 0;
-const blockedCompatibilityAttempt = evaluateSurfaceAdmissionFacts(incompatibleStructure, catalog, {
+const blockedCompatibilityAttempt = evaluateSurfaceAdmissionFacts(incompatibleStructure, verifiedCatalog, {
   compatibilityAttempt: true,
 });
 assert.equal(blockedCompatibilityAttempt.allowed, false);
@@ -61,7 +74,7 @@ assert(blockedCompatibilityAttempt.diagnostics.some((item) => item.code === "sur
 
 const olderHostAttempt = structuredClone(facts);
 olderHostAttempt.version = "26.715.10000";
-assert.equal(evaluateSurfaceAdmissionFacts(olderHostAttempt, catalog, {
+assert.equal(evaluateSurfaceAdmissionFacts(olderHostAttempt, verifiedCatalog, {
   compatibilityAttempt: true,
 }).allowed, false, "a newer Adapter must never be tried on an older host");
 
@@ -74,12 +87,12 @@ for (const [mutate, code] of [
 ]) {
   const changed = structuredClone(facts);
   mutate(changed);
-  const result = evaluateSurfaceAdmissionFacts(changed, catalog);
+  const result = evaluateSurfaceAdmissionFacts(changed, verifiedCatalog);
   assert.equal(result.allowed, false);
   assert(result.diagnostics.some((item) => item.code === code), `expected ${code}`);
 }
 
-const unverified = structuredClone(catalog);
+const unverified = structuredClone(verifiedCatalog);
 unverified.admission.status = "experimental";
 const denied = evaluateSurfaceAdmissionFacts(facts, unverified);
 assert.equal(denied.allowed, false);

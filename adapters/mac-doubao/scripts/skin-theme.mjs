@@ -4,17 +4,21 @@ export const ADAPTER_ID = "mac-doubao";
 export const SKIN_THEME_KIND = "skin.theme";
 
 const ROOT_KEYS = new Set([
-  "kind", "id", "name", "sourceVersion", "image", "colors", "semanticColors", "fonts", "appearance",
+  "kind", "id", "name", "sourceVersion", "image", "backgroundVideo", "colors", "semanticColors", "fonts", "appearance",
 ]);
 const COLOR_PATTERN = /^(?:#[0-9a-f]{6}|rgba?\([0-9., %]+\))$/i;
 const COLOR_KEYS = new Set(["text", "muted"]);
 const SEMANTIC_COLOR_KEYS = new Set([
-  "surfaceBase", "placeholder", "borderDefault", "action", "actionForeground", "focusRing", "link",
-  "sidebarSurface", "mainScrimStart", "mainScrimMid", "mainScrimEnd", "composerSurface",
+  "surfaceBase", "surfaceRaised", "surfaceElevated", "surfaceCode", "textStrong", "placeholder",
+  "borderSubtle", "borderDefault", "action", "actionHover", "actionPressed",
+  "actionForeground", "hoverSurface", "pressedSurface", "selectedSurface", "selectedHoverSurface",
+  "focusRing", "link", "sidebarSurface", "headerSurface",
+  "mainScrimStart", "mainScrimMid", "mainScrimEnd", "composerSurface",
 ]);
-const FONT_KEYS = new Set(["ui"]);
+const FONT_KEYS = new Set(["ui", "display", "code"]);
 const APPEARANCE_KEYS = new Set([
-  "backdropBlurPx", "backdropSaturation", "radiusScale", "backgroundPosition",
+  "paletteStrategy", "backdropBlurPx", "backdropSaturation", "backgroundPosition",
+  "backgroundVideoPosterMode", "backgroundVideoScrimOpacity", "backgroundVideoPosition",
 ]);
 
 const plainObject = (value) => value && typeof value === "object" && !Array.isArray(value) ? value : null;
@@ -69,15 +73,25 @@ function position(value, label) {
 
 function appearance(value) {
   const result = objectWithKeys(value, APPEARANCE_KEYS, "Theme appearance", true);
+  if (result.paletteStrategy !== undefined && !["system", "adaptive"].includes(result.paletteStrategy)) {
+    throw new Error("Theme appearance.paletteStrategy is invalid");
+  }
   for (const [key, minimum, maximum] of [
     ["backdropBlurPx", 0, 48], ["backdropSaturation", 0.5, 1.5],
-    ["radiusScale", 0.75, 1.5],
   ]) {
     if (result[key] !== undefined && (!Number.isFinite(result[key]) || result[key] < minimum || result[key] > maximum)) {
       throw new Error(`Theme appearance.${key} is invalid`);
     }
   }
   if (result.backgroundPosition !== undefined) position(result.backgroundPosition, "Theme appearance.backgroundPosition");
+  if (result.backgroundVideoPosition !== undefined) position(result.backgroundVideoPosition, "Theme appearance.backgroundVideoPosition");
+  if (result.backgroundVideoPosterMode !== undefined && !["none", "image"].includes(result.backgroundVideoPosterMode)) {
+    throw new Error("Theme appearance.backgroundVideoPosterMode is invalid");
+  }
+  if (result.backgroundVideoScrimOpacity !== undefined &&
+      (!Number.isFinite(result.backgroundVideoScrimOpacity) || result.backgroundVideoScrimOpacity < 0 || result.backgroundVideoScrimOpacity > 0.8)) {
+    throw new Error("Theme appearance.backgroundVideoScrimOpacity is invalid");
+  }
   return result;
 }
 
@@ -89,6 +103,9 @@ export function normalizeSkinTheme(value, label = "Doubao theme") {
     throw new Error(`${label} has an invalid identity`);
   }
   localFile(theme.image, [".png", ".jpg", ".jpeg", ".webp"], `${label} image`);
+  if (theme.backgroundVideo !== undefined) {
+    localFile(theme.backgroundVideo, [".mp4"], `${label} backgroundVideo`);
+  }
   const themeColors = colors(theme.colors, COLOR_KEYS, `${label} colors`);
   for (const key of COLOR_KEYS) {
     if (!Object.hasOwn(themeColors, key)) throw new Error(`${label} colors requires ${key}`);
@@ -98,6 +115,16 @@ export function normalizeSkinTheme(value, label = "Doubao theme") {
     if (!Object.hasOwn(semanticColors, key)) throw new Error(`${label} semanticColors requires ${key}`);
   }
   fonts(theme.fonts);
-  appearance(theme.appearance);
-  return structuredClone(theme);
+  const themeAppearance = appearance(theme.appearance);
+  if (!theme.backgroundVideo && [
+    "backgroundVideoPosterMode", "backgroundVideoScrimOpacity", "backgroundVideoPosition",
+  ].some((key) => themeAppearance[key] !== undefined)) {
+    throw new Error(`${label} video appearance requires backgroundVideo`);
+  }
+  const normalized = structuredClone(theme);
+  normalized.appearance = {
+    ...themeAppearance,
+    paletteStrategy: themeAppearance.paletteStrategy ?? "system",
+  };
+  return normalized;
 }

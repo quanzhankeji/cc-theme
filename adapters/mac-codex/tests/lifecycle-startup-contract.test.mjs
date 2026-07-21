@@ -69,5 +69,11 @@ assert.match(injector, /flushCliStreamsAndExit/,
   "one-shot CDP commands must not remain alive on a stalled WebSocket close handshake");
 assert(releaseManifest.entries.includes("scripts/document-generation.mjs"));
 assert(releaseManifest.entries.includes("scripts/lifecycle-process-guard.mjs"));
+assert.equal(/See \$[A-Z_]*LOG/.test(`${common}\n${start}`), false,
+  "user-facing lifecycle diagnostics must not disclose private log paths");
+assert.equal(common.includes("found: $RUNTIME_NODE"), false,
+  "runtime diagnostics must not disclose the installed executable path");
+assert.equal(common.includes("unsafe: $assembler"), false,
+  "release diagnostics must not disclose a private source path");
 
 console.log("PASS: lifecycle wiring uses one bounded launch, process-tree CDP ownership, and generation readiness without fixed delays.");

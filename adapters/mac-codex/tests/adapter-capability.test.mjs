@@ -34,7 +34,10 @@ assert.equal(capability.availability, "available");
 assert.equal(capability.runtimeApplyAvailable, true);
 assert.equal(capability.compatibility.clientVersionPolicy, "always-latest");
 assert.equal(capability.compatibility.surfaceEvidenceIsGate, true);
-assert.equal(capability.compatibility.currentEvidence.clientVersion, "26.715.31925");
+assert.equal(capability.compatibility.currentEvidence.clientVersion, "26.715.61943");
+assert.equal(capability.compatibility.currentEvidence.clientBuild, "5628");
+assert.equal(capability.compatibility.currentEvidence.surfaceCatalogId, "chatgpt-macos-26.715.61943");
+assert.equal(capability.compatibility.currentEvidence.surfaceCatalogVersion, 1);
 assert.equal(capability.semanticContractStatus, "blocked-pending-manager-cross-validation");
 assert.equal(capability.sharedCoreFieldDecisions.source, "adapter-projection.json");
 assert.equal(capability.sharedCoreFieldDecisions.singleSourceOfTruth, true);
@@ -213,12 +216,14 @@ function managerInvocation(overrides = {}) {
       "mac-codex": { kind: "cc-theme.target-profile", adapterId: "mac-codex", revision: 1, copy: { tagline: "omit" }, appearance: { videoPosition: { xPercent: 70, yPercent: 20 } } },
     },
     compileContext: {
-      detectedClientVersion: "26.715.31925",
-      detectedClientBuild: "5551",
-      surfaceCatalogId: "chatgpt-macos-26.715.31925",
+      detectedClientVersion: "26.715.61943",
+      detectedClientBuild: "5628",
+      surfaceCatalogId: "chatgpt-macos-26.715.61943",
+      surfaceCatalogVersion: 1,
       probeStatus: "passed",
       compileAllowed: true,
       applyAllowed: true,
+      reasonCode: null,
       localRuntimeOverrides: { baseThemeHash: null, entries: [] },
     },
     assetBindings: { background: "background.webp", video: "background.mp4" },
@@ -236,7 +241,9 @@ assert.deepEqual(projected.targetTheme.appearance.backgroundVideoPosition, { xPe
 assert(projected.diagnostics.some((item) => item.code === "minimum-text-contrast-runtime-unavailable"));
 
 const staleInvocation = managerInvocation();
-staleInvocation.compileContext.detectedClientVersion = "26.715.31251";
+staleInvocation.compileContext.detectedClientVersion = "26.715.31925";
+staleInvocation.compileContext.detectedClientBuild = "5551";
+staleInvocation.compileContext.surfaceCatalogId = "chatgpt-macos-26.715.31925";
 const stale = await projectThemeFamilyAdapter(staleInvocation);
 assert.equal(stale.status, "success");
 assert.equal(stale.applyAllowed, false);
@@ -249,17 +256,35 @@ compatibilityInvocation.compileContext.probeStatus = "not-run";
 compatibilityInvocation.compileContext.reasonCode = "older-adapter-compatibility-attempt";
 const compatibilityProjection = await projectThemeFamilyAdapter(compatibilityInvocation);
 assert.equal(compatibilityProjection.status, "success");
-assert.equal(compatibilityProjection.applyAllowed, true);
+assert.equal(compatibilityProjection.applyAllowed, false);
 assert(compatibilityProjection.diagnostics.some((item) =>
-  item.code === "older-adapter-runtime-probe-required" && item.severity === "warning"));
+  item.code === "surface-evidence-client-version-mismatch" && item.severity === "error"));
+
+const wrongCatalogRevisionInvocation = managerInvocation();
+wrongCatalogRevisionInvocation.compileContext.surfaceCatalogVersion = 2;
+const wrongCatalogRevision = await projectThemeFamilyAdapter(wrongCatalogRevisionInvocation);
+assert.equal(wrongCatalogRevision.status, "success");
+assert.equal(wrongCatalogRevision.applyAllowed, false);
+assert(wrongCatalogRevision.diagnostics.some((item) => item.code === "surface-evidence-catalog-version-mismatch"));
+
+const unknownCompileContextInvocation = managerInvocation();
+unknownCompileContextInvocation.compileContext.unexpected = true;
+const unknownCompileContext = await projectThemeFamilyAdapter(unknownCompileContextInvocation);
+assert.equal(unknownCompileContext.status, "failed");
+assert.equal(unknownCompileContext.code, "invalid-design-data");
+
+const incompleteCompileContextInvocation = managerInvocation();
+delete incompleteCompileContextInvocation.compileContext.surfaceCatalogVersion;
+const incompleteCompileContext = await projectThemeFamilyAdapter(incompleteCompileContextInvocation);
+assert.equal(incompleteCompileContext.status, "failed");
+assert.equal(incompleteCompileContext.code, "invalid-design-data");
 
 const missingEvidenceIdentityInvocation = managerInvocation();
 delete missingEvidenceIdentityInvocation.compileContext.detectedClientBuild;
 delete missingEvidenceIdentityInvocation.compileContext.surfaceCatalogId;
 const missingEvidenceIdentity = await projectThemeFamilyAdapter(missingEvidenceIdentityInvocation);
-assert.equal(missingEvidenceIdentity.applyAllowed, false);
-assert(missingEvidenceIdentity.diagnostics.some((item) => item.code === "surface-evidence-client-build-mismatch"));
-assert(missingEvidenceIdentity.diagnostics.some((item) => item.code === "surface-evidence-catalog-mismatch"));
+assert.equal(missingEvidenceIdentity.status, "failed");
+assert.equal(missingEvidenceIdentity.code, "invalid-design-data");
 
 const managerConflict = managerInvocation();
 managerConflict.sharedCore.tokens.appearance.backgroundPosition = { xPercent: 1, yPercent: 2 };

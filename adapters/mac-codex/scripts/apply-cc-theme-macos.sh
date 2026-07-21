@@ -14,7 +14,7 @@ while [ "$#" -gt 0 ]; do
 done
 
 [ -n "$PACKAGE" ] || fail "Usage: apply-cc-theme-macos.sh --file <theme.cctheme> [--no-apply]"
-[ -f "$PACKAGE" ] || fail "Theme package not found: $PACKAGE"
+[ -f "$PACKAGE" ] || fail "The selected Theme Package was not found."
 
 ensure_state_root
 ensure_node_runtime

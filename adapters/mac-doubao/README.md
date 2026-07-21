@@ -12,16 +12,19 @@ Use `scripts/doctor-macos.sh` for identity diagnostics, and the Manager command
 surface `switch-theme-macos.sh`, `pause-skin-macos.sh`,
 `restore-skin-macos.sh`, and `verify-skin-macos.sh` for lifecycle operations.
 
-The frozen runtime consumes a static PNG/JPEG/WebP background, verified color
-roles, the UI font, backdrop blur/saturation, radius scale, and background
-position. Video, ripple, and directional background inputs are projected to a
-static image with visible approximation diagnostics. Display/code fonts,
-`shellMode`, and unbound semantic roles are unsupported and diagnosed; required
-unsupported inputs fail closed.
+The runtime consumes a static PNG/JPEG/WebP background or a generation-bound
+MP4, structural surface tints, backdrop blur/saturation, and background
+position. The default `system` palette preserves Doubao's native typography,
+icons, control colors, borders, focus, overlays, shadows, and animations. The
+optional `adaptive` palette adds only a bounded Light/Dark-safe tint to large
+structural surfaces. Ripple and directional backgrounds remain static image
+approximations with visible diagnostics; unsupported control colors and fonts
+are diagnosed instead of being silently applied.
 
 The Manager compile context is an exact nine-key contract:
 `detectedClientVersion`, `detectedClientBuild`, `surfaceCatalogId`,
 `surfaceCatalogVersion`, `probeStatus`, `compileAllowed`, `applyAllowed`,
-`reasonCode`, and `localRuntimeOverrides`. The `mac-doubao` Target Profile must
-be an empty object. The persistent watcher is an owned, fixed-argument user
-LaunchAgent and is removed by pause, restore, or rollback.
+`reasonCode`, and `localRuntimeOverrides`. The optional `mac-doubao` Target
+Profile may select `system` or `adaptive`; missing means `system`. The
+persistent watcher is an owned, fixed-argument user LaunchAgent and is removed
+by pause, restore, or rollback.

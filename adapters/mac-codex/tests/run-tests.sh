@@ -745,9 +745,10 @@ if (projectManifest.client.versionPolicy !== "always-latest" ||
     projectManifest.securityBoundary.blocksByClientVersion !== false ||
     projectManifest.securityBoundary.requiresCurrentSurfaceEvidence !== true ||
     capability.compatibility?.currentEvidence?.clientVersion !== version ||
-    capability.compatibility?.currentEvidence?.clientBuild !== "5551" ||
+    capability.compatibility?.currentEvidence?.clientBuild !== "5628" ||
+    capability.compatibility?.currentEvidence?.surfaceCatalogVersion !== 1 ||
     uiEvidenceCatalog.client?.version !== version ||
-    uiEvidenceCatalog.client?.build !== "5551" ||
+    uiEvidenceCatalog.client?.build !== "5628" ||
     uiEvidenceCatalog.admission?.status !== "verified" ||
     uiEvidenceCatalog.admission?.failClosed !== true ||
     uiEvidenceCatalog.bundleEvidence.stableSelectorCounts?.["data-settings-panel-slug"] < 1 ||

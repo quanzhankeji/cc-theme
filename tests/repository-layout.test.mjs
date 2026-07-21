@@ -208,7 +208,8 @@ test("Windows remains paused and outside workspace, Manager resources, CI, and r
   const engineSources = JSON.stringify(await readJson("app/config/adapter-engines.json"));
   const ci = await fs.readFile(path.join(root, ".github/workflows/ci.yml"), "utf8");
   const release = await fs.readFile(path.join(root, ".github/workflows/release.yml"), "utf8");
-  for (const value of [managerRegistry, engineSources, ci, release]) assert.doesNotMatch(value, /win-(?:codex|workbuddy|claude)/);
+  const adapterRelease = await fs.readFile(path.join(root, ".github/workflows/adapter-release.yml"), "utf8");
+  for (const value of [managerRegistry, engineSources, ci, release, adapterRelease]) assert.doesNotMatch(value, /win-(?:codex|workbuddy|claude)/);
 });
 
 test("Tauri consumes staged release-gated runtime resources only", async () => {

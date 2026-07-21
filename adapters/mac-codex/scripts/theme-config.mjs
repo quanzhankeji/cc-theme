@@ -193,7 +193,7 @@ async function acquireConfigLock() {
       if (error.code !== "EEXIST") throw error;
       const lockStat = await fs.lstat(lockPath).catch(() => null);
       if (lockStat?.isSymbolicLink() || (lockStat && !lockStat.isDirectory())) {
-        throw new Error(`Unsafe config lock path: ${lockPath}`);
+        throw new Error("The configuration lock location is unsafe");
       }
       if (lockStat && Date.now() - lockStat.mtimeMs > 30000) {
         let ownerAlive = false;
@@ -243,7 +243,7 @@ async function main() {
     originalBytes = await fs.readFile(configPath);
     content = decodeStrictUtf8(originalBytes, "Codex config");
   } catch (error) {
-    if (error.code === "ENOENT") throw new Error(`Codex config not found: ${configPath}`);
+    if (error.code === "ENOENT") throw new Error("Codex configuration was not found");
     throw error;
   }
 

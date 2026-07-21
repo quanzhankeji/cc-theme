@@ -10,21 +10,16 @@
   },
   "semanticColors": {
     "surfaceBase": "#10151F",
+    "surfaceRaised": "rgba(24, 31, 44, 0.86)",
     "action": "#6699FF",
     "actionForeground": "#FFFFFF",
     "focusRing": "#8EB1FF",
     "sidebarSurface": "rgba(24, 31, 44, 0.86)"
   },
-  "fonts": {
-    "ui": [
-      "SF Pro Text",
-      "system-ui"
-    ]
-  },
   "appearance": {
+    "paletteStrategy": "system",
     "backdropBlurPx": 18,
     "backdropSaturation": 1.1,
-    "radiusScale": 1,
     "backgroundPosition": {
       "xPercent": 50,
       "yPercent": 50

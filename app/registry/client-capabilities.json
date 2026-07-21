@@ -16,7 +16,7 @@
       "role": "client-adapter",
       "platform": "macos",
       "application": "codex",
-      "verifiedClientVersion": "26.715.31925 (5551)",
+      "verifiedClientVersion": "26.715.61943 (5628)",
       "clientRuntimeBaseline": true,
       "runtimeApplyAvailable": true,
       "capabilities": {
@@ -26,7 +26,7 @@
         "reduceMotionForceStatic": "verified"
       },
       "evidence": [
-        "adapters/mac-codex/compatibility/chatgpt-macos/26.715.31925/ui-surface-catalog.json",
+        "adapters/mac-codex/compatibility/chatgpt-macos/26.715.61943/ui-surface-catalog.json",
         "adapters/mac-codex/tests/background-effects-runtime.test.mjs",
         "adapters/mac-codex/tests/interactive-background.test.mjs"
       ]

@@ -22,7 +22,7 @@ const expectedArtifacts = {
   client: `cc-theme-${assetIdentity}.zip`,
 };
 
-assert.equal(adapterVersion, "26.715.31925");
+assert.equal(adapterVersion, "26.715.61943");
 assert.match(adapterVersion, /^\d+(?:\.\d+){2}$/);
 assert(Number.isSafeInteger(adapterReleaseRevision) && adapterReleaseRevision > 0);
 assert.equal(releaseManifest.revision, 1, "manifest schema revision is not the release revision");
@@ -60,13 +60,14 @@ assert.equal(capability.adapterVersion, adapterVersion);
 assert.equal(capability.adapterReleaseRevision, adapterReleaseRevision);
 assert.equal(capability.releaseTarget.assetIdentity, assetIdentity);
 assert.equal(capability.compatibility.currentEvidence.clientVersion, adapterVersion);
-assert.equal(capability.compatibility.currentEvidence.clientBuild, "5551");
+assert.equal(capability.compatibility.currentEvidence.clientBuild, "5628");
+assert.equal(capability.compatibility.currentEvidence.surfaceCatalogId, "chatgpt-macos-26.715.61943");
 assert.equal(packageContract.target.adapterId, "mac-codex");
 assert.equal(packageContract.target.version, adapterVersion);
 
 assert.equal(assetIdentity, `mac-codex-${adapterVersion}-r${adapterReleaseRevision}-macos-arm64`,
   "host build must not participate in the canonical asset identity");
-assert.notEqual(assetIdentity, `mac-codex-${adapterVersion}+5551-r${adapterReleaseRevision}-macos-arm64`);
+assert.notEqual(assetIdentity, `mac-codex-${adapterVersion}+5628-r${adapterReleaseRevision}-macos-arm64`);
 
 const [common, injector, sourceBuilder, clientBuilder] = await Promise.all([
   fs.readFile(path.join(root, "scripts/common-macos.sh"), "utf8"),

@@ -54,7 +54,7 @@ function makeApi(overrides: Partial<DesktopApi> = {}): DesktopApi {
       message: "已从官方签名清单下载并安全安装 Adapter",
       details: {
         adapterId: clientId,
-        adapterVersion: clientId === "mac-codex" ? "26.715.31925" : "5.2.6",
+        adapterVersion: clientId === "mac-codex" ? "26.715.61943" : "5.2.6",
         adapterReleaseRevision: 1,
         assetIdentity: `${clientId}-test-r1-macos-arm64`,
         archiveSha256: "0".repeat(64),
@@ -192,7 +192,7 @@ describe("CC Theme desktop dashboard", () => {
     expect(screen.queryByText("本地主题工具")).not.toBeInTheDocument();
     expect(screen.queryByText("仅在本机运行")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "重新扫描" })).toBeInTheDocument();
-    expect(screen.getByTestId("client-mac-codex")).toHaveTextContent("26.715.31925");
+    expect(screen.getByTestId("client-mac-codex")).toHaveTextContent("26.715.61943");
     expect(screen.queryByTestId("client-mac-claude")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /作为应用目标/ })).not.toBeInTheDocument();
     expect(screen.queryByText(/所选目标/)).not.toBeInTheDocument();
@@ -817,6 +817,43 @@ describe("CC Theme desktop dashboard", () => {
       "/Downloads/mac-workbuddy.ccadapter",
     ));
     expect(within(card).getByRole("button", { name: "正常启动 WorkBuddy" })).toBeEnabled();
+  });
+
+  it("启动时自动检查签名清单并为 Doubao 展示一键更新", async () => {
+    const dashboard = cloneDemoDashboard();
+    const doubao = dashboard.clients.find((client) => client.id === "mac-doubao")!;
+    doubao.adapterVersion = "2.19.8";
+    doubao.adapterReleaseRevision = 1;
+    doubao.adapterReady = true;
+    doubao.adapterStatus = "compatibility-candidate";
+    const checkAdapterUpdates = vi.fn(() => Promise.resolve({
+      status: "success" as const,
+      code: "adapter-catalog-ready",
+      message: "已通过官方签名清单检查 Adapter",
+      details: {
+        sequence: 2,
+        source: "network" as const,
+        checkedAt: "2026-07-21T10:00:00Z",
+        adapters: [{
+          adapterId: "mac-doubao",
+          status: "update-available" as const,
+          latestVersion: "2.19.9",
+          latestReleaseRevision: 1,
+          source: "network" as const,
+          message: "可从官方签名清单安全下载",
+        }],
+      },
+    }));
+    const api = makeApi({
+      getDashboardState: vi.fn(() => Promise.resolve(dashboard)),
+      checkAdapterUpdates,
+    });
+
+    render(<App api={api} />);
+
+    const card = await screen.findByTestId("client-mac-doubao");
+    await waitFor(() => expect(checkAdapterUpdates).toHaveBeenCalledWith(false));
+    expect(await within(card).findByRole("button", { name: "下载 Doubao Adapter 更新" })).toBeEnabled();
   });
 
   it("已就绪的 Adapter 展示版本与来源，并允许导入本地更新", async () => {

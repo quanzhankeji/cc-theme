@@ -12,7 +12,7 @@ import { verifyAdapterPackage } from "../scripts/adapter-package.mjs";
 
 const execute = promisify(execFile);
 const expectedIdentities = new Map([
-  ["mac-codex", "mac-codex-26.715.31925-r1-macos-arm64"],
+  ["mac-codex", "mac-codex-26.715.61943-r1-macos-arm64"],
   ["mac-doubao", "mac-doubao-2.19.9-r1-macos-arm64"],
   ["mac-workbuddy", "mac-workbuddy-5.2.6-r1-macos-arm64"],
 ]);

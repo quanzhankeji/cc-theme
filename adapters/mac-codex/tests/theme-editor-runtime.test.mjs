@@ -9,7 +9,7 @@ const [renderer, css, injector, locales, uiSurfaceCatalog] = await Promise.all([
   fs.readFile(path.join(root, "assets", "skin.css"), "utf8"),
   fs.readFile(path.join(root, "scripts", "injector.mjs"), "utf8"),
   fs.readFile(path.join(root, "contracts", "theme-editor-locales.json"), "utf8").then(JSON.parse),
-  fs.readFile(path.join(root, "compatibility", "chatgpt-macos", "26.715.31925", "ui-surface-catalog.json"), "utf8").then(JSON.parse),
+  fs.readFile(path.join(root, "compatibility", "chatgpt-macos", "26.715.61943", "ui-surface-catalog.json"), "utf8").then(JSON.parse),
 ]);
 
 for (const placeholder of [

@@ -1,0 +1,84 @@
+{
+  "kind": "skin.semantic-role-visual-report",
+  "schemaVersion": "1.0.0",
+  "adapterId": "mac-codex",
+  "catalogId": "chatgpt-macos-26.715.61943",
+  "capturedAt": "2026-07-21",
+  "status": "adapter-release-qualified",
+  "client": {
+    "product": "Codex Desktop",
+    "version": "26.715.61943",
+    "build": "5628",
+    "bundleTeamId": "2DC432GLL2",
+    "codeDirectoryHash": "7117bbaba51209f0da165c396cd8b2cf50833cd6",
+    "asarSha256": "7501dd25c22e090bb131fe3fe6423e5c3b21b7f275c7e45b86ebe00a68052c80"
+  },
+  "privacy": {
+    "profile": "structural-computed-style-only-v1",
+    "excluded": [
+      "innerText",
+      "textContent",
+      "input values",
+      "accessible names",
+      "URL",
+      "query",
+      "hash",
+      "link targets",
+      "media sources"
+    ]
+  },
+  "applyAdmission": {
+    "allowed": true,
+    "policy": "official-signature-plus-current-surface-evidence-plus-live-adapter-verification",
+    "surfaceEvidenceIsGate": true,
+    "diagnostics": []
+  },
+  "semanticRoles": {
+    "main": { "status": "verified-consumer-and-live-landmark", "pass": true },
+    "sidebar": { "status": "verified-consumer-and-live-landmark", "pass": true },
+    "header": { "status": "verified-consumer-and-live-landmark", "pass": true },
+    "composer": { "status": "verified-consumer-and-live-landmark", "pass": true },
+    "heading": { "status": "verified-consumer", "pass": true },
+    "body": { "status": "verified-consumer", "pass": true },
+    "textMuted": { "status": "verified-consumer", "pass": true },
+    "interaction": { "status": "verified-style-catalog", "pass": true },
+    "focus": { "status": "verified-style-catalog", "pass": true },
+    "background": { "status": "verified-consumer-and-static-fallback", "pass": true }
+  },
+  "homeAcceptance": {
+    "movingBackgroundPolicy": "preserve-current-native-layout",
+    "required": [
+      "home-root-visible",
+      "heading-visible",
+      "composer-visible"
+    ],
+    "forbiddenAssumption": "exactly-four-demo-cards",
+    "status": "verified-current-native-layout",
+    "pass": true
+  },
+  "accessibility": {
+    "reducedMotionRuntimeOwner": "host",
+    "status": "verified-runtime-owner-and-contract",
+    "pass": true
+  },
+  "lifecycle": {
+    "surfaceAdmission": "verified-exact-current-host",
+    "payloadPreflight": "verified-automated",
+    "processAndListenerGuard": "verified-automated-and-live-structural",
+    "generationSingleFlight": "verified-automated",
+    "pauseRestoreCleanup": "verified-automated",
+    "managerRemoteInstallActivationRollback": "deferred-to-manager-end-to-end"
+  },
+  "result": {
+    "semanticStyleEvidencePass": true,
+    "adapterReleaseQualificationPass": true,
+    "managerEndToEndDeferred": true,
+    "diagnostics": [],
+    "pass": true
+  },
+  "limitations": [
+    "This report qualifies the Adapter package and exact-host admission; it does not claim Manager remote acquisition, installation, activation or rollback acceptance.",
+    "It contains no user-visible copy, account data, conversation data, URL, accessible name, or media source.",
+    "Manager semantic equivalence remains blocked until independent Manager cross-validation accepts this Adapter revision."
+  ]
+}

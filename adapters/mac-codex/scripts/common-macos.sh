@@ -146,7 +146,7 @@ copy_adapter_release_tree() {
   local destination="$2"
   local assembler="$source/scripts/adapter-release.mjs"
   [ -f "$assembler" ] && [ ! -L "$assembler" ] \
-    || fail "Adapter release assembler is missing or unsafe: $assembler"
+    || fail "Adapter release assembler is missing or unsafe."
   "$CONTRACT_NODE" "$assembler" "$destination" >/dev/null \
     || fail "Adapter release tree did not match its machine-readable manifest."
 }
@@ -193,7 +193,7 @@ require_macos_runtime() {
   [ -n "${CODEX_BUNDLE:-}" ] || fail "Discover the Codex app before validating its runtime."
 
   RUNTIME_NODE="$CODEX_BUNDLE/Contents/Resources/cua_node/bin/node"
-  [ -x "$RUNTIME_NODE" ] || fail "The signed Node.js runtime bundled with Codex was not found: $RUNTIME_NODE"
+  [ -x "$RUNTIME_NODE" ] || fail "The signed Node.js runtime bundled with Codex was not found."
   /usr/bin/codesign --verify --deep --strict "$CODEX_BUNDLE" >/dev/null 2>&1 \
     || fail "The Codex app signature is not valid. Restore or reinstall the official app before continuing."
   /usr/bin/codesign --verify --strict "$RUNTIME_NODE" >/dev/null 2>&1 \
@@ -600,7 +600,7 @@ launch_injector_daemon() {
     /bin/sleep 0.25
   done
   [ "$bootstrapped" = "true" ] \
-    || fail "The injector LaunchAgent could not be registered after bounded retries. See $INJECTOR_ERROR_LOG"
+    || fail "The injector LaunchAgent could not be registered after bounded retries. Runtime diagnostics were recorded privately."
   while [ "$SECONDS" -lt "$deadline" ]; do
     pid="$(/bin/launchctl print "$user_domain/$INJECTOR_JOB_LABEL" 2>/dev/null \
       | /usr/bin/awk '/^[[:space:]]*pid = [0-9]+/{print $3; exit}')"
@@ -611,7 +611,7 @@ launch_injector_daemon() {
     /bin/sleep 0.1
   done
   remove_injector_launch_agent || true
-  fail "The injector LaunchAgent did not expose a live process. See $INJECTOR_ERROR_LOG and $INJECTOR_LOG"
+  fail "The injector LaunchAgent did not expose a live process. Runtime diagnostics were recorded privately."
 }
 
 wait_for_injector_ready() {

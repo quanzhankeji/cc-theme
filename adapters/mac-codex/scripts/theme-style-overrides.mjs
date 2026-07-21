@@ -43,7 +43,7 @@ function fileNameForTheme(themeId) {
 async function ensurePrivateDirectory(directory) {
   await fs.mkdir(directory, { recursive: true, mode: 0o700 });
   const stat = await fs.lstat(directory);
-  if (!stat.isDirectory() || stat.isSymbolicLink()) throw new Error(`Style override directory is unsafe: ${directory}`);
+  if (!stat.isDirectory() || stat.isSymbolicLink()) throw new Error("The Style Override directory is unsafe");
   await fs.chmod(directory, 0o700);
 }
 

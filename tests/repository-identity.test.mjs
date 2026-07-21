@@ -7,6 +7,8 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const extension = ".cctheme";
 const mimeType = "application/vnd.cc-theme.theme+zip";
+const officialWebsite = "https://cc-theme.app";
+const allowedReadmeHosts = new Set(["cc-theme.app", "docs.github.com", "github.com"]);
 
 async function json(relative) {
   return JSON.parse(await fs.readFile(path.join(root, relative), "utf8"));
@@ -119,17 +121,44 @@ test("active source contains no retired brand, MIME, domain, repository, or cons
   }
 });
 
-test("repository metadata points to the new repository without a website project", async () => {
+test("repository metadata points to the new repository and controlled official website", async () => {
   for (const relative of ["adapters/mac-codex/package.json", "adapters/mac-doubao/package.json", "adapters/mac-workbuddy/package.json"]) {
     const metadata = await json(relative);
     assert.equal(metadata.homepage, "https://github.com/quanzhankeji/cc-theme", relative);
     assert.equal(metadata.repository.url, "git+https://github.com/quanzhankeji/cc-theme.git", relative);
     assert.equal(metadata.bugs.url, "https://github.com/quanzhankeji/cc-theme/issues", relative);
   }
-  for (const relative of ["README.md", "README.zh-CN.md"]) {
+  const readmes = [
+    ["README.md", `Official website: [cc-theme.app](${officialWebsite})`],
+    ["README.zh-CN.md", `官方网站：[cc-theme.app](${officialWebsite})`],
+  ];
+  for (const [relative, expectedWebsiteLine] of readmes) {
     const readme = await fs.readFile(path.join(root, relative), "utf8");
     assert.match(readme, /github\.com\/quanzhankeji\/cc-theme/);
     assert.match(readme, /`\.cctheme`/);
-    assert.doesNotMatch(readme, /cc-theme\.app|Web Studio|online editor|在线编辑器/i);
+    const websiteClaims = readme.split(/\r?\n/).filter((line) => /\bwebsite\b|官方网站|官网/i.test(line));
+    assert.deepEqual(websiteClaims, [expectedWebsiteLine], `${relative}: official website claim`);
+    assert.equal(readme.split(expectedWebsiteLine).length - 1, 1, `${relative}: official website count`);
+    assert.doesNotMatch(readme.replace(expectedWebsiteLine, ""), /cc-theme\.app/i, `${relative}: unbound official domain`);
+
+    const absoluteUrls = [...readme.matchAll(/https?:\/\/[^\s<>()\]]+/g)].map(([url]) => url);
+    const officialUrls = [];
+    for (const value of absoluteUrls) {
+      const url = new URL(value);
+      assert.equal(url.protocol, "https:", `${relative}: insecure URL ${value}`);
+      assert.equal(allowedReadmeHosts.has(url.hostname), true, `${relative}: unapproved external host ${url.hostname}`);
+      if (url.hostname === "cc-theme.app") {
+        officialUrls.push(value);
+        assert.equal(url.origin, officialWebsite, `${relative}: official website origin`);
+        assert.equal(url.pathname, "/", `${relative}: official website path`);
+        assert.equal(url.username, "", `${relative}: official website username`);
+        assert.equal(url.password, "", `${relative}: official website password`);
+        assert.equal(url.port, "", `${relative}: official website port`);
+        assert.equal(url.search, "", `${relative}: official website query`);
+        assert.equal(url.hash, "", `${relative}: official website fragment`);
+      }
+    }
+    assert.deepEqual(officialUrls, [officialWebsite], `${relative}: canonical HTTPS website URL`);
+    assert.doesNotMatch(readme, /Web Studio|online editor|在线编辑器/i);
   }
 });

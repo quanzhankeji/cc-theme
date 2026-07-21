@@ -8,7 +8,7 @@ record_start_error() {
   local line="$2"
   ensure_state_root
   printf '%s exit=%s line=%s\n' "$(/bin/date -u '+%Y-%m-%dT%H:%M:%SZ')" "$code" "$line" >> "$START_ERROR_LOG"
-  printf 'CC Theme: start failed at line %s (exit %s). See %s\n' "$line" "$code" "$START_ERROR_LOG" >&2
+  printf 'CC Theme: start failed at stage line %s (exit %s). Runtime diagnostics were recorded privately.\n' "$line" "$code" >&2
 }
 trap 'code=$?; record_start_error "$code" "$LINENO"' ERR
 
@@ -88,7 +88,7 @@ if [ "$DEBUG_READY" = "false" ]; then
   CODEX_STARTED_AT="$CODEX_LAUNCH_STARTED_AT"
   if ! wait_for_cdp "$PORT" "$CODEX_LAUNCH_PID" "$CODEX_LAUNCH_STARTED_AT"; then
     emit_lifecycle_stage "cdp-process-tree" "failed" "$launch_stage_started" "cdp-readiness-timeout"
-    fail "Codex did not expose a verified CDP endpoint from this launch request within 45 seconds. See $APP_LOG and $APP_ERROR_LOG"
+    fail "Codex did not expose a verified CDP endpoint from this launch request within 45 seconds. Runtime diagnostics were recorded privately."
   fi
   emit_lifecycle_stage "cdp-process-tree" "ready" "$launch_stage_started" "ok"
 fi
@@ -108,7 +108,7 @@ readiness_started="$(lifecycle_now_ms)"
 INJECTOR_PID="$(launch_injector_daemon "$PORT" "$RUNTIME_GENERATION")"
 if ! wait_for_injector_ready "$PORT" "$INJECTOR_PID" "$RUNTIME_GENERATION" "$COLD_RENDERER_READY_TIMEOUT_MS"; then
   emit_lifecycle_stage "watcher-generation-readiness" "failed" "$readiness_started" "generation-readiness-timeout"
-  rollback_for_theme_failure "The Theme engine did not complete its bounded renderer-generation handshake. See $INJECTOR_ERROR_LOG."
+  rollback_for_theme_failure "The Theme engine did not complete its bounded renderer-generation handshake. Runtime diagnostics were recorded privately."
 fi
 emit_lifecycle_stage "watcher-generation-readiness" "ready" "$readiness_started" "ok"
 INJECTOR_STARTED_AT="$(process_started_at "$INJECTOR_PID")"

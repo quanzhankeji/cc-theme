@@ -158,7 +158,7 @@ test("local generation is byte-deterministic, records the three active Mac Engin
     assert.equal(adapter.releases[0].contracts.adapterPackageSchemaVersion, 1);
   }
   assert.equal(first.adapters[0].releases[0].contracts.capabilityVersion, "2.0.0");
-  assert.equal(first.adapters[1].releases[0].contracts.capabilityVersion, "1.0.0");
+  assert.equal(first.adapters[1].releases[0].contracts.capabilityVersion, "1.3.0");
   assert.equal(serializeCatalog(first).includes("windows"), false);
   assert.equal(/runtimeApply|projectionAvailable|managerApplyAllowed/.test(serializeCatalog(first)), false);
 

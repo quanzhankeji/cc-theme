@@ -104,7 +104,8 @@ jobs:
           });
 
           const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
-          const officialAdapters = ["mac-codex", "mac-workbuddy"];
+          const officialAdapters = ["mac-codex", "mac-doubao", "mac-workbuddy"];
+          const sequenceOneAdapters = ["mac-codex", "mac-workbuddy"];
           const signatureFields = ["algorithm", "keyId", "kind", "schemaVersion", "signature", "signedSha256"];
 
           function exactFields(value, expected, label) {
@@ -257,9 +258,13 @@ jobs:
             throw new Error("Catalog publication identity does not match stable pointer");
           }
           const adapterIds = catalog.adapters.map((adapter) => adapter.adapterId).sort();
-          if (adapterIds.length !== officialAdapters.length
-            || adapterIds.some((adapterId, index) => adapterId !== officialAdapters[index])) {
-            throw new Error("Catalog must contain exactly the two active Mac Adapter IDs");
+          if (adapterIds.some((adapterId) => !officialAdapters.includes(adapterId))) {
+            throw new Error("Catalog contains a non-official Adapter ID");
+          }
+          const expectedAdapters = pointer.sequence === 1 ? sequenceOneAdapters : officialAdapters;
+          if (adapterIds.length !== expectedAdapters.length
+            || adapterIds.some((adapterId, index) => adapterId !== expectedAdapters[index])) {
+            throw new Error("Catalog Adapter IDs do not match the sequence-specific official allowlist");
           }
 
           const artifactRoot = path.join(process.env.RUNNER_TEMP || tmpdir(), "adapter-metadata-gate");

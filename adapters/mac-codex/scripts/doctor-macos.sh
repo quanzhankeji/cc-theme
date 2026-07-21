@@ -37,7 +37,7 @@ if [ "$REQUIRE_SURFACE_ADMISSION" = "true" ] && [ "$SURFACE_ADMITTED" != "true" 
   ' 2>/dev/null || printf 'surface-evidence-unavailable')"
   fail "Current Codex Surface evidence did not admit Theme application ($SURFACE_CODE)."
 fi
-[ -f "$CONFIG_PATH" ] || fail "Codex config not found: $CONFIG_PATH"
+[ -f "$CONFIG_PATH" ] || fail "Codex configuration was not found."
 for required in \
   "$PROJECT_ROOT/assets/skin.css" \
   "$PROJECT_ROOT/assets/renderer-inject.js" \

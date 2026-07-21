@@ -88,7 +88,7 @@ test("WorkBuddy exposes visible approximation and omission without serializing d
   assert.equal(codes.has("home-hero-unsupported"), true);
 });
 
-test("Doubao projects only verified consumers and exposes static background approximation", async () => {
+test("Doubao projects structural consumers while keeping native controls and ripple decisions visible", async () => {
   const source = structuredClone(theme);
   Object.assign(source.sharedCore.tokens.colors, {
     surfaceCode: "#111111",
@@ -104,16 +104,22 @@ test("Doubao projects only verified consumers and exposes static background appr
   assert.deepEqual(Object.keys(result.themes), ["mac-doubao"]);
   assert.equal(doubao.backgroundVideo, undefined);
   assert.equal(doubao.interactiveBackground, undefined);
-  assert.deepEqual(Object.keys(doubao.fonts), ["ui"]);
+  assert.equal(doubao.fonts, undefined);
   assert.equal(doubao.appearance.shellMode, undefined);
-  for (const dormant of ["surfaceCode", "textStrong", "actionHover", "actionPressed", "success", "warning"]) {
-    assert.equal(Object.hasOwn(doubao.semanticColors, dormant), false, dormant);
+  assert.equal(doubao.appearance.radiusScale, undefined);
+  for (const consumed of ["surfaceCode", "textStrong", "actionHover", "actionPressed"]) {
+    assert.equal(Object.hasOwn(doubao.semanticColors, consumed), false, consumed);
+  }
+  for (const unsupported of ["success", "warning"]) {
+    assert.equal(Object.hasOwn(doubao.semanticColors, unsupported), false, unsupported);
   }
   const codes = new Set(result.diagnostics["mac-doubao"].map(({ code }) => code));
   assert.equal(codes.has("ripple-static-image-approximation"), true);
-  assert.equal(codes.has("font-consumer-unavailable"), true);
+  assert.equal(codes.has("geometry-policy-native"), true);
   assert.equal(codes.has("host-shell-mode-authority"), true);
-  assert.equal(codes.has("optional-color-consumer-unavailable"), true);
+  assert.equal(codes.has("status-consumer-unverified"), true);
+  assert.equal(codes.has("host-native-control-paint"), true);
+  assert.equal(codes.has("host-native-typography"), true);
   assert.doesNotThrow(() => normalizeDoubaoTheme(doubao, "Manager Doubao static approximation"));
 });
 
@@ -126,25 +132,35 @@ test("the standard example has a selected-only Doubao golden and complete visibl
   assert.deepEqual(
     result.diagnostics["mac-doubao"].map(({ field, decision, code }) => ({ field, decision, code })),
     [
-      { field: "tokens.colors.surfaceRaised", decision: "approximated", code: "surface-raised-sidebar-approximation" },
-      { field: "tokens.colors.surfaceElevated", decision: "approximated", code: "surface-elevated-composer-approximation" },
-      { field: "tokens.colors.borderSubtle", decision: "approximated", code: "border-subtle-default-approximation" },
-      { field: "tokens.colors.textStrong", decision: "unsupported", code: "optional-color-consumer-unavailable" },
-      { field: "tokens.colors.actionHover", decision: "unsupported", code: "optional-color-consumer-unavailable" },
-      { field: "tokens.colors.actionPressed", decision: "unsupported", code: "optional-color-consumer-unavailable" },
-      { field: "tokens.colors.hoverSurface", decision: "unsupported", code: "optional-color-consumer-unavailable" },
-      { field: "tokens.colors.pressedSurface", decision: "unsupported", code: "optional-color-consumer-unavailable" },
-      { field: "tokens.colors.selectedSurface", decision: "unsupported", code: "optional-color-consumer-unavailable" },
-      { field: "tokens.colors.danger", decision: "unsupported", code: "optional-color-consumer-unavailable" },
-      { field: "tokens.colors.success", decision: "unsupported", code: "optional-color-consumer-unavailable" },
-      { field: "tokens.colors.warning", decision: "unsupported", code: "optional-color-consumer-unavailable" },
-      { field: "tokens.colors.headerSurface", decision: "unsupported", code: "optional-color-consumer-unavailable" },
-      { field: "tokens.fonts.display", decision: "unsupported", code: "font-consumer-unavailable" },
-      { field: "tokens.fonts.code", decision: "unsupported", code: "font-consumer-unavailable" },
+      { field: "tokens.colors", decision: "approximated", code: "host-native-control-palette" },
+      { field: "tokens.colors.text", decision: "approximated", code: "host-native-control-paint" },
+      { field: "tokens.colors.textMuted", decision: "approximated", code: "host-native-control-paint" },
+      { field: "tokens.colors.action", decision: "approximated", code: "host-native-control-paint" },
+      { field: "tokens.colors.actionForeground", decision: "approximated", code: "host-native-control-paint" },
+      { field: "tokens.colors.focusRing", decision: "approximated", code: "host-native-control-paint" },
+      { field: "tokens.colors.danger", decision: "unsupported", code: "status-consumer-unverified" },
+      { field: "tokens.colors.success", decision: "unsupported", code: "status-consumer-unverified" },
+      { field: "tokens.colors.warning", decision: "unsupported", code: "status-consumer-unverified" },
+      { field: "tokens.colors.surfaceElevated", decision: "unsupported", code: "host-native-control-paint" },
+      { field: "tokens.colors.textStrong", decision: "unsupported", code: "host-native-control-paint" },
+      { field: "tokens.colors.placeholder", decision: "unsupported", code: "host-native-control-paint" },
+      { field: "tokens.colors.borderSubtle", decision: "unsupported", code: "host-native-control-paint" },
+      { field: "tokens.colors.borderDefault", decision: "unsupported", code: "host-native-control-paint" },
+      { field: "tokens.colors.actionHover", decision: "unsupported", code: "host-native-control-paint" },
+      { field: "tokens.colors.actionPressed", decision: "unsupported", code: "host-native-control-paint" },
+      { field: "tokens.colors.hoverSurface", decision: "unsupported", code: "host-native-control-paint" },
+      { field: "tokens.colors.pressedSurface", decision: "unsupported", code: "host-native-control-paint" },
+      { field: "tokens.colors.selectedSurface", decision: "unsupported", code: "host-native-control-paint" },
+      { field: "tokens.colors.link", decision: "unsupported", code: "host-native-control-paint" },
+      { field: "tokens.colors.composerSurface", decision: "unsupported", code: "host-native-control-paint" },
+      { field: "tokens.fonts.ui", decision: "unsupported", code: "host-native-typography" },
+      { field: "tokens.fonts.display", decision: "unsupported", code: "host-native-typography" },
+      { field: "tokens.fonts.code", decision: "unsupported", code: "host-native-typography" },
+      { field: "tokens.appearance.radiusScale", decision: "unsupported", code: "geometry-policy-native" },
       { field: "tokens.appearance.shellMode", decision: "unsupported", code: "host-shell-mode-authority" },
       { field: "accessibility.minimumTextContrast", decision: "unsupported", code: "contrast-audit-unavailable" },
       { field: "accessibility.minimumLargeTextContrast", decision: "unsupported", code: "contrast-audit-unavailable" },
-      { field: "accessibility.preserveSystemFocusRing", decision: "approximated", code: "host-focus-preserved" },
+      { field: "accessibility.preserveSystemFocusRing", decision: "exact", code: "host-focus-preserved" },
       { field: "accessibility.transparencyFallback", decision: "unsupported", code: "transparency-preference-unavailable" },
     ],
   );

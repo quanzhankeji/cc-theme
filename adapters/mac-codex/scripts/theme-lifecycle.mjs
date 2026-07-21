@@ -52,7 +52,7 @@ async function defaultRunAdapter(scriptName, args) {
 }
 
 function classifyFailure(operation, message) {
-  const surfaceCode = message.match(/\b(surface-evidence-(?:missing|unavailable|unverified|invalid|client-version-mismatch|client-build-mismatch|runtime-mismatch|signature-mismatch|bundle-mismatch|asar-mismatch|landmark-missing))\b/)?.[1];
+  const surfaceCode = message.match(/\b(surface-evidence-(?:missing|unavailable|unverified|live-unverified|process-unverified|invalid|client-version-mismatch|client-build-mismatch|catalog-mismatch|catalog-version-mismatch|runtime-mismatch|signature-mismatch|bundle-mismatch|asar-mismatch|landmark-missing))\b/)?.[1];
   if (surfaceCode) return surfaceCode;
   if (/Lifecycle operation is unsupported|preflight\.scope must|apply\.package must|port must|verify\.screenshot must|request must be|--request must/i.test(message)) {
     return "invalid-request";

@@ -1,0 +1,274 @@
+{
+  "kind": "skin.ui-surface-catalog",
+  "schemaVersion": "1.0.0",
+  "catalogId": "chatgpt-macos-26.715.61943",
+  "client": {
+    "product": "Codex Desktop",
+    "bundleId": "com.openai.codex",
+    "platform": "macOS",
+    "version": "26.715.61943",
+    "build": "5628",
+    "chromium": "150.0.7871.124",
+    "rendererUrl": "app://-/index.html",
+    "capturedAt": "2026-07-21",
+    "captureScope": "installed signed application, packaged renderer resources, and privacy-preserving live structural evidence"
+  },
+  "admission": {
+    "status": "verified",
+    "policy": "current-host-evidence-required",
+    "failClosed": true,
+    "requiredBundleMarkers": {
+      "data-app-shell-main-content-layout": 4,
+      "data-app-shell-main-content-top-fade": 3,
+      "data-codex-composer-root": 6,
+      "data-home-ambient-suggestions": 1,
+      "data-oai-writing-block-surface": 1,
+      "data-settings-panel-slug": 2,
+      "data-app-shell-focus-area": 6,
+      "data-browser-sidebar-webview-host-root": 1
+    },
+    "requiredLiveLandmarks": [
+      "shell",
+      "sidebar",
+      "composer"
+    ]
+  },
+  "bundleEvidence": {
+    "application": "ChatGPT.app",
+    "bundleTeamId": "2DC432GLL2",
+    "codeDirectoryHash": "7117bbaba51209f0da165c396cd8b2cf50833cd6",
+    "asarSha256": "7501dd25c22e090bb131fe3fe6423e5c3b21b7f275c7e45b86ebe00a68052c80",
+    "asarBytes": 197621842,
+    "asarFileCount": 6093,
+    "rendererResourcesInspected": [
+      "webview/assets/app-initial~avatarOverlayCompositionSurface~artifact-tab-content-DJDX7Pvr.css",
+      "webview/assets/app-initial~avatarOverlayCompositionSurface~artifact-tab-content.electron~app-main~appgen-s~j5d6n91g-BegtcgNk.js",
+      "webview/assets/app-initial~app-main~settings-command-menu-section-items~new-thread-panel-page~settings-pag~unq8yzli-DaLclseF.js",
+      "webview/assets/app-initial~app-main~appgen-settings-page~page~appgen-library-page~appgen-page~appgen-setti~ogh9jurw-DEXL3aWU.js",
+      "webview/assets/app-initial~artifact-tab-content.electron~notebook-preview-panel~app-main~pull-request-rout~jvsvjxtt-Be7E1hNO.js",
+      "webview/assets/settings-page-CpgnnFjp.js"
+    ],
+    "stableSelectorCounts": {
+      "data-app-shell-main-content-layout": 4,
+      "data-app-shell-main-content-top-fade": 3,
+      "data-codex-composer-root": 6,
+      "data-home-ambient-suggestions": 1,
+      "data-oai-writing-block-surface": 1,
+      "data-settings-panel-slug": 2,
+      "data-app-shell-focus-area": 6,
+      "data-browser-sidebar-webview-host-root": 1
+    }
+  },
+  "processEvidence": {
+    "bundleProcessIdentity": "com.openai.codex",
+    "listenerTransport": "loopback-cdp",
+    "listenerOwnership": "trusted-current-process-tree-required",
+    "status": "verified",
+    "verifiedAt": "2026-07-21",
+    "verificationScope": "signed current process tree and loopback listener ownership"
+  },
+  "liveEvidence": {
+    "privacyProfile": "structural-only-v1",
+    "captureResult": "passed",
+    "rendererHidden": false,
+    "reducedMotion": false,
+    "landmarks": {
+      "shell": true,
+      "sidebar": true,
+      "composer": true,
+      "home": true,
+      "settings": true,
+      "ccTheme": true,
+      "overlay": true
+    },
+    "nodesConsidered": 385,
+    "nodesCaptured": 385,
+    "truncated": false,
+    "routeCoverage": [
+      "chat",
+      "home",
+      "settings-appearance",
+      "settings-cc-theme",
+      "overlay",
+      "foreground-handoff"
+    ],
+    "pendingRouteCoverage": [],
+    "excluded": [
+      "innerText",
+      "textContent",
+      "input values",
+      "accessible names",
+      "URL",
+      "query",
+      "hash",
+      "link targets",
+      "media sources"
+    ]
+  },
+  "styleEvidence": {
+    "styleCatalogKind": "theme.style-catalog",
+    "styleCatalogRevision": 1,
+    "targetSchema": "skin.theme",
+    "consumers": {
+      "colors.text": [
+        "--skin-text",
+        "host primary text paint aliases"
+      ],
+      "colors.muted": [
+        "--skin-muted",
+        "host secondary text paint aliases"
+      ],
+      "semanticColors.textStrong": [
+        "--skin-text-strong",
+        "display and emphasized text roles"
+      ],
+      "fonts.display": [
+        "--skin-font-display",
+        "owned home-heading role"
+      ],
+      "fonts.ui": [
+        "--skin-font-ui",
+        "owned home-suggestion-label role"
+      ],
+      "appearance.backgroundVideoPosterMode": [
+        "VIDEO_POSTER_MODE",
+        "video poster rendering branch"
+      ],
+      "appearance.backgroundPosition": [
+        "--skin-art-position",
+        "static and interactive background positioning"
+      ]
+    },
+    "unsupportedConsumers": {
+      "fonts.code": "no verified CSS or DOM consumer",
+      "targetProfiles.mac-codex.copy.tagline": "no verified renderer consumer"
+    }
+  },
+  "sources": [
+    {
+      "method": "info-plist-readonly",
+      "scope": "version, build, bundle id, Chromium version",
+      "confidence": 1
+    },
+    {
+      "method": "codesign-readonly",
+      "scope": "installed bundle and bundled runtime identity",
+      "confidence": 1
+    },
+    {
+      "method": "asar-header-and-resource-inspection",
+      "scope": "packaged stable attributes and target resources",
+      "confidence": 1
+    },
+    {
+      "method": "loopback-cdp-structural-evidence",
+      "scope": "live shell, sidebar, composer, home, Settings, owned CC Theme entry, overlay and foreground landmarks without user content",
+      "confidence": 1
+    },
+    {
+      "method": "adapter-consumer-audit",
+      "scope": "Theme Style token to renderer variable and owned Surface consumption",
+      "confidence": 1
+    }
+  ],
+  "surfaceTargets": [
+    {
+      "targetId": "target.shell-main",
+      "primarySelector": "[data-app-shell-main-content-layout]",
+      "fallbackSelector": "main.main-surface",
+      "runtimeRole": "main-content",
+      "policy": "paint-only transparent viewport above the bounded background effect"
+    },
+    {
+      "targetId": "target.shell-top-fade",
+      "primarySelector": "[data-app-shell-main-content-top-fade]",
+      "runtimeRole": "main-top-fade",
+      "policy": "remove the native opaque fade without changing geometry"
+    },
+    {
+      "targetId": "target.sidebar",
+      "primarySelector": ".app-shell-left-panel",
+      "runtimeRole": "sidebar/settings-sidebar",
+      "policy": "apply one bounded semantic surface without changing layout"
+    },
+    {
+      "targetId": "target.composer",
+      "primarySelector": "[data-codex-composer-root]",
+      "fallbackSelector": ".composer-surface-chrome",
+      "runtimeRole": "composer-root/composer",
+      "policy": "retain the native interaction geometry and apply a readable translucent paint surface"
+    },
+    {
+      "targetId": "target.home-suggestions",
+      "primarySelector": "[data-home-ambient-suggestions]",
+      "fallbackSelector": ".group/home-suggestions",
+      "runtimeRole": "home-suggestions/home-suggestion-card/home-suggestion-label",
+      "policy": "paint-only treatment for moving backgrounds"
+    },
+    {
+      "targetId": "target.settings",
+      "primarySelector": "[data-settings-panel-slug]",
+      "runtimeRole": "settings-shell/settings-sidebar/settings-content/settings-*",
+      "policy": "keep Settings readable without repainting a second background"
+    },
+    {
+      "targetId": "target.settings-theme-page",
+      "primarySelector": "[data-settings-panel-slug='appearance']",
+      "ownedNavigation": "#cc-theme-settings-nav-item",
+      "ownedPanel": "#cc-theme-settings-page",
+      "ownedSelector": "#cc-theme-style-editor",
+      "runtimeRole": "theme-editor-host",
+      "adjacentReferenceSelector": "[data-settings-panel-slug='appearance']",
+      "mirroredStateAttributes": [
+        "class",
+        "style",
+        "aria-current",
+        "aria-selected",
+        "aria-disabled",
+        "data-state",
+        "tabindex"
+      ],
+      "evidencePolicy": "current-evidence-required",
+      "policy": "Engine-owned navigation and panel mirror the adjacent live native entry while preserving separate ownership and complete cleanup"
+    },
+    {
+      "targetId": "target.writing-block",
+      "primarySelector": "[data-oai-writing-block-surface]",
+      "runtimeRole": "writing-block-surface",
+      "policy": "map host writing-block paint variables to semantic colors"
+    },
+    {
+      "targetId": "target.bottom-panel",
+      "primarySelector": "[data-app-shell-focus-area='bottom-panel']",
+      "runtimeRole": "bottom-panel-shell",
+      "policy": "preserve terminal geometry while mapping bounded paint tokens"
+    },
+    {
+      "targetId": "target.browser-side-panel",
+      "primarySelector": "[data-browser-sidebar-webview-host-root]",
+      "runtimeRole": "native-portal",
+      "policy": "keep the native browser portal above the themed application mount"
+    }
+  ],
+  "migrationFromPreviousCatalog": {
+    "previousCatalogId": "chatgpt-macos-26.715.31925",
+    "stableSelectorsRetained": [
+      "[data-app-shell-main-content-layout]",
+      "[data-app-shell-main-content-top-fade]",
+      "[data-codex-composer-root]",
+      "[data-home-ambient-suggestions]",
+      "[data-oai-writing-block-surface]",
+      "[data-settings-panel-slug]",
+      "[data-app-shell-focus-area='bottom-panel']",
+      "[data-browser-sidebar-webview-host-root]"
+    ],
+    "strategy": "always follow the installed release, but require freshly matching evidence before runtime apply"
+  },
+  "limitations": [
+    "Hashed asset names are evidence references and never runtime selectors.",
+    "Live evidence is privacy-reduced structural data and intentionally contains no user-visible copy or content.",
+    "This record qualifies the Adapter Surface and admission seam; Manager-owned remote acquisition, installation, activation and rollback remain separate end-to-end gates.",
+    "A later client version invalidates this admission record even when the stable attributes happen to remain present.",
+    "Manager semantic equivalence remains blocked until its independent cross-validation accepts this Adapter revision."
+  ]
+}

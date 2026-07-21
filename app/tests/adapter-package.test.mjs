@@ -18,9 +18,9 @@ const workspaceRoot = path.resolve(managerRoot, "..");
 const adapters = [
   {
     adapterId: "mac-codex",
-    adapterVersion: "26.715.31925",
+    adapterVersion: "26.715.61943",
     adapterReleaseRevision: 1,
-    assetIdentity: "mac-codex-26.715.31925-r1-macos-arm64",
+    assetIdentity: "mac-codex-26.715.61943-r1-macos-arm64",
     capabilityVersion: "2.0.0",
   },
   {

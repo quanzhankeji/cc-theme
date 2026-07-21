@@ -18,3 +18,7 @@ the Git tree. If Release assets are prohibited as well, Manager online Adapter d
 available product Interface.
 
 Windows Adapter work is `paused-by-user`. Existing evidence and fail-closed implementation are preserved, but Windows is excluded from active workspaces, CI, Manager resources, signing, notarization, and Release assets until the user resumes it.
+
+The ordered compatibility boundary for publishing Adapter assets, a three-entry Manager, signed
+Catalog metadata, and the stable pointer is normative in
+[`ADAPTER_RELEASE_ORDER.md`](ADAPTER_RELEASE_ORDER.md).

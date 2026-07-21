@@ -357,7 +357,7 @@ fn validate_catalog(
         || catalog.key_id != OFFICIAL_KEY_ID
         || catalog.expires_at != pointer.expires_at
         || catalog.adapters.is_empty()
-        || catalog.adapters.len() > 2
+        || catalog.adapters.len() > crate::models::ClientId::ALL.len()
     {
         return Err("adapter-catalog-invalid".to_string());
     }
@@ -378,7 +378,7 @@ fn validate_catalog(
     let mut adapter_ids = BTreeSet::new();
     let mut result = Vec::new();
     for adapter in &catalog.adapters {
-        if !matches!(adapter.adapter_id.as_str(), "mac-codex" | "mac-workbuddy")
+        if crate::models::ClientId::from_adapter_id(&adapter.adapter_id).is_none()
             || !adapter_ids.insert(adapter.adapter_id.as_str())
             || adapter.current.adapter_release_revision == 0
             || !valid_public_semver(&adapter.current.adapter_version)
@@ -1205,6 +1205,48 @@ mod tests {
         .unwrap()
     }
 
+    fn catalog_json_with_adapter_ids(sequence: u64, adapter_ids: &[&str]) -> Vec<u8> {
+        let mut catalog: serde_json::Value =
+            serde_json::from_slice(&catalog_json(sequence, vec![])).unwrap();
+        let template = catalog["adapters"][0].clone();
+        catalog["adapters"] = serde_json::Value::Array(
+            adapter_ids
+                .iter()
+                .map(|adapter_id| {
+                    let (version, archive_sha, manifest_sha) = match *adapter_id {
+                        "mac-codex" => (
+                            "26.715.61943",
+                            "1".repeat(64),
+                            "2".repeat(64),
+                        ),
+                        "mac-doubao" => ("2.19.9", "3".repeat(64), "4".repeat(64)),
+                        "mac-workbuddy" => ("5.2.6", "5".repeat(64), "6".repeat(64)),
+                        _ => ("1.0.0", "7".repeat(64), "8".repeat(64)),
+                    };
+                    let identity = format!("{adapter_id}-{version}-r1-macos-arm64");
+                    let mut adapter = template.clone();
+                    adapter["adapterId"] = serde_json::json!(adapter_id);
+                    adapter["current"]["adapterVersion"] = serde_json::json!(version);
+                    adapter["releases"][0]["adapterVersion"] = serde_json::json!(version);
+                    adapter["releases"][0]["assetIdentity"] = serde_json::json!(identity);
+                    adapter["releases"][0]["packages"][0]["assetName"] =
+                        serde_json::json!(format!("{identity}.ccadapter"));
+                    adapter["releases"][0]["packages"][0]["sha256"] =
+                        serde_json::json!(archive_sha);
+                    adapter["releases"][0]["packages"][0]["manifestSha256"] =
+                        serde_json::json!(manifest_sha);
+                    adapter["releases"][0]["packages"][0]["releaseTag"] =
+                        serde_json::json!("cc-theme-v0.3.0");
+                    adapter["releases"][0]["packages"][0]["downloadUrl"] = serde_json::json!(
+                        format!("https://github.com/quanzhankeji/cc-theme/releases/download/cc-theme-v0.3.0/{identity}.ccadapter")
+                    );
+                    adapter
+                })
+                .collect(),
+        );
+        serde_json::to_vec(&catalog).unwrap()
+    }
+
     fn now() -> chrono::DateTime<chrono::Utc> {
         "2026-07-21T00:00:00Z".parse().unwrap()
     }
@@ -1332,6 +1374,57 @@ mod tests {
         assert_eq!(entries[0].adapter_id, "mac-workbuddy");
         assert_eq!(entries[0].adapter_version, "5.2.6");
         assert_eq!(entries[0].adapter_release_revision, 1);
+    }
+
+    #[test]
+    fn signed_catalog_accepts_all_three_registered_macos_adapters() {
+        let signing_key = SigningKey::from_bytes(&[20_u8; 32]);
+        let catalog =
+            catalog_json_with_adapter_ids(2, &["mac-codex", "mac-doubao", "mac-workbuddy"]);
+        let pointer_bytes = pointer_json(2, &catalog);
+        let public_key = STANDARD.encode(signing_key.verifying_key().as_bytes());
+        let pointer: super::AdapterChannelPointer = serde_json::from_slice(&pointer_bytes).unwrap();
+
+        let entries = super::verify_catalog_with_key(
+            &catalog,
+            &signed(&catalog, &signing_key),
+            &pointer,
+            &public_key,
+            now(),
+        )
+        .unwrap();
+
+        assert_eq!(
+            entries
+                .iter()
+                .map(|entry| entry.adapter_id.as_str())
+                .collect::<Vec<_>>(),
+            vec!["mac-codex", "mac-doubao", "mac-workbuddy"]
+        );
+        assert_eq!(entries[0].adapter_version, "26.715.61943");
+        assert_eq!(entries[1].adapter_version, "2.19.9");
+        assert_eq!(entries[2].adapter_version, "5.2.6");
+    }
+
+    #[test]
+    fn signed_catalog_rejects_unregistered_adapter_ids() {
+        let signing_key = SigningKey::from_bytes(&[21_u8; 32]);
+        let catalog = catalog_json_with_adapter_ids(2, &["mac-claude"]);
+        let pointer_bytes = pointer_json(2, &catalog);
+        let public_key = STANDARD.encode(signing_key.verifying_key().as_bytes());
+        let pointer: super::AdapterChannelPointer = serde_json::from_slice(&pointer_bytes).unwrap();
+
+        assert_eq!(
+            super::verify_catalog_with_key(
+                &catalog,
+                &signed(&catalog, &signing_key),
+                &pointer,
+                &public_key,
+                now(),
+            )
+            .unwrap_err(),
+            "adapter-catalog-invalid"
+        );
     }
 
     #[test]
