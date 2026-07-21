@@ -2,6 +2,8 @@
 
 [简体中文](README.zh-CN.md)
 
+Official website: [cc-theme.app](https://cc-theme.app)
+
 [![CI](https://github.com/quanzhankeji/cc-theme/actions/workflows/ci.yml/badge.svg)](https://github.com/quanzhankeji/cc-theme/actions/workflows/ci.yml)
 
 CC Theme provides ready-to-use, reproducible theme packages and unified theme management for supported macOS AI desktop clients. Import a versioned `.cctheme`, apply it through a verified host Adapter, and restore the native appearance—without asking an AI model to generate the theme, rewriting prompts, or spending generation tokens.
@@ -44,9 +46,8 @@ CC Theme distributes the actual declarative package—prepared assets, semantic 
 - Intel / x86_64 Macs are not supported
 - Windows is not supported
 
-The `0.2.0` source line is being prepared for its first public `CC Theme` application Release. The
-earlier notarized `CC Theme Manager` image predates this rename and must not be presented as the
-current application. The formal build uses `CC Theme.app`; GitHub exposes the notarized DMG as
+The current public application release is [CC Theme 0.2.0](https://github.com/quanzhankeji/cc-theme/releases/tag/cc-theme-v0.2.0).
+The formal build uses `CC Theme.app`; GitHub exposes the notarized Apple Silicon DMG as
 `CC.Theme_0.2.0_aarch64.dmg` after normalizing the local filename's space to a period.
 
 ## Current client support
