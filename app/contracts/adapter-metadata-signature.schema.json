@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cc-theme.local/contracts/adapter-metadata-signature.schema.json",
+  "title": "CC Theme detached Adapter metadata signature",
+  "description": "Detached Ed25519 signature over the exact raw bytes of a channel pointer or Adapter Catalog. Verification happens before JSON parsing.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "schemaVersion", "keyId", "algorithm", "signedSha256", "signature"],
+  "properties": {
+    "kind": { "const": "cc-theme.ed25519-signature" },
+    "schemaVersion": { "const": 1 },
+    "keyId": {
+      "type": "string",
+      "pattern": "^cc-theme-adapter-root-[0-9]{4}-[0-9]{2}$",
+      "maxLength": 80
+    },
+    "algorithm": { "const": "Ed25519" },
+    "signedSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "signature": {
+      "type": "string",
+      "description": "Standard padded Base64 encoding of the 64-byte Ed25519 signature.",
+      "pattern": "^[A-Za-z0-9+/]{86}==$",
+      "maxLength": 88
+    }
+  }
+}

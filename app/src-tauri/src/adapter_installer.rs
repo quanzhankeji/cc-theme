@@ -87,6 +87,14 @@ pub struct InstalledAdapterInfo {
     pub status: &'static str,
 }
 
+struct CatalogPackageExpectation<'a> {
+    adapter_version: &'a str,
+    adapter_release_revision: u64,
+    asset_identity: &'a str,
+    archive_sha256: &'a str,
+    manifest_sha256: &'a str,
+}
+
 pub fn installed_adapter_info(
     definition: &crate::registry::ClientDefinition,
     detected_host_version: Option<&str>,
@@ -273,25 +281,82 @@ pub fn install_adapter_package(
         .get_or_init(|| Mutex::new(()))
         .lock()
         .map_err(|_| "adapter-install-busy".to_string())?;
-    install_adapter_package_to(
+    install_adapter_package_to_with_expectation(
         package,
         &crate::registry::manager_adapter_library_root(),
         expected_adapter_id,
         detected_host_version,
+        None,
     )
 }
 
+pub fn install_catalog_adapter_package(
+    package: &Path,
+    expected_adapter_id: &str,
+    detected_host_version: Option<&str>,
+    expected_adapter_version: &str,
+    expected_adapter_release_revision: u64,
+    expected_asset_identity: &str,
+    expected_archive_sha256: &str,
+    expected_manifest_sha256: &str,
+) -> Result<AdapterInstallReceipt, String> {
+    let _guard = INSTALL_LOCK
+        .get_or_init(|| Mutex::new(()))
+        .lock()
+        .map_err(|_| "adapter-install-busy".to_string())?;
+    install_adapter_package_to_with_expectation(
+        package,
+        &crate::registry::manager_adapter_library_root(),
+        expected_adapter_id,
+        detected_host_version,
+        Some(CatalogPackageExpectation {
+            adapter_version: expected_adapter_version,
+            adapter_release_revision: expected_adapter_release_revision,
+            asset_identity: expected_asset_identity,
+            archive_sha256: expected_archive_sha256,
+            manifest_sha256: expected_manifest_sha256,
+        }),
+    )
+}
+
+#[cfg(test)]
 fn install_adapter_package_to(
     package: &Path,
     library_root: &Path,
     expected_adapter_id: &str,
     detected_host_version: Option<&str>,
 ) -> Result<AdapterInstallReceipt, String> {
+    install_adapter_package_to_with_expectation(
+        package,
+        library_root,
+        expected_adapter_id,
+        detected_host_version,
+        None,
+    )
+}
+
+fn install_adapter_package_to_with_expectation(
+    package: &Path,
+    library_root: &Path,
+    expected_adapter_id: &str,
+    detected_host_version: Option<&str>,
+    catalog: Option<CatalogPackageExpectation<'_>>,
+) -> Result<AdapterInstallReceipt, String> {
     let (archive_bytes, archive_sha256) = read_archive(package)?;
     let mut archive = ZipArchive::new(std::io::Cursor::new(&archive_bytes))
         .map_err(|_| "adapter-package-invalid".to_string())?;
     let (manifest, manifest_bytes) = read_manifest(&mut archive)?;
     validate_manifest(&manifest, expected_adapter_id, detected_host_version)?;
+    let manifest_sha256 = format!("{:x}", Sha256::digest(&manifest_bytes));
+    if catalog.as_ref().is_some_and(|expected| {
+        archive_sha256 != expected.archive_sha256
+            || manifest_sha256 != expected.manifest_sha256
+            || manifest.adapter_version != expected.adapter_version
+            || manifest.adapter_release_revision != expected.adapter_release_revision
+            || manifest.asset_identity != expected.asset_identity
+    }) {
+        return Err("adapter-catalog-package-mismatch".to_string());
+    }
     prepare_library_root(library_root)?;
     let transaction_id = format!(
         "{}-{}-{}",
@@ -331,7 +396,6 @@ fn install_adapter_package_to(
                 return Err("adapter-store-collision".to_string());
             }
         }
-        let manifest_sha256 = format!("{:x}", Sha256::digest(&manifest_bytes));
         let pointer = ActiveAdapterPointer {
             kind: "cc-theme.active-adapter".to_string(),
             schema_version: 1,
@@ -340,7 +404,7 @@ fn install_adapter_package_to(
             adapter_release_revision: manifest.adapter_release_revision,
             asset_identity: manifest.asset_identity.clone(),
             archive_sha256: archive_sha256.clone(),
-            manifest_sha256,
+            manifest_sha256: manifest_sha256.clone(),
             store_relative_path: format!("store/{archive_sha256}/payload"),
             activated_at: chrono::Utc::now().to_rfc3339(),
         };
@@ -861,6 +925,13 @@ mod tests {
         package_with_options(path, adapter_id, version, "default", adapter_id);
     }
 
+    fn package_identity(path: &Path) -> (String, AdapterPackageManifest) {
+        let archive_bytes = fs::read(path).unwrap();
+        let mut archive = ZipArchive::new(Cursor::new(&archive_bytes)).unwrap();
+        let (manifest, manifest_bytes) = read_manifest(&mut archive).unwrap();
+        (format!("{:x}", Sha256::digest(&manifest_bytes)), manifest)
+    }
+
     fn package_with_options(
         path: &Path,
         adapter_id: &str,
@@ -1029,6 +1100,35 @@ mod tests {
                 .canonicalize()
                 .unwrap()
         );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn a_catalog_package_mismatch_is_rejected_before_activation() {
+        let root = scratch("catalog-mismatch");
+        fs::create_dir_all(&root).unwrap();
+        let archive = root.join("workbuddy.ccadapter");
+        let library = root.join("library");
+        package(&archive, "mac-workbuddy", "5.2.6");
+        let (manifest_sha256, manifest) = package_identity(&archive);
+        let archive_sha256 = format!("{:x}", Sha256::digest(fs::read(&archive).unwrap()));
+
+        let result = install_adapter_package_to_with_expectation(
+            &archive,
+            &library,
+            "mac-workbuddy",
+            Some("5.2.6"),
+            Some(CatalogPackageExpectation {
+                adapter_version: &manifest.adapter_version,
+                adapter_release_revision: manifest.adapter_release_revision,
+                asset_identity: &manifest.asset_identity,
+                archive_sha256: &archive_sha256,
+                manifest_sha256: &format!("0{}", &manifest_sha256[1..]),
+            }),
+        );
+
+        assert_eq!(result.unwrap_err(), "adapter-catalog-package-mismatch");
+        assert!(!library.exists());
         fs::remove_dir_all(root).unwrap();
     }
 

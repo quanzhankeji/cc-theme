@@ -131,6 +131,29 @@ function normalizeDownloadBaseUrl(value) {
   return url;
 }
 
+function releaseTagFromDownloadBaseUrl(url) {
+  if (!url) return undefined;
+  const match = url.pathname.match(/^\/quanzhankeji\/cc-theme\/releases\/download\/(cc-theme-v[^/]+)\/$/);
+  assert(url.hostname === "github.com" && match, "published download origin must be the official exact GitHub Release tag");
+  return match[1];
+}
+
+function normalizePublishedMetadata({ channel, sequence, publishedAt, expiresAt, keyId, revokedSha256 }) {
+  assert(channel === "stable", "published catalog channel must be stable");
+  assert(Number.isSafeInteger(sequence) && sequence >= 1, "published catalog sequence must be a positive integer");
+  const published = new Date(publishedAt);
+  const expires = new Date(expiresAt);
+  const utcTimestamp = /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]{3})?Z$/;
+  assert(typeof publishedAt === "string" && utcTimestamp.test(publishedAt) && Number.isFinite(published.valueOf()), "publishedAt must be canonical RFC3339 UTC");
+  assert(typeof expiresAt === "string" && utcTimestamp.test(expiresAt) && Number.isFinite(expires.valueOf()), "expiresAt must be canonical RFC3339 UTC");
+  assert(expires > published, "expiresAt must be later than publishedAt");
+  assert(/^cc-theme-adapter-root-[0-9]{4}-[0-9]{2}$/.test(keyId), "published catalog keyId is invalid");
+  assert(Array.isArray(revokedSha256), "revokedSha256 must be an array");
+  assert(revokedSha256.every((digest) => typeof digest === "string" && SHA256.test(digest)), "revokedSha256 contains an invalid digest");
+  assert(new Set(revokedSha256).size === revokedSha256.length, "revokedSha256 contains duplicates");
+  return { channel, sequence, publishedAt, expiresAt, keyId, revokedSha256: [...revokedSha256].sort(compareText) };
+}
+
 function assertReleaseRevision(value, label) {
   assert(Number.isSafeInteger(value) && value >= 1, `${label} must be a positive integer`);
 }
@@ -301,7 +324,7 @@ function readPackageIdentity(manifest, filename) {
   };
 }
 
-async function readPackages(packageDirectory, engineFacts, downloadBaseUrl) {
+async function readPackages(packageDirectory, engineFacts, downloadBaseUrl, releaseTag) {
   const packagesByAdapter = new Map(ADAPTER_IDS.map((adapterId) => [adapterId, []]));
   if (!packageDirectory) return packagesByAdapter;
 
@@ -363,7 +386,10 @@ async function readPackages(packageDirectory, engineFacts, downloadBaseUrl) {
       sha256: sha256(archive),
       manifestSha256: sidecar.manifestSha256,
     };
-    if (downloadBaseUrl) packageRecord.downloadUrl = new URL(encodeURIComponent(assetName), downloadBaseUrl).href;
+    if (downloadBaseUrl) {
+      packageRecord.releaseTag = releaseTag;
+      packageRecord.downloadUrl = new URL(encodeURIComponent(assetName), downloadBaseUrl).href;
+    }
     packagesByAdapter.get(identity.adapterId).push(packageRecord);
   }
 
@@ -389,12 +415,22 @@ export async function generateAdapterVersionCatalog({
   packageDirectory,
   publicationStatus = "development-local",
   downloadBaseUrl,
+  channel,
+  sequence,
+  publishedAt,
+  expiresAt,
+  keyId,
+  revokedSha256,
 } = {}) {
   assert(["development-local", "published"].includes(publicationStatus), "publicationStatus is invalid");
   const normalizedDownloadBaseUrl = normalizeDownloadBaseUrl(downloadBaseUrl);
   if (publicationStatus === "published") {
     assert(normalizedDownloadBaseUrl, "published catalog requires an HTTPS download base URL");
   }
+  const releaseTag = releaseTagFromDownloadBaseUrl(normalizedDownloadBaseUrl);
+  const publishedMetadata = publicationStatus === "published"
+    ? normalizePublishedMetadata({ channel, sequence, publishedAt, expiresAt, keyId, revokedSha256 })
+    : undefined;
   const managerPackage = await readJson(path.join(workspaceRoot, "app", "package.json"), "Manager package.json");
   assertSemver(managerPackage.version, "Manager version");
   const unifiedThemeSchema = await readJson(
@@ -410,7 +446,7 @@ export async function generateAdapterVersionCatalog({
     ),
   );
   const factsByAdapter = new Map(facts.map((entry) => [entry.adapterId, entry]));
-  const packagesByAdapter = await readPackages(packageDirectory, factsByAdapter, normalizedDownloadBaseUrl);
+  const packagesByAdapter = await readPackages(packageDirectory, factsByAdapter, normalizedDownloadBaseUrl, releaseTag);
 
   const adapters = facts.map(({ adapterId, adapterVersion, adapterReleaseRevision, assetIdentity, contracts }) => ({
     adapterId,
@@ -445,6 +481,7 @@ export async function generateAdapterVersionCatalog({
     schemaVersion: 1,
     publicationStatus,
     currentVersionPolicy: "explicit",
+    ...(publishedMetadata ?? {}),
     adapters,
   };
 }
@@ -454,7 +491,7 @@ function parseArguments(argv) {
   for (let index = 0; index < argv.length; index += 1) {
     const argument = argv[index];
     if (argument === "--check") options.check = true;
-    else if (["--workspace", "--packages", "--output", "--status", "--download-base-url"].includes(argument)) {
+    else if (["--workspace", "--packages", "--output", "--status", "--download-base-url", "--channel", "--sequence", "--published-at", "--expires-at", "--key-id", "--revoked-sha256"].includes(argument)) {
       const value = argv[index + 1];
       assert(value && !value.startsWith("--"), `${argument} requires a value`);
       options[argument.slice(2)] = value;
@@ -473,6 +510,12 @@ export async function runCli(argv = process.argv.slice(2)) {
     packageDirectory: options.packages ? path.resolve(options.packages) : undefined,
     publicationStatus: options.status ?? "development-local",
     downloadBaseUrl: options["download-base-url"],
+    channel: options.channel,
+    sequence: options.sequence === undefined ? undefined : Number(options.sequence),
+    publishedAt: options["published-at"],
+    expiresAt: options["expires-at"],
+    keyId: options["key-id"],
+    revokedSha256: options["revoked-sha256"] ? options["revoked-sha256"].split(",").filter(Boolean) : undefined,
   });
   const serialized = serializeCatalog(catalog);
   if (options.check) {

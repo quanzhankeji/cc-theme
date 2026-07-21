@@ -17,6 +17,42 @@ export interface AdapterCapability {
   reason: string;
 }
 
+export type AdapterUpdateStatus =
+  | "current"
+  | "update-available"
+  | "host-not-installed"
+  | "host-too-old"
+  | "catalog-missing";
+
+export interface AdapterUpdateState {
+  adapterId: ClientId;
+  status: AdapterUpdateStatus;
+  latestVersion: string | null;
+  latestReleaseRevision: number | null;
+  source: "network" | "cache";
+  message: string;
+}
+
+export interface AdapterCatalogStatus {
+  sequence: number;
+  source: "network" | "cache";
+  checkedAt: string;
+  adapters: AdapterUpdateState[];
+}
+
+export interface AdapterInstallDetails {
+  adapterId: string;
+  adapterVersion: string;
+  adapterReleaseRevision: number;
+  replacedLocalAdapter: boolean;
+}
+
+export interface AdapterDownloadDetails extends AdapterInstallDetails {
+  assetIdentity: string;
+  archiveSha256: string;
+  catalogSequence: number;
+}
+
 export interface ClientState {
   id: ClientId;
   name: string;

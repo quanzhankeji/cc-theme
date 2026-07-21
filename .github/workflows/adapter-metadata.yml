@@ -1,0 +1,332 @@
+name: Verify signed Adapter metadata
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "app/contracts/adapter-channel-pointer.schema.json"
+      - "app/contracts/adapter-metadata-signature.schema.json"
+      - "app/contracts/adapter-version-catalog.schema.json"
+      - "app/registry/channels/**"
+      - "app/registry/catalogs/**"
+      - ".github/workflows/adapter-metadata.yml"
+  pull_request:
+    paths:
+      - "app/contracts/adapter-channel-pointer.schema.json"
+      - "app/contracts/adapter-metadata-signature.schema.json"
+      - "app/contracts/adapter-version-catalog.schema.json"
+      - "app/registry/channels/**"
+      - "app/registry/catalogs/**"
+      - ".github/workflows/adapter-metadata.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: adapter-metadata-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Public-key, Schema, Catalog, and package checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CC_THEME_ADAPTER_ROOT_KEY_ID: cc-theme-adapter-root-2026-07
+      CC_THEME_ADAPTER_ROOT_PUBLIC_KEY_BASE64: B0O8iJ0ugN6p5+nm4wozzH4uW2CdgCxGuMNoFtpqPlY=
+      BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          package-manager-cache: false
+
+      - name: Validate closed JSON Schemas
+        shell: bash
+        run: |
+          set -euo pipefail
+          POINTER="app/registry/channels/stable.json"
+          POINTER_SIGNATURE="${POINTER}.sig"
+          test -f "$POINTER"
+          test -f "$POINTER_SIGNATURE"
+          cp "$POINTER_SIGNATURE" "$RUNNER_TEMP/stable-signature.json"
+          npx --yes --package ajv-cli@5.0.0 --package ajv-formats@3.0.1 ajv validate \
+            --spec=draft2020 -c ajv-formats \
+            -s app/contracts/adapter-channel-pointer.schema.json -d "$POINTER"
+          npx --yes --package ajv-cli@5.0.0 --package ajv-formats@3.0.1 ajv validate \
+            --spec=draft2020 -c ajv-formats \
+            -s app/contracts/adapter-metadata-signature.schema.json \
+            -d "$RUNNER_TEMP/stable-signature.json"
+
+          shopt -s nullglob
+          CATALOGS=(app/registry/catalogs/stable/[0-9][0-9][0-9][0-9][0-9][0-9].json)
+          test "${#CATALOGS[@]}" -gt 0
+          for CATALOG in "${CATALOGS[@]}"; do
+            SIGNATURE="${CATALOG}.sig"
+            test -f "$SIGNATURE"
+            SIGNATURE_COPY="$RUNNER_TEMP/$(basename "$CATALOG").signature.json"
+            cp "$SIGNATURE" "$SIGNATURE_COPY"
+            npx --yes --package ajv-cli@5.0.0 --package ajv-formats@3.0.1 ajv validate \
+              --spec=draft2020 -c ajv-formats \
+              -s app/contracts/adapter-version-catalog.schema.json -d "$CATALOG"
+            npx --yes --package ajv-cli@5.0.0 --package ajv-formats@3.0.1 ajv validate \
+              --spec=draft2020 -c ajv-formats \
+              -s app/contracts/adapter-metadata-signature.schema.json -d "$SIGNATURE_COPY"
+          done
+
+      - name: Verify signed graph and immutable Release package identities
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import { createHash, createPublicKey, verify } from "node:crypto";
+          import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+          import { tmpdir } from "node:os";
+          import path from "node:path";
+          import { spawnSync } from "node:child_process";
+
+          const rootKeyId = process.env.CC_THEME_ADAPTER_ROOT_KEY_ID;
+          const rawPublicKey = Buffer.from(process.env.CC_THEME_ADAPTER_ROOT_PUBLIC_KEY_BASE64, "base64");
+          const spkiPrefix = Buffer.from("302a300506032b6570032100", "hex");
+          if (rawPublicKey.length !== 32) throw new Error("official Ed25519 public key must be 32 bytes");
+          const publicKey = createPublicKey({
+            key: Buffer.concat([spkiPrefix, rawPublicKey]),
+            format: "der",
+            type: "spki",
+          });
+
+          const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
+          const officialAdapters = ["mac-codex", "mac-workbuddy"];
+          const signatureFields = ["algorithm", "keyId", "kind", "schemaVersion", "signature", "signedSha256"];
+
+          function exactFields(value, expected, label) {
+            const actual = Object.keys(value).sort();
+            if (actual.length !== expected.length || actual.some((field, index) => field !== expected[index])) {
+              throw new Error(label + " contains unknown or missing fields");
+            }
+          }
+
+          function verifySignedBytes(payload, signatureBytes, label) {
+            const sidecar = JSON.parse(signatureBytes.toString("utf8"));
+            exactFields(sidecar, signatureFields, label + " signature");
+            if (sidecar.kind !== "cc-theme.ed25519-signature"
+              || sidecar.schemaVersion !== 1
+              || sidecar.keyId !== rootKeyId
+              || sidecar.algorithm !== "Ed25519"
+              || sidecar.signedSha256 !== sha256(payload)) {
+              throw new Error(label + " signature document mismatch");
+            }
+            const signature = Buffer.from(sidecar.signature, "base64");
+            if (signature.length !== 64 || !verify(null, payload, publicKey, signature)) {
+              throw new Error(label + " Ed25519 signature invalid");
+            }
+            return JSON.parse(payload.toString("utf8"));
+          }
+
+          async function readBounded(response, maximum, label) {
+            const declared = response.headers.get("content-length");
+            if (declared !== null && (!/^\d+$/.test(declared) || Number(declared) > maximum)) {
+              throw new Error(label + " declared length exceeds its bound");
+            }
+            if (!response.body) throw new Error(label + " response body missing");
+            const chunks = [];
+            let total = 0;
+            for await (const chunk of response.body) {
+              total += chunk.length;
+              if (total > maximum) throw new Error(label + " streamed length exceeds its bound");
+              chunks.push(chunk);
+            }
+            return Buffer.concat(chunks, total);
+          }
+
+          async function fetchRaw(urlText, maximum, label) {
+            const url = new URL(urlText);
+            if (url.protocol !== "https:" || url.hostname !== "raw.githubusercontent.com"
+              || url.username || url.password || url.port || url.search || url.hash) {
+              throw new Error(label + " URL is not an exact official raw URL");
+            }
+            const response = await fetch(url, {
+              redirect: "manual",
+              signal: AbortSignal.timeout(20_000),
+              headers: { "user-agent": "CC-Theme-metadata-gate/1" },
+            });
+            if (response.status !== 200) throw new Error(label + " returned HTTP " + response.status);
+            return readBounded(response, maximum, label);
+          }
+
+          async function fetchReleaseAsset(urlText, expectedBytes, label) {
+            let url = new URL(urlText);
+            if (url.protocol !== "https:" || url.hostname !== "github.com"
+              || url.username || url.password || url.port || url.search || url.hash) {
+              throw new Error(label + " initial URL is not an exact official Release URL");
+            }
+            const redirectHosts = new Set([
+              "release-assets.githubusercontent.com",
+              "objects.githubusercontent.com",
+              "github-releases.githubusercontent.com",
+            ]);
+            for (let redirects = 0; redirects <= 5; redirects += 1) {
+              const response = await fetch(url, {
+                redirect: "manual",
+                signal: AbortSignal.timeout(120_000),
+                headers: {
+                  accept: "application/octet-stream",
+                  "user-agent": "CC-Theme-metadata-gate/1",
+                },
+              });
+              if ([301, 302, 303, 307, 308].includes(response.status)) {
+                if (redirects === 5) throw new Error(label + " exceeded the redirect bound");
+                const location = response.headers.get("location");
+                if (!location) throw new Error(label + " redirect omitted Location");
+                const next = new URL(location, url);
+                if (next.protocol !== "https:" || !redirectHosts.has(next.hostname)
+                  || next.username || next.password || next.port || next.hash) {
+                  throw new Error(label + " redirect left the official asset hosts");
+                }
+                url = next;
+                continue;
+              }
+              if (response.status !== 200) throw new Error(label + " returned HTTP " + response.status);
+              const bytes = await readBounded(response, expectedBytes, label);
+              if (bytes.length !== expectedBytes) throw new Error(label + " byte length mismatch");
+              return bytes;
+            }
+            throw new Error(label + " redirect loop");
+          }
+
+          function gitShow(commit, filename) {
+            if (!/^[0-9a-f]{40}$/.test(commit || "") || /^0{40}$/.test(commit)) return null;
+            const result = spawnSync("git", ["show", commit + ":" + filename], {
+              encoding: null,
+              maxBuffer: 2 * 1024 * 1024,
+            });
+            return result.status === 0 ? Buffer.from(result.stdout) : null;
+          }
+
+          const pointerPath = "app/registry/channels/stable.json";
+          const pointerBytes = await readFile(pointerPath);
+          const pointerSignatureBytes = await readFile(pointerPath + ".sig");
+          const pointer = verifySignedBytes(pointerBytes, pointerSignatureBytes, "stable pointer");
+          const now = Date.now();
+          if (pointer.kind !== "cc-theme.adapter-channel-pointer" || pointer.schemaVersion !== 1
+            || pointer.channel !== "stable" || !Number.isSafeInteger(pointer.sequence) || pointer.sequence < 1
+            || pointer.keyId !== rootKeyId || !(Date.parse(pointer.issuedAt) <= now)
+            || !(now < Date.parse(pointer.expiresAt)) || !(Date.parse(pointer.issuedAt) < Date.parse(pointer.expiresAt))) {
+            throw new Error("stable pointer identity, sequence, or validity window is invalid");
+          }
+
+          const catalogUrl = new URL(pointer.catalog.url);
+          const catalogMatch = catalogUrl.pathname.match(
+            /^\/quanzhankeji\/cc-theme\/([0-9a-f]{40})\/app\/registry\/catalogs\/stable\/([0-9]{6})\.json$/,
+          );
+          if (!catalogMatch || catalogUrl.origin !== "https://raw.githubusercontent.com"
+            || pointer.catalog.signatureUrl !== pointer.catalog.url + ".sig"
+            || Number(catalogMatch[2]) !== pointer.sequence
+            || !Number.isSafeInteger(pointer.catalog.bytes) || pointer.catalog.bytes < 2
+            || pointer.catalog.bytes > 1024 * 1024 || !/^[0-9a-f]{64}$/.test(pointer.catalog.sha256)) {
+            throw new Error("stable pointer Catalog identity is invalid");
+          }
+
+          const exactCatalogBytes = await fetchRaw(pointer.catalog.url, pointer.catalog.bytes, "exact Catalog");
+          if (exactCatalogBytes.length !== pointer.catalog.bytes || sha256(exactCatalogBytes) !== pointer.catalog.sha256) {
+            throw new Error("exact Catalog bytes do not match stable pointer");
+          }
+          const exactSignatureBytes = await fetchRaw(pointer.catalog.signatureUrl, 4096, "exact Catalog signature");
+          const catalog = verifySignedBytes(exactCatalogBytes, exactSignatureBytes, "exact Catalog");
+          const sequenceName = String(pointer.sequence).padStart(6, "0") + ".json";
+          const localCatalogPath = path.join("app/registry/catalogs/stable", sequenceName);
+          const localCatalogBytes = await readFile(localCatalogPath);
+          const localCatalogSignature = await readFile(localCatalogPath + ".sig");
+          if (!exactCatalogBytes.equals(localCatalogBytes) || !exactSignatureBytes.equals(localCatalogSignature)) {
+            throw new Error("checked-in Catalog differs from its exact-commit raw bytes");
+          }
+
+          if (catalog.kind !== "cc-theme.adapter-release-catalog" || catalog.schemaVersion !== 1
+            || catalog.publicationStatus !== "published" || catalog.currentVersionPolicy !== "explicit"
+            || catalog.channel !== "stable" || catalog.sequence !== pointer.sequence
+            || catalog.keyId !== rootKeyId || catalog.expiresAt !== pointer.expiresAt
+            || !(Date.parse(catalog.publishedAt) <= Date.parse(pointer.issuedAt))) {
+            throw new Error("Catalog publication identity does not match stable pointer");
+          }
+          const adapterIds = catalog.adapters.map((adapter) => adapter.adapterId).sort();
+          if (adapterIds.length !== officialAdapters.length
+            || adapterIds.some((adapterId, index) => adapterId !== officialAdapters[index])) {
+            throw new Error("Catalog must contain exactly the two active Mac Adapter IDs");
+          }
+
+          const artifactRoot = path.join(process.env.RUNNER_TEMP || tmpdir(), "adapter-metadata-gate");
+          await mkdir(artifactRoot, { recursive: true });
+          for (const adapter of catalog.adapters) {
+            const currentReleases = adapter.releases.filter((release) =>
+              release.adapterVersion === adapter.current.adapterVersion
+              && release.adapterReleaseRevision === adapter.current.adapterReleaseRevision);
+            if (currentReleases.length !== 1) throw new Error(adapter.adapterId + " current release is not unique");
+            for (const release of adapter.releases) {
+              for (const packageEntry of release.packages) {
+                const expectedUrl = "https://github.com/quanzhankeji/cc-theme/releases/download/"
+                  + packageEntry.releaseTag + "/" + packageEntry.assetName;
+                if (packageEntry.downloadUrl !== expectedUrl || packageEntry.platform !== "macos"
+                  || packageEntry.architecture !== "arm64" || !/^[0-9a-f]{64}$/.test(packageEntry.sha256)
+                  || !/^[0-9a-f]{64}$/.test(packageEntry.manifestSha256)) {
+                  throw new Error(adapter.adapterId + " package URL or target drift");
+                }
+              }
+            }
+            const current = currentReleases[0];
+            const packages = current.packages.filter((entry) => entry.platform === "macos" && entry.architecture === "arm64");
+            if (packages.length !== 1) throw new Error(adapter.adapterId + " must have one current macOS ARM64 package");
+            const packageEntry = packages[0];
+            if (catalog.revokedSha256.includes(packageEntry.sha256)) {
+              throw new Error(adapter.adapterId + " current package is revoked");
+            }
+            const archive = await fetchReleaseAsset(packageEntry.downloadUrl, packageEntry.bytes, adapter.adapterId + " package");
+            if (sha256(archive) !== packageEntry.sha256) throw new Error(adapter.adapterId + " archive SHA-256 mismatch");
+            const archivePath = path.join(artifactRoot, packageEntry.assetName);
+            await writeFile(archivePath, archive, { mode: 0o600 });
+            const extracted = spawnSync("unzip", ["-p", archivePath, "adapter.json"], {
+              encoding: null,
+              maxBuffer: 2 * 1024 * 1024,
+            });
+            if (extracted.status !== 0 || extracted.stdout.length < 2) {
+              throw new Error(adapter.adapterId + " adapter.json is missing");
+            }
+            const manifestBytes = Buffer.from(extracted.stdout);
+            if (sha256(manifestBytes) !== packageEntry.manifestSha256) {
+              throw new Error(adapter.adapterId + " adapter.json SHA-256 mismatch");
+            }
+            const manifest = JSON.parse(manifestBytes.toString("utf8"));
+            if (manifest.adapterId !== adapter.adapterId
+              || manifest.adapterVersion !== current.adapterVersion
+              || manifest.adapterReleaseRevision !== current.adapterReleaseRevision
+              || manifest.assetIdentity !== current.assetIdentity
+              || manifest.platform !== "macos" || manifest.architecture !== "arm64") {
+              throw new Error(adapter.adapterId + " package manifest identity mismatch");
+            }
+          }
+
+          const basePointerBytes = gitShow(process.env.BASE_SHA, pointerPath);
+          const baseSignatureBytes = gitShow(process.env.BASE_SHA, pointerPath + ".sig");
+          if (basePointerBytes || baseSignatureBytes) {
+            if (!basePointerBytes || !baseSignatureBytes) throw new Error("base metadata snapshot is incomplete");
+            const basePointer = verifySignedBytes(basePointerBytes, baseSignatureBytes, "base stable pointer");
+            if (!basePointerBytes.equals(pointerBytes) && pointer.sequence <= basePointer.sequence) {
+              throw new Error("stable pointer changed without a strictly higher sequence");
+            }
+          }
+
+          console.log(JSON.stringify({
+            verified: true,
+            keyId: rootKeyId,
+            sequence: pointer.sequence,
+            catalogCommit: catalogMatch[1],
+            adapters: adapterIds,
+          }));
+          NODE

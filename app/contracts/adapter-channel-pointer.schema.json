@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cc-theme.local/contracts/adapter-channel-pointer.schema.json",
+  "title": "CC Theme signed Adapter channel pointer",
+  "description": "Small mutable bootstrap document whose detached signature points to one exact-commit immutable Adapter Catalog.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "schemaVersion", "channel", "sequence", "issuedAt", "expiresAt", "keyId", "catalog"],
+  "properties": {
+    "kind": { "const": "cc-theme.adapter-channel-pointer" },
+    "schemaVersion": { "const": 1 },
+    "channel": { "const": "stable" },
+    "sequence": { "type": "integer", "minimum": 1 },
+    "issuedAt": { "type": "string", "format": "date-time", "maxLength": 40 },
+    "expiresAt": { "type": "string", "format": "date-time", "maxLength": 40 },
+    "keyId": {
+      "type": "string",
+      "pattern": "^cc-theme-adapter-root-[0-9]{4}-[0-9]{2}$",
+      "maxLength": 80
+    },
+    "catalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["url", "signatureUrl", "bytes", "sha256"],
+      "properties": {
+        "url": {
+          "type": "string",
+          "pattern": "^https://raw\\.githubusercontent\\.com/quanzhankeji/cc-theme/[0-9a-f]{40}/app/registry/catalogs/stable/[0-9]{6}\\.json$",
+          "maxLength": 300
+        },
+        "signatureUrl": {
+          "type": "string",
+          "pattern": "^https://raw\\.githubusercontent\\.com/quanzhankeji/cc-theme/[0-9a-f]{40}/app/registry/catalogs/stable/[0-9]{6}\\.json\\.sig$",
+          "maxLength": 304
+        },
+        "bytes": { "type": "integer", "minimum": 2, "maximum": 1048576 },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      }
+    }
+  }
+}

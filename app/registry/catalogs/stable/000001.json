@@ -1,0 +1,78 @@
+{
+  "kind": "cc-theme.adapter-release-catalog",
+  "schemaVersion": 1,
+  "publicationStatus": "published",
+  "currentVersionPolicy": "explicit",
+  "channel": "stable",
+  "sequence": 1,
+  "publishedAt": "2026-07-20T15:33:54Z",
+  "expiresAt": "2027-01-16T15:33:54Z",
+  "keyId": "cc-theme-adapter-root-2026-07",
+  "revokedSha256": [],
+  "adapters": [
+    {
+      "adapterId": "mac-codex",
+      "current": {
+        "adapterVersion": "26.715.31925",
+        "adapterReleaseRevision": 1
+      },
+      "releases": [
+        {
+          "adapterVersion": "26.715.31925",
+          "adapterReleaseRevision": 1,
+          "assetIdentity": "mac-codex-26.715.31925-r1-macos-arm64",
+          "contracts": {
+            "minimumManagerVersion": "0.2.0",
+            "capabilityVersion": "2.0.0",
+            "unifiedThemeSchemaVersion": 1,
+            "adapterPackageSchemaVersion": 1
+          },
+          "packages": [
+            {
+              "platform": "macos",
+              "architecture": "arm64",
+              "assetName": "mac-codex-26.715.31925-r1-macos-arm64.ccadapter",
+              "bytes": 1086322,
+              "sha256": "59d0f1ef371004f6da0ed6a3947f036753da9eb04f3d21a5d63b893dd6ff54b4",
+              "manifestSha256": "68bf76d7bad45b69af717ac7edb255fd1229a507b032ac975028b861f5bc7493",
+              "releaseTag": "cc-theme-v0.2.0",
+              "downloadUrl": "https://github.com/quanzhankeji/cc-theme/releases/download/cc-theme-v0.2.0/mac-codex-26.715.31925-r1-macos-arm64.ccadapter"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "adapterId": "mac-workbuddy",
+      "current": {
+        "adapterVersion": "5.2.6",
+        "adapterReleaseRevision": 1
+      },
+      "releases": [
+        {
+          "adapterVersion": "5.2.6",
+          "adapterReleaseRevision": 1,
+          "assetIdentity": "mac-workbuddy-5.2.6-r1-macos-arm64",
+          "contracts": {
+            "minimumManagerVersion": "0.2.0",
+            "capabilityVersion": "1.0.0",
+            "unifiedThemeSchemaVersion": 1,
+            "adapterPackageSchemaVersion": 1
+          },
+          "packages": [
+            {
+              "platform": "macos",
+              "architecture": "arm64",
+              "assetName": "mac-workbuddy-5.2.6-r1-macos-arm64.ccadapter",
+              "bytes": 729254,
+              "sha256": "2accd2142ad6e5a868d150972859c0b07cee4e25a01f74d476e2570c65c8d886",
+              "manifestSha256": "c035da2c8615411ec35878b09ef7b47901f708d896c0713e93d2a10187951947",
+              "releaseTag": "cc-theme-v0.2.0",
+              "downloadUrl": "https://github.com/quanzhankeji/cc-theme/releases/download/cc-theme-v0.2.0/mac-workbuddy-5.2.6-r1-macos-arm64.ccadapter"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

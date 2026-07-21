@@ -76,15 +76,20 @@ manifest 分叉、SemVer `beta.2 < beta.11` 与伪装媒体三类攻击，结论
 
 当前 3A 只接受用户明确选择的本地包，不联网，也不把本地开发包描述为官方更新。
 
-### 阶段 3B：线上可信更新（后续）
+### 阶段 3B：线上可信更新（核心链路完成，待新版本实机发布验收）
 
-- [ ] 签名 Catalog、根公钥、key rotation、sequence/expiry 和 rollback protection；
-- [ ] ETag/TTL/退避/last-known-good Catalog 缓存；
-- [ ] 有界下载、取消、磁盘配额和 quarantine；
-- [ ] 把已完成的本地 `verified → staged → health-checked → activated → committed` 事务接到受信下载器；
-- [ ] 正在运行 generation 的延迟升级策略；
-- [ ] UI：线上可用更新、下载进度、取消、回滚结果和签名/Catalog 错误码；
-- [ ] 干净 Mac、断网、损坏包、降级攻击、断电点和真实宿主升级回归。
+- [x] Ed25519 离线根密钥与 App 内置公钥；私钥只存在发布机 Keychain，不进入 Git/Actions/env/log；
+- [x] detached raw-byte 签名、signed SHA-256、keyId、sequence、expiry 和 rollback protection；
+- [x] `stable.json` 固定 bootstrap → exact-commit Catalog → exact Release asset 的两阶段信任链；
+- [x] ETag、12 小时 TTL、离线 last-known-good 与完整快照后原子 active 切换；
+- [x] 只允许官方 GitHub 路径、官方 Release 资产重定向、5 次跳转、HTTPS、大小/超时/SHA 上限；
+- [x] 下载结果接入现有 `verified → staged → health-checked → activated → committed` 事务；
+- [x] 正在运行的客户端不被更新流程重启，新 Engine 在下次主题操作使用；
+- [x] UI：启动后低频检查、最新版/可下载状态、一键下载、下载失败保留现状及本地包兜底；
+- [x] 单元故障注入：签名篡改、未知字段、过期、降级、revocation、hash/bytes drift、损坏缓存；
+- [x] 公开网络 smoke：正式 pointer/Catalog 签名、exact raw、Release redirect、bytes/SHA 全部通过；
+- [ ] 新版本签名 App 的干净 Mac 断网/LKG、真实一键安装、运行中延迟生效与断电点最终 QA；
+- [ ] 可选的大包下载进度/取消；当前两个 Adapter 均小于 1.1 MiB，不作为首版阻断。
 
 第三阶段建议稳定错误码：`catalog-signature-invalid`、`catalog-expired`、`catalog-rollback-blocked`、
 `adapter-download-failed`、`adapter-package-invalid`、`adapter-incompatible`、`adapter-stage-failed`、
@@ -97,12 +102,13 @@ Adapter 原始输出。
 - Claude 源码保留为 `manager-registration-paused`，不进入 Catalog、Package 或 Manager 资源；
 - stable-token/base-hash production rebase/quarantine 与跨进程单一事务仍按原门禁记录；
 - Windows 只记录未来适配项，用户明确恢复前不注册、不实现、不构建、不测试；
-- 线上阶段完成前，Manager 默认继续使用 bundle 内已验证 Engine；只有用户明确导入且通过全部本地
-  校验的 `.ccadapter` 才能成为激活版本，界面不得假装已发现线上更新。
+- 第一版在线更新 Manager 继续携带 bundle 内已验证 Engine；只有官方签名下载或用户明确导入且通过
+  全部本地校验的 `.ccadapter` 才能成为激活版本。待干净 Mac、断网、LKG、撤回与真实宿主回归全部
+  通过后，后续版本才可删除 bundle 内 bootstrap Engine。
 
 ## 继续开发入口
 
-进入第三阶段时，先读取：
+继续完成发布验收时，先读取：
 
 1. `docs/adr/0001-adapter-distribution.md`；
 2. Adapter Release Catalog Schema 与生成器；
@@ -110,4 +116,4 @@ Adapter 原始输出。
 4. `docs/adapter-lifecycle.md` 的现有主题事务；
 5. 本文件中阶段 3 的未完成门禁。
 
-先实现纯本地目录安装与故障注入，再接在线 Catalog；不要反过来让网络路径成为测试前提。
+网络失败不得阻断已安装 Adapter、bundle fallback 或正常启动；线上测试始终独立于默认离线测试矩阵。
