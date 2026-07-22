@@ -6,7 +6,7 @@ Official website: [cc-theme.app](https://cc-theme.app)
 
 [![CI](https://github.com/quanzhankeji/cc-theme/actions/workflows/ci.yml/badge.svg)](https://github.com/quanzhankeji/cc-theme/actions/workflows/ci.yml)
 
-CC Theme provides ready-to-use, reproducible theme packages and unified theme management for supported macOS AI desktop clients. Import a versioned `.cctheme`, apply it through a verified host Adapter, and restore the native appearance—without asking an AI model to generate the theme, rewriting prompts, or spending generation tokens.
+CC Theme is an open-source macOS app for installing ready-made Codex themes in ChatGPT Desktop. It provides reproducible theme packages and unified theme management for supported macOS AI desktop clients. Import a versioned `.cctheme`, apply it through a verified host Adapter, and restore the native appearance—without asking an AI model to generate the theme, rewriting prompts, or spending generation tokens.
 
 It is an independent, unofficial, open-source project—not a prompt library, concept gallery, or general-purpose AI theme generator. This repository contains the CC Theme app, host-specific Adapters, shared contracts, and release metadata. Production theme packages are maintained in the separate [CC Theme Themes](https://github.com/quanzhankeji/cc-theme-themes) registry and published as Release assets; theme media does not enter this Git source tree.
 
