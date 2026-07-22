@@ -82,6 +82,11 @@ assert.match(source, /semantic-surface-consumer-mismatch/);
 assert.match(source, /semantic-background-position-mismatch/);
 assert.match(source, /const nativeMovingBackgroundHomePass = \(result\.videoEnabled \|\| result\.interactiveEnabled\)/,
   "Moving backgrounds must verify native Home geometry without imposing a demo card count.");
+assert.doesNotMatch(source, /result\.visibleCardCount === 4/,
+  "Current Home verification must not retain the removed four-demo-card assumption.");
+assert.match(source,
+  /const cardsHomePass = result\.newTaskLayout === 'cards' && result\.homePresent &&\s*result\.heading\?\.visible && result\.composer\?\.visible && !result\.hero/,
+  "The static cards profile must verify stable Home geometry even when the host renders zero suggestion cards.");
 
 const css = await fs.readFile(path.resolve(here, "../assets/skin.css"), "utf8");
 assert.doesNotMatch(css, /aside\.app-shell-left-panel/,

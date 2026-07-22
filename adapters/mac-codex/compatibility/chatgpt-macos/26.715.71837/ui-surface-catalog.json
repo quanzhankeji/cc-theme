@@ -1,0 +1,289 @@
+{
+  "kind": "skin.ui-surface-catalog",
+  "schemaVersion": "1.0.0",
+  "catalogId": "chatgpt-macos-26.715.71837",
+  "client": {
+    "product": "Codex Desktop",
+    "bundleId": "com.openai.codex",
+    "platform": "macOS",
+    "version": "26.715.71837",
+    "build": "5702",
+    "chromium": "150.0.7871.124",
+    "rendererUrl": "app://-/index.html",
+    "capturedAt": "2026-07-22",
+    "captureScope": "new installed signed application, packaged renderer resources, and isolated privacy-preserving live structural evidence"
+  },
+  "admission": {
+    "status": "verified",
+    "policy": "current-host-evidence-required",
+    "failClosed": true,
+    "requiredBundleMarkers": {
+      "data-app-shell-main-content-layout": 4,
+      "data-app-shell-main-content-top-fade": 3,
+      "data-codex-composer-root": 6,
+      "data-home-ambient-suggestions": 1,
+      "data-oai-writing-block-surface": 1,
+      "data-settings-panel-slug": 2,
+      "data-app-shell-focus-area": 6,
+      "data-browser-sidebar-webview-host-root": 1
+    },
+    "requiredLiveLandmarks": [
+      "shell",
+      "sidebar",
+      "composer"
+    ]
+  },
+  "bundleEvidence": {
+    "application": "ChatGPT.app",
+    "bundleTeamId": "2DC432GLL2",
+    "codeDirectoryHash": "c0719964dbf463a36cbf31fe274d01a087b0a59b",
+    "asarSha256": "11292b6a04d8aef36c30940b94ce3a744844dc5a52797228fbebb87f8529f102",
+    "asarBytes": 197634497,
+    "asarFileCount": 6095,
+    "rendererResourcesInspected": [
+      "webview/assets/app-initial~app-main~appgen-settings-page~page~appgen-library-page~appgen-page~appgen-setti~ogh9jurw-hQSurq1e.js",
+      "webview/assets/app-initial~app-main~onboarding-page~hotkey-window-thread-page~quick-chat-window-page~chatg~kmcnquzv-DWT6iNcU.js",
+      "webview/assets/app-initial~app-main~projects-index-page~chatgpt-conversation-page~remote-connections-setti~ih6lkeby-01Y9966H.js",
+      "webview/assets/app-initial~app-main~settings-command-menu-section-items~new-thread-panel-page~settings-pag~unq8yzli-givJ3wGc.js",
+      "webview/assets/app-initial~artifact-tab-content.electron~app-main~appgen-settings-page~page~pull-request-r~mxek7o2y-qzlbVBpy.js",
+      "webview/assets/app-initial~artifact-tab-content.electron~app-main~new-thread-panel-page~onboarding-page~pr~blkpjiml-ST1XtkK5.js",
+      "webview/assets/app-initial~artifact-tab-content.electron~notebook-preview-panel~app-main~appgen-settings-p~gy16mplo-DEClo6ST.js",
+      "webview/assets/app-initial~artifact-tab-content.electron~notebook-preview-panel~app-main~pull-request-rout~jvsvjxtt-D9IvF19f.js",
+      "webview/assets/app-initial~artifact-tab-content.electron~notebook-preview-panel~app-main~settings-command-~ktg7n5fh-Dew28JND.js",
+      "webview/assets/app-initial~avatarOverlayCompositionSurface~artifact-tab-content-DJDX7Pvr.css",
+      "webview/assets/app-initial~avatarOverlayCompositionSurface~artifact-tab-content.electron~app-main~appgen-s~j5d6n91g-e8-aFGnN.js",
+      "webview/assets/codex-micro-bridge-CE_cBpo9.js",
+      "webview/assets/settings-page-CZID7G95.js"
+    ],
+    "stableSelectorCounts": {
+      "data-app-shell-main-content-layout": 4,
+      "data-app-shell-main-content-top-fade": 3,
+      "data-codex-composer-root": 6,
+      "data-home-ambient-suggestions": 1,
+      "data-oai-writing-block-surface": 1,
+      "data-settings-panel-slug": 2,
+      "data-app-shell-focus-area": 6,
+      "data-browser-sidebar-webview-host-root": 1
+    }
+  },
+  "processEvidence": {
+    "bundleProcessIdentity": "com.openai.codex",
+    "listenerTransport": "loopback-cdp",
+    "listenerOwnership": "trusted-current-process-tree-required",
+    "status": "verified",
+    "isolation": "macOS 15.6.1 arm64 VM with guest-only process tree, Application Support, LaunchAgent and loopback listener",
+    "hostProcessUnaffected": true
+  },
+  "liveEvidence": {
+    "privacyProfile": "structural-only-v1",
+    "captureResult": "passed",
+    "rendererHidden": false,
+    "reducedMotion": false,
+    "landmarks": {
+      "shell": true,
+      "sidebar": true,
+      "composer": true,
+      "home": true,
+      "settings": true,
+      "ccTheme": true,
+      "overlay": true
+    },
+    "nodesConsidered": 185,
+    "nodesCaptured": 185,
+    "truncated": false,
+    "routeCoverage": [
+      "home",
+      "settings-general",
+      "settings-appearance",
+      "settings-cc-theme",
+      "settings-overlay",
+      "foreground-handoff"
+    ],
+    "pendingRouteCoverage": [],
+    "routeEvidence": {
+      "nativeHome": { "nodesCaptured": 37, "themeOwnedRoot": false },
+      "nativeSettingsGeneral": { "nodesCaptured": 47, "settings": true },
+      "nativeSettingsAppearance": { "nodesCaptured": 56, "settings": true },
+      "nativeSettingsOverlay": { "nodesCaptured": 74, "overlay": true },
+      "themedHome": { "nodesCaptured": 53, "themeOwnedRoot": true },
+      "themedSettingsCcTheme": { "nodesCaptured": 185, "settings": true, "themeOwnedRoot": true },
+      "pausedHome": { "themeOwnedRoot": false }
+    },
+    "excluded": [
+      "innerText",
+      "textContent",
+      "input values",
+      "accessible names",
+      "URL",
+      "query",
+      "hash",
+      "link targets",
+      "media sources"
+    ]
+  },
+  "styleEvidence": {
+    "styleCatalogKind": "theme.style-catalog",
+    "styleCatalogRevision": 1,
+    "targetSchema": "skin.theme",
+    "consumers": {
+      "colors.text": [
+        "--skin-text",
+        "host primary text paint aliases"
+      ],
+      "colors.muted": [
+        "--skin-muted",
+        "host secondary text paint aliases"
+      ],
+      "semanticColors.textStrong": [
+        "--skin-text-strong",
+        "display and emphasized text roles"
+      ],
+      "fonts.display": [
+        "--skin-font-display",
+        "owned home-heading role"
+      ],
+      "fonts.ui": [
+        "--skin-font-ui",
+        "owned home-suggestion-label role"
+      ],
+      "appearance.backgroundVideoPosterMode": [
+        "VIDEO_POSTER_MODE",
+        "video poster rendering branch"
+      ],
+      "appearance.backgroundPosition": [
+        "--skin-art-position",
+        "static and interactive background positioning"
+      ]
+    },
+    "unsupportedConsumers": {
+      "fonts.code": "no verified CSS or DOM consumer",
+      "targetProfiles.mac-codex.copy.tagline": "no verified renderer consumer"
+    }
+  },
+  "sources": [
+    {
+      "method": "info-plist-readonly",
+      "scope": "new 71837 version, build, bundle id, Chromium version",
+      "confidence": 1
+    },
+    {
+      "method": "codesign-and-gatekeeper-readonly",
+      "scope": "new 71837 installed bundle, Developer ID, hardened runtime, notarization and CDHash",
+      "confidence": 1
+    },
+    {
+      "method": "asar-header-and-resource-inspection",
+      "scope": "new 71837 packaged stable attributes and target resources",
+      "confidence": 1
+    },
+    {
+      "method": "loopback-cdp-structural-evidence",
+      "scope": "isolated 71837 shell, sidebar, composer, home, Settings, owned CC Theme entry, overlay and foreground landmarks without user content",
+      "confidence": 1
+    },
+    {
+      "method": "adapter-consumer-audit",
+      "scope": "Theme Style token to renderer variable and owned Surface consumption confirmed on isolated 71837 Light and Dark host appearances",
+      "confidence": 1
+    }
+  ],
+  "surfaceTargets": [
+    {
+      "targetId": "target.shell-main",
+      "primarySelector": "[data-app-shell-main-content-layout]",
+      "fallbackSelector": "main.main-surface",
+      "runtimeRole": "main-content",
+      "policy": "paint-only transparent viewport above the bounded background effect"
+    },
+    {
+      "targetId": "target.shell-top-fade",
+      "primarySelector": "[data-app-shell-main-content-top-fade]",
+      "runtimeRole": "main-top-fade",
+      "policy": "remove the native opaque fade without changing geometry"
+    },
+    {
+      "targetId": "target.sidebar",
+      "primarySelector": ".app-shell-left-panel",
+      "runtimeRole": "sidebar/settings-sidebar",
+      "policy": "apply one bounded semantic surface without changing layout"
+    },
+    {
+      "targetId": "target.composer",
+      "primarySelector": "[data-codex-composer-root]",
+      "fallbackSelector": ".composer-surface-chrome",
+      "runtimeRole": "composer-root/composer",
+      "policy": "retain the native interaction geometry and apply a readable translucent paint surface"
+    },
+    {
+      "targetId": "target.home-suggestions",
+      "primarySelector": "[data-home-ambient-suggestions]",
+      "fallbackSelector": ".group/home-suggestions",
+      "runtimeRole": "home-suggestions/home-suggestion-card/home-suggestion-label",
+      "policy": "paint-only treatment for moving backgrounds"
+    },
+    {
+      "targetId": "target.settings",
+      "primarySelector": "[data-settings-panel-slug]",
+      "runtimeRole": "settings-shell/settings-sidebar/settings-content/settings-*",
+      "policy": "keep Settings readable without repainting a second background"
+    },
+    {
+      "targetId": "target.settings-theme-page",
+      "primarySelector": "[data-settings-panel-slug='appearance']",
+      "ownedNavigation": "#cc-theme-settings-nav-item",
+      "ownedPanel": "#cc-theme-settings-page",
+      "ownedSelector": "#cc-theme-style-editor",
+      "runtimeRole": "theme-editor-host",
+      "adjacentReferenceSelector": "[data-settings-panel-slug='appearance']",
+      "mirroredStateAttributes": [
+        "class",
+        "style",
+        "aria-current",
+        "aria-selected",
+        "aria-disabled",
+        "data-state",
+        "tabindex"
+      ],
+      "evidencePolicy": "current-evidence-required",
+      "policy": "Engine-owned navigation and panel mirror the adjacent live native entry while preserving separate ownership and complete cleanup"
+    },
+    {
+      "targetId": "target.writing-block",
+      "primarySelector": "[data-oai-writing-block-surface]",
+      "runtimeRole": "writing-block-surface",
+      "policy": "map host writing-block paint variables to semantic colors"
+    },
+    {
+      "targetId": "target.bottom-panel",
+      "primarySelector": "[data-app-shell-focus-area='bottom-panel']",
+      "runtimeRole": "bottom-panel-shell",
+      "policy": "preserve terminal geometry while mapping bounded paint tokens"
+    },
+    {
+      "targetId": "target.browser-side-panel",
+      "primarySelector": "[data-browser-sidebar-webview-host-root]",
+      "runtimeRole": "native-portal",
+      "policy": "keep the native browser portal above the themed application mount"
+    }
+  ],
+  "migrationFromPreviousCatalog": {
+    "previousCatalogId": "chatgpt-macos-26.715.70719",
+    "stableSelectorsRetainedAfterNewStaticScan": [
+      "[data-app-shell-main-content-layout]",
+      "[data-app-shell-main-content-top-fade]",
+      "[data-codex-composer-root]",
+      "[data-home-ambient-suggestions]",
+      "[data-oai-writing-block-surface]",
+      "[data-settings-panel-slug]",
+      "[data-app-shell-focus-area='bottom-panel']",
+      "[data-browser-sidebar-webview-host-root]"
+    ],
+    "strategy": "new 71837 evidence is independently versioned and was admitted only after isolated live revalidation"
+  },
+  "limitations": [
+    "Hashed asset names are evidence references and never runtime selectors.",
+    "No previous release success is reused; this admission is bound to the exact 71837 build, ASAR and live evidence above.",
+    "A later client version invalidates this admission record even when stable attributes happen to remain present.",
+    "Manager semantic equivalence remains blocked until independent cross-validation accepts this Adapter revision."
+  ]
+}

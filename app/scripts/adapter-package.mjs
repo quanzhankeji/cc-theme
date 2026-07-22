@@ -101,6 +101,102 @@ function normalizedCapabilityVersion(value) {
   return assertSemver(value, "capabilityVersion");
 }
 
+function parsePayloadJson(byRelative, relative, label, { required = true } = {}) {
+  const file = byRelative.get(relative);
+  if (!file) {
+    if (!required) return undefined;
+    fail(`${label} is missing from the closed release manifest`);
+  }
+  try {
+    const value = JSON.parse(file.bytes.toString("utf8"));
+    if (!value || typeof value !== "object" || Array.isArray(value)) fail(`${label} must be a JSON object`);
+    return value;
+  } catch (error) {
+    if (error?.message?.startsWith("Invalid .ccadapter:")) throw error;
+    fail(`${label} is not valid JSON`);
+  }
+}
+
+function assertReleaseQualification(byRelative, identity, capability) {
+  if (capability.runtimeApplyAvailable !== true) {
+    fail("release qualification rejects an Adapter whose runtime apply is unavailable");
+  }
+  if (Object.hasOwn(capability, "availability") && capability.availability !== "available") {
+    fail("release qualification rejects an unavailable Adapter Capability");
+  }
+  if (Object.hasOwn(capability, "available") && capability.available !== true) {
+    fail("release qualification rejects an unavailable Adapter Capability");
+  }
+
+  const compatibility = capability.compatibility;
+  const requiresCurrentSurfaceGate = identity.adapterId === "mac-codex" ||
+    compatibility?.surfaceEvidenceIsGate === true ||
+    compatibility?.currentEvidence?.clientVersion !== undefined;
+  const hasVerifiedVersionGate = compatibility?.verifiedClientVersions !== undefined;
+  if (hasVerifiedVersionGate) {
+    if (!Array.isArray(compatibility.verifiedClientVersions) ||
+        !compatibility.verifiedClientVersions.includes(identity.adapterVersion)) {
+      fail("release qualification does not admit the Adapter host version");
+    }
+  }
+  const hasCurrentSurfaceGate = compatibility?.currentEvidence?.clientVersion !== undefined;
+  if (requiresCurrentSurfaceGate && !hasCurrentSurfaceGate) {
+    fail("release qualification cannot downgrade the Adapter's current Surface evidence gate");
+  }
+  if (hasCurrentSurfaceGate && compatibility.currentEvidence.clientVersion !== identity.adapterVersion) {
+    fail("release qualification current Surface evidence targets a different host version");
+  }
+  if (!requiresCurrentSurfaceGate && !hasVerifiedVersionGate) {
+    fail("release qualification has no verified host or Surface admission gate");
+  }
+
+  const project = parsePayloadJson(byRelative, "PROJECT_MANIFEST.json", "PROJECT_MANIFEST", { required: false });
+  const evidencePath = project?.contracts?.uiEvidenceCatalog ?? project?.host?.compatibilityEvidence?.uiSurfaceCatalog;
+  if (requiresCurrentSurfaceGate && evidencePath === undefined) {
+    fail("release qualification has no bound UI Surface evidence path");
+  }
+  if (evidencePath !== undefined) {
+    const relative = normalizeSourcePath(evidencePath, "UI Surface evidence path");
+    if (identity.adapterId === "mac-codex" &&
+        relative !== `compatibility/chatgpt-macos/${identity.adapterVersion}/ui-surface-catalog.json`) {
+      fail("release qualification uses a non-canonical CodeX Surface evidence path");
+    }
+    const surface = parsePayloadJson(byRelative, relative, "UI Surface evidence");
+    if ((requiresCurrentSurfaceGate || surface.admission !== undefined) &&
+        (surface.admission?.status !== "verified" || surface.admission?.failClosed !== true)) {
+      fail("release Surface qualification is not verified");
+    }
+    const currentEvidence = compatibility?.currentEvidence;
+    const expectedCatalogId = identity.adapterId === "mac-codex"
+      ? `chatgpt-macos-${identity.adapterVersion}`
+      : currentEvidence?.surfaceCatalogId;
+    if (requiresCurrentSurfaceGate &&
+        (typeof currentEvidence?.surfaceCatalogId !== "string" ||
+         currentEvidence.surfaceCatalogId !== expectedCatalogId ||
+         surface.catalogId !== expectedCatalogId)) {
+      fail("release Surface Catalog identity differs from the Adapter Capability");
+    }
+    if (requiresCurrentSurfaceGate) {
+      const expectedVersion = currentEvidence?.surfaceCatalogVersion;
+      const schemaMajor = typeof surface.schemaVersion === "string" && SEMVER.test(surface.schemaVersion)
+        ? Number(surface.schemaVersion.split(".", 1)[0])
+        : undefined;
+      const actualVersion = surface.catalogVersion ?? schemaMajor;
+      if (!Number.isSafeInteger(expectedVersion) || actualVersion !== expectedVersion) {
+        fail("release Surface Catalog version differs from the Adapter Capability");
+      }
+    }
+    if (requiresCurrentSurfaceGate && surface.client?.version !== identity.adapterVersion) {
+      fail("release Surface evidence targets a different host version");
+    }
+    if (requiresCurrentSurfaceGate &&
+        (typeof currentEvidence?.clientBuild !== "string" ||
+         surface.client?.build !== currentEvidence.clientBuild)) {
+      fail("release Surface evidence targets a different host build");
+    }
+  }
+}
+
 function compareSemver(left, right) {
   const parse = (value) => {
     const match = SEMVER.exec(assertSemver(value, "version"));
@@ -488,18 +584,9 @@ function checkExpectedCompatibility(manifest, expected) {
   if (!Number.isSafeInteger(expected.unifiedThemeSchemaVersion) || manifest.contracts.unifiedThemeSchemaVersion !== expected.unifiedThemeSchemaVersion) fail("Unified Theme schema version mismatch");
 }
 
-export async function buildAdapterPackage({
-  sourceRoot,
-  outputDirectory,
-  adapterId,
-  architecture,
-  minimumManagerVersion = "0.1.0",
-  unifiedThemeSchemaVersion = 1,
-} = {}) {
-  if (typeof sourceRoot !== "string" || typeof outputDirectory !== "string") fail("sourceRoot and outputDirectory are required");
+async function loadQualifiedReleaseInput({ sourceRoot, adapterId, architecture }) {
+  if (typeof sourceRoot !== "string") fail("sourceRoot is required");
   if (!ALLOWED_ARCHITECTURES.has(architecture)) fail("architecture is unsupported");
-  assertSemver(minimumManagerVersion, "minimumManagerVersion");
-  if (!Number.isSafeInteger(unifiedThemeSchemaVersion) || unifiedThemeSchemaVersion < 1 || unifiedThemeSchemaVersion > 65535) fail("unifiedThemeSchemaVersion is invalid");
   const releaseInput = await loadReleaseInput(path.resolve(sourceRoot), adapterId);
   const { files, identity } = releaseInput;
   if (identity.architecture !== architecture) fail("requested architecture differs from the release manifest");
@@ -513,7 +600,31 @@ export async function buildAdapterPackage({
     fail("Adapter capability is not valid JSON");
   }
   if (!capability || typeof capability !== "object" || capability.adapterId !== adapterId) fail("Adapter capability identity mismatch");
-  const capabilityVersion = normalizedCapabilityVersion(capability.capabilityVersion);
+  assertReleaseQualification(byRelative, identity, capability);
+  return { ...releaseInput, capability, capabilityVersion: normalizedCapabilityVersion(capability.capabilityVersion) };
+}
+
+export async function verifyAdapterReleaseSource({ sourceRoot, adapterId, architecture } = {}) {
+  const { identity, capabilityVersion } = await loadQualifiedReleaseInput({ sourceRoot, adapterId, architecture });
+  return { ...identity, capabilityVersion };
+}
+
+export async function buildAdapterPackage({
+  sourceRoot,
+  outputDirectory,
+  adapterId,
+  architecture,
+  minimumManagerVersion = "0.1.0",
+  unifiedThemeSchemaVersion = 1,
+} = {}) {
+  if (typeof sourceRoot !== "string" || typeof outputDirectory !== "string") fail("sourceRoot and outputDirectory are required");
+  assertSemver(minimumManagerVersion, "minimumManagerVersion");
+  if (!Number.isSafeInteger(unifiedThemeSchemaVersion) || unifiedThemeSchemaVersion < 1 || unifiedThemeSchemaVersion > 65535) fail("unifiedThemeSchemaVersion is invalid");
+  const { files, identity, capabilityVersion } = await loadQualifiedReleaseInput({
+    sourceRoot,
+    adapterId,
+    architecture,
+  });
   const manifest = validateManifest({
     kind: ADAPTER_PACKAGE_KIND,
     schemaVersion: ADAPTER_PACKAGE_SCHEMA_VERSION,

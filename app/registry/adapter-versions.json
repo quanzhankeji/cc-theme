@@ -7,16 +7,16 @@
     {
       "adapterId": "mac-codex",
       "current": {
-        "adapterVersion": "26.715.61943",
+        "adapterVersion": "26.715.71837",
         "adapterReleaseRevision": 1
       },
       "releases": [
         {
-          "adapterVersion": "26.715.61943",
+          "adapterVersion": "26.715.71837",
           "adapterReleaseRevision": 1,
-          "assetIdentity": "mac-codex-26.715.61943-r1-macos-arm64",
+          "assetIdentity": "mac-codex-26.715.71837-r1-macos-arm64",
           "contracts": {
-            "minimumManagerVersion": "0.2.0",
+            "minimumManagerVersion": "0.2.1",
             "capabilityVersion": "2.0.0",
             "unifiedThemeSchemaVersion": 1,
             "adapterPackageSchemaVersion": 1

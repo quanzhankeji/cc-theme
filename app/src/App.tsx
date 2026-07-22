@@ -231,21 +231,23 @@ function ClientCard({
   const running = client.runState === "running";
   const launchAvailable = Boolean(capability.runtimeLaunchAvailable) && client.discovered;
   const stopped = client.runState === "stopped";
-  const canInject = Boolean(theme) && runtimeAvailable && client.discovered && client.adapterReady && compatibility?.status === "ready" && stopped;
+  const compatibilityCandidate = client.adapterStatus === "compatibility-candidate";
+  const canInject = Boolean(theme) && runtimeAvailable && client.discovered && client.adapterReady && !compatibilityCandidate && compatibility?.status === "ready" && stopped;
   const canLaunch = launchAvailable && stopped;
   const diagnosticPreviewOnly = capability.availability === "contract-only" && !capability.runtimeApplyAvailable;
-  const compatibilityCandidate = client.adapterStatus === "compatibility-candidate";
   const onlineUpdateAvailable = adapterUpdate?.status === "update-available";
   const onlineCurrent = adapterUpdate?.status === "current";
   const applyLabel = running
     ? t("client.alreadyRunning")
-    : diagnosticPreviewOnly
-      ? t("capability.managerApplyUnavailable")
-      : !runtimeAvailable || !client.discovered || (theme && compatibility?.status !== "ready")
-        ? t("capability.unavailable")
-        : theme
-          ? t(compatibilityCandidate ? "adapter.compatibilityLaunch" : "client.injectLaunch")
-          : t("client.chooseThemeShort");
+    : compatibilityCandidate
+      ? t("adapter.hostUnverifiedAction")
+      : diagnosticPreviewOnly
+        ? t("capability.managerApplyUnavailable")
+        : !runtimeAvailable || !client.discovered || (theme && compatibility?.status !== "ready")
+          ? t("capability.unavailable")
+          : theme
+            ? t("client.injectLaunch")
+            : t("client.chooseThemeShort");
 
   return (
     <article className={`client-card${!client.discovered ? " client-card--missing" : ""}${capability.availability !== "available" ? " client-card--contract" : ""}${running ? " client-card--running" : ""}${starting ? " client-card--pending" : ""}`} data-testid={`client-${client.id}`} aria-busy={starting || undefined}>
@@ -293,7 +295,7 @@ function ClientCard({
         <p className="adapter-status adapter-status--waiting">{t("adapter.waitingForHost", { version: client.version ?? "—" })}</p>
       )}
       {compatibilityCandidate && (
-        <p className="adapter-status adapter-status--compatibility" role="status">{t("adapter.compatibilityCandidate")}</p>
+        <p className="adapter-status adapter-status--compatibility" role="status">{t("adapter.hostUnverified")}</p>
       )}
       {client.adapterSource === "local" && running && (
         <p className="adapter-status">{t("adapter.activeNextUse")}</p>
@@ -340,7 +342,7 @@ function ClientCard({
                   : t("adapter.install")}
           </button>
         ) : (
-          <button className="button button--primary" type="button" disabled={!canInject || busy} onClick={() => onAction(client, "apply")} aria-label={running ? t("client.alreadyRunningNamed", { name: client.name }) : t(compatibilityCandidate ? "adapter.compatibilityLaunchNamed" : "client.injectLaunchNamed", { name: client.name })}>
+          <button className="button button--primary" type="button" disabled={!canInject || busy} onClick={() => onAction(client, "apply")} aria-label={running ? t("client.alreadyRunningNamed", { name: client.name }) : compatibilityCandidate ? t("adapter.hostUnverifiedNamed", { name: client.name }) : t("client.injectLaunchNamed", { name: client.name })}>
             <Icon name="sparkle" />{applyLabel}
           </button>
         )}

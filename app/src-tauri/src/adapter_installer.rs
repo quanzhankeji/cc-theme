@@ -614,6 +614,7 @@ fn validate_staged_engine(root: &Path, manifest: &AdapterPackageManifest) -> Res
     {
         return Err("adapter-health-check-failed".to_string());
     }
+    validate_release_qualification(root, manifest, &capability)?;
     let release = read_small_json(&root.join("contracts/adapter-release-manifest.json"))?;
     let expected_release_kind = match manifest.adapter_id.as_str() {
         "mac-codex" => "mac-codex-adapter.release-manifest",
@@ -669,6 +670,145 @@ fn validate_staged_engine(root: &Path, manifest: &AdapterPackageManifest) -> Res
     };
     if !root.join(projector).is_file() {
         return Err("adapter-health-check-failed".to_string());
+    }
+    Ok(())
+}
+
+fn validate_release_qualification(
+    root: &Path,
+    manifest: &AdapterPackageManifest,
+    capability: &Value,
+) -> Result<(), String> {
+    let unqualified = || "adapter-release-unqualified".to_string();
+    if capability
+        .get("runtimeApplyAvailable")
+        .and_then(Value::as_bool)
+        != Some(true)
+        || capability
+            .get("availability")
+            .is_some_and(|value| value.as_str() != Some("available"))
+        || capability
+            .get("available")
+            .is_some_and(|value| value.as_bool() != Some(true))
+    {
+        return Err(unqualified());
+    }
+
+    let compatibility = capability
+        .get("compatibility")
+        .and_then(Value::as_object)
+        .ok_or_else(unqualified)?;
+    let verified_gate = compatibility
+        .get("verifiedClientVersions")
+        .and_then(Value::as_array)
+        .is_some_and(|versions| {
+            versions
+                .iter()
+                .any(|version| version.as_str() == Some(manifest.adapter_version.as_str()))
+        });
+    let current_evidence = compatibility
+        .get("currentEvidence")
+        .and_then(Value::as_object);
+    let requires_current_surface_gate = manifest.adapter_id == "mac-codex"
+        || compatibility
+            .get("surfaceEvidenceIsGate")
+            .and_then(Value::as_bool)
+            == Some(true)
+        || current_evidence
+            .and_then(|evidence| evidence.get("clientVersion"))
+            .is_some();
+    let current_gate = current_evidence
+        .and_then(|evidence| evidence.get("clientVersion"))
+        .and_then(Value::as_str)
+        .is_some_and(|version| version == manifest.adapter_version);
+    if requires_current_surface_gate && !current_gate {
+        return Err(unqualified());
+    }
+    if !requires_current_surface_gate && !verified_gate {
+        return Err(unqualified());
+    }
+    let project_path = root.join("PROJECT_MANIFEST.json");
+    if !requires_current_surface_gate && !project_path.is_file() {
+        return Ok(());
+    }
+    let project = read_small_json(&project_path).map_err(|_| unqualified())?;
+    let evidence_path = project
+        .pointer("/contracts/uiEvidenceCatalog")
+        .or_else(|| project.pointer("/host/compatibilityEvidence/uiSurfaceCatalog"))
+        .and_then(Value::as_str);
+    if !requires_current_surface_gate && evidence_path.is_none() {
+        return Ok(());
+    }
+    let evidence_path = evidence_path.ok_or_else(unqualified)?;
+    if !valid_payload_path(&format!("payload/{evidence_path}")) {
+        return Err(unqualified());
+    }
+    if manifest.adapter_id == "mac-codex"
+        && evidence_path
+            != format!(
+                "compatibility/chatgpt-macos/{}/ui-surface-catalog.json",
+                manifest.adapter_version
+            )
+    {
+        return Err(unqualified());
+    }
+    let surface = read_small_json(&root.join(evidence_path)).map_err(|_| unqualified())?;
+    let has_admission = surface.get("admission").is_some();
+    if (requires_current_surface_gate || has_admission)
+        && (surface.pointer("/admission/status").and_then(Value::as_str) != Some("verified")
+            || surface
+                .pointer("/admission/failClosed")
+                .and_then(Value::as_bool)
+                != Some(true))
+    {
+        return Err(unqualified());
+    }
+    if !requires_current_surface_gate {
+        return Ok(());
+    }
+    let evidence = current_evidence.ok_or_else(unqualified)?;
+    let expected_catalog_id = if manifest.adapter_id == "mac-codex" {
+        format!("chatgpt-macos-{}", manifest.adapter_version)
+    } else {
+        evidence
+            .get("surfaceCatalogId")
+            .and_then(Value::as_str)
+            .ok_or_else(unqualified)?
+            .to_string()
+    };
+    if evidence.get("surfaceCatalogId").and_then(Value::as_str)
+        != Some(expected_catalog_id.as_str())
+        || surface.get("catalogId").and_then(Value::as_str) != Some(expected_catalog_id.as_str())
+        || surface.pointer("/client/version").and_then(Value::as_str)
+            != Some(manifest.adapter_version.as_str())
+    {
+        return Err(unqualified());
+    }
+    let expected_build = evidence
+        .get("clientBuild")
+        .and_then(Value::as_str)
+        .ok_or_else(unqualified)?;
+    if surface.pointer("/client/build").and_then(Value::as_str) != Some(expected_build) {
+        return Err(unqualified());
+    }
+    let expected_version = evidence
+        .get("surfaceCatalogVersion")
+        .and_then(Value::as_u64)
+        .ok_or_else(unqualified)?;
+    let actual_version = surface
+        .get("catalogVersion")
+        .and_then(Value::as_u64)
+        .or_else(|| {
+            surface
+                .get("schemaVersion")
+                .and_then(Value::as_str)
+                .filter(|value| valid_semver(value))
+                .and_then(|value| value.split('.').next())
+                .and_then(|value| value.parse::<u64>().ok())
+        })
+        .ok_or_else(unqualified)?;
+    if expected_version != actual_version {
+        return Err(unqualified());
     }
     Ok(())
 }
@@ -939,6 +1079,32 @@ mod tests {
         marker: &str,
         capability_adapter_id: &str,
     ) {
+        package_with_qualification(
+            path,
+            adapter_id,
+            version,
+            marker,
+            capability_adapter_id,
+            None,
+            true,
+            None,
+            None,
+            None,
+        );
+    }
+
+    fn package_with_qualification(
+        path: &Path,
+        adapter_id: &str,
+        version: &str,
+        marker: &str,
+        capability_adapter_id: &str,
+        surface_admission: Option<&str>,
+        runtime_apply_available: bool,
+        surface_catalog_id_override: Option<&str>,
+        surface_client_build_override: Option<&str>,
+        surface_evidence_path_override: Option<&str>,
+    ) {
         let revision = 1_u64;
         let asset_identity = format!(
             "{adapter_id}-{version}-r{revision}-macos-{}",
@@ -960,14 +1126,28 @@ mod tests {
             "entries": []
         }))
         .unwrap();
-        let capability = serde_json::to_vec(&serde_json::json!({
+        let mut capability = serde_json::json!({
             "adapterId": adapter_id,
             "capabilityVersion": "1.0.0",
             "availability": "available",
-            "runtimeApplyAvailable": true
-        }))
-        .unwrap();
-        let files = vec![
+            "runtimeApplyAvailable": runtime_apply_available,
+            "compatibility": { "verifiedClientVersions": [version] }
+        });
+        if surface_admission.is_some() && adapter_id == "mac-codex" {
+            let surface_catalog_id = surface_catalog_id_override
+                .map(str::to_string)
+                .unwrap_or_else(|| format!("chatgpt-macos-{version}"));
+            capability["compatibility"] = serde_json::json!({
+                "currentEvidence": {
+                    "clientVersion": version,
+                    "clientBuild": "9999",
+                    "surfaceCatalogId": surface_catalog_id,
+                    "surfaceCatalogVersion": 1
+                }
+            });
+        }
+        let capability = serde_json::to_vec(&capability).unwrap();
+        let mut files = vec![
             ("contracts/adapter-capability.json", capability, 0o644),
             ("contracts/adapter-release-manifest.json", release, 0o644),
             (
@@ -1016,6 +1196,37 @@ mod tests {
                 0o644,
             ),
         ];
+        if let Some(status) = surface_admission {
+            let surface_catalog_id = surface_catalog_id_override
+                .map(str::to_string)
+                .unwrap_or_else(|| format!("chatgpt-macos-{version}"));
+            let evidence_path = surface_evidence_path_override
+                .map(str::to_string)
+                .unwrap_or_else(|| {
+                    format!("compatibility/chatgpt-macos/{version}/ui-surface-catalog.json")
+                });
+            let surface_client_build = surface_client_build_override.unwrap_or("9999");
+            files.push((
+                "PROJECT_MANIFEST.json",
+                serde_json::to_vec(&serde_json::json!({
+                    "contracts": { "uiEvidenceCatalog": evidence_path }
+                }))
+                .unwrap(),
+                0o644,
+            ));
+            files.push((
+                Box::leak(evidence_path.into_boxed_str()),
+                serde_json::to_vec(&serde_json::json!({
+                    "schemaVersion": "1.0.0",
+                    "catalogId": surface_catalog_id,
+                    "catalogVersion": 1,
+                    "client": { "version": version, "build": surface_client_build },
+                    "admission": { "status": status, "failClosed": true }
+                }))
+                .unwrap(),
+                0o644,
+            ));
+        }
         let records = files
             .iter()
             .map(|(relative, bytes, mode)| {
@@ -1067,6 +1278,221 @@ mod tests {
             writer.write_all(&bytes).unwrap();
         }
         fs::write(path, writer.finish().unwrap().into_inner()).unwrap();
+    }
+
+    #[test]
+    fn an_experimental_surface_candidate_never_enters_the_active_store() {
+        let root = scratch("experimental-surface");
+        fs::create_dir_all(&root).unwrap();
+        let archive = root.join("codex-candidate.ccadapter");
+        let library = root.join("library");
+        package_with_qualification(
+            &archive,
+            "mac-codex",
+            "26.715.99999",
+            "candidate",
+            "mac-codex",
+            Some("experimental"),
+            true,
+            None,
+            None,
+            None,
+        );
+
+        assert_eq!(
+            install_adapter_package_to(&archive, &library, "mac-codex", Some("26.715.99999"))
+                .unwrap_err(),
+            "adapter-release-unqualified",
+        );
+        assert!(!library.join("active/mac-codex.json").exists());
+    }
+
+    #[test]
+    fn verified_surface_evidence_can_enter_the_active_store() {
+        let root = scratch("verified-surface");
+        fs::create_dir_all(&root).unwrap();
+        let archive = root.join("codex-verified.ccadapter");
+        let library = root.join("library");
+        package_with_qualification(
+            &archive,
+            "mac-codex",
+            "26.715.99999",
+            "verified",
+            "mac-codex",
+            Some("verified"),
+            true,
+            None,
+            None,
+            None,
+        );
+
+        let receipt =
+            install_adapter_package_to(&archive, &library, "mac-codex", Some("26.715.99999"))
+                .unwrap();
+        assert_eq!(receipt.adapter_id, "mac-codex");
+        assert!(library.join("active/mac-codex.json").is_file());
+    }
+
+    #[test]
+    fn codex_cannot_downgrade_current_surface_qualification_to_a_version_allowlist() {
+        let root = scratch("surface-policy-downgrade");
+        fs::create_dir_all(&root).unwrap();
+        let archive = root.join("codex-downgraded.ccadapter");
+        let library = root.join("library");
+        package_with_qualification(
+            &archive,
+            "mac-codex",
+            "26.715.99999",
+            "downgraded",
+            "mac-codex",
+            None,
+            true,
+            None,
+            None,
+            None,
+        );
+
+        assert_eq!(
+            install_adapter_package_to(&archive, &library, "mac-codex", Some("26.715.99999"))
+                .unwrap_err(),
+            "adapter-release-unqualified",
+        );
+        assert!(!library.join("active/mac-codex.json").exists());
+    }
+
+    #[test]
+    fn codex_rejects_a_forged_catalog_identity_even_when_both_documents_agree() {
+        let root = scratch("surface-catalog-forgery");
+        fs::create_dir_all(&root).unwrap();
+        let archive = root.join("codex-forged.ccadapter");
+        let library = root.join("library");
+        package_with_qualification(
+            &archive,
+            "mac-codex",
+            "26.715.99999",
+            "forged",
+            "mac-codex",
+            Some("verified"),
+            true,
+            Some("attacker-controlled-catalog"),
+            None,
+            None,
+        );
+
+        assert_eq!(
+            install_adapter_package_to(&archive, &library, "mac-codex", Some("26.715.99999"))
+                .unwrap_err(),
+            "adapter-release-unqualified",
+        );
+        assert!(!library.join("active/mac-codex.json").exists());
+    }
+
+    #[test]
+    fn codex_rejects_a_surface_build_that_differs_from_capability_evidence() {
+        let root = scratch("surface-build-mismatch");
+        fs::create_dir_all(&root).unwrap();
+        let archive = root.join("codex-build-mismatch.ccadapter");
+        let library = root.join("library");
+        package_with_qualification(
+            &archive,
+            "mac-codex",
+            "26.715.99999",
+            "build-mismatch",
+            "mac-codex",
+            Some("verified"),
+            true,
+            None,
+            Some("9998"),
+            None,
+        );
+
+        assert_eq!(
+            install_adapter_package_to(&archive, &library, "mac-codex", Some("26.715.99999"))
+                .unwrap_err(),
+            "adapter-release-unqualified",
+        );
+        assert!(!library.join("active/mac-codex.json").exists());
+    }
+
+    #[test]
+    fn codex_rejects_a_noncanonical_surface_evidence_path() {
+        let root = scratch("noncanonical-surface-path");
+        fs::create_dir_all(&root).unwrap();
+        let archive = root.join("codex-noncanonical-surface.ccadapter");
+        let library = root.join("library");
+        package_with_qualification(
+            &archive,
+            "mac-codex",
+            "26.715.99999",
+            "noncanonical-surface",
+            "mac-codex",
+            Some("verified"),
+            true,
+            None,
+            None,
+            Some("compatibility/chatgpt-macos/26.715.99999/alternate-surface-catalog.json"),
+        );
+
+        assert_eq!(
+            install_adapter_package_to(&archive, &library, "mac-codex", Some("26.715.99999"))
+                .unwrap_err(),
+            "adapter-release-unqualified",
+        );
+        assert!(!library.join("active/mac-codex.json").exists());
+    }
+
+    #[test]
+    fn optional_experimental_surface_evidence_is_not_accepted_by_the_installer() {
+        let root = scratch("optional-experimental-surface");
+        fs::create_dir_all(&root).unwrap();
+        let archive = root.join("workbuddy-experimental.ccadapter");
+        let library = root.join("library");
+        package_with_qualification(
+            &archive,
+            "mac-workbuddy",
+            "5.2.6",
+            "experimental",
+            "mac-workbuddy",
+            Some("experimental"),
+            true,
+            None,
+            None,
+            None,
+        );
+
+        assert_eq!(
+            install_adapter_package_to(&archive, &library, "mac-workbuddy", Some("5.2.6"))
+                .unwrap_err(),
+            "adapter-release-unqualified",
+        );
+        assert!(!library.join("active/mac-workbuddy.json").exists());
+    }
+
+    #[test]
+    fn a_runtime_unavailable_adapter_never_enters_the_active_store() {
+        let root = scratch("runtime-unavailable");
+        fs::create_dir_all(&root).unwrap();
+        let archive = root.join("runtime-unavailable.ccadapter");
+        let library = root.join("library");
+        package_with_qualification(
+            &archive,
+            "mac-workbuddy",
+            "5.2.6",
+            "runtime-unavailable",
+            "mac-workbuddy",
+            None,
+            false,
+            None,
+            None,
+            None,
+        );
+
+        assert_eq!(
+            install_adapter_package_to(&archive, &library, "mac-workbuddy", Some("5.2.6"))
+                .unwrap_err(),
+            "adapter-release-unqualified",
+        );
+        assert!(!library.join("active/mac-workbuddy.json").exists());
     }
 
     #[test]
@@ -1179,7 +1605,18 @@ mod tests {
         fs::create_dir_all(&root).unwrap();
         let archive = root.join("codex.ccadapter");
         let library = root.join("library");
-        package(&archive, "mac-codex", "26.715.31925");
+        package_with_qualification(
+            &archive,
+            "mac-codex",
+            "26.715.31925",
+            "verified-older-adapter",
+            "mac-codex",
+            Some("verified"),
+            true,
+            None,
+            None,
+            None,
+        );
 
         let receipt =
             install_adapter_package_to(&archive, &library, "mac-codex", Some("26.715.52143"))

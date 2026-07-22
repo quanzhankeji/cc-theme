@@ -3,9 +3,9 @@
   "schemaVersion": 1,
   "adapters": {
     "mac-codex": {
-      "detectedClientVersion": "26.715.61943",
-      "detectedClientBuild": "5628",
-      "surfaceCatalogId": "chatgpt-macos-26.715.61943",
+      "detectedClientVersion": "26.715.71837",
+      "detectedClientBuild": "5702",
+      "surfaceCatalogId": "chatgpt-macos-26.715.71837",
       "surfaceCatalogVersion": 1,
       "probeStatus": "passed",
       "compileAllowed": true,

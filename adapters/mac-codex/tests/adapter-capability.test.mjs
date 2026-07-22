@@ -34,9 +34,9 @@ assert.equal(capability.availability, "available");
 assert.equal(capability.runtimeApplyAvailable, true);
 assert.equal(capability.compatibility.clientVersionPolicy, "always-latest");
 assert.equal(capability.compatibility.surfaceEvidenceIsGate, true);
-assert.equal(capability.compatibility.currentEvidence.clientVersion, "26.715.61943");
-assert.equal(capability.compatibility.currentEvidence.clientBuild, "5628");
-assert.equal(capability.compatibility.currentEvidence.surfaceCatalogId, "chatgpt-macos-26.715.61943");
+assert.equal(capability.compatibility.currentEvidence.clientVersion, "26.715.71837");
+assert.equal(capability.compatibility.currentEvidence.clientBuild, "5702");
+assert.equal(capability.compatibility.currentEvidence.surfaceCatalogId, "chatgpt-macos-26.715.71837");
 assert.equal(capability.compatibility.currentEvidence.surfaceCatalogVersion, 1);
 assert.equal(capability.semanticContractStatus, "blocked-pending-manager-cross-validation");
 assert.equal(capability.sharedCoreFieldDecisions.source, "adapter-projection.json");
@@ -216,9 +216,9 @@ function managerInvocation(overrides = {}) {
       "mac-codex": { kind: "cc-theme.target-profile", adapterId: "mac-codex", revision: 1, copy: { tagline: "omit" }, appearance: { videoPosition: { xPercent: 70, yPercent: 20 } } },
     },
     compileContext: {
-      detectedClientVersion: "26.715.61943",
-      detectedClientBuild: "5628",
-      surfaceCatalogId: "chatgpt-macos-26.715.61943",
+      detectedClientVersion: "26.715.71837",
+      detectedClientBuild: "5702",
+      surfaceCatalogId: "chatgpt-macos-26.715.71837",
       surfaceCatalogVersion: 1,
       probeStatus: "passed",
       compileAllowed: true,
@@ -241,9 +241,9 @@ assert.deepEqual(projected.targetTheme.appearance.backgroundVideoPosition, { xPe
 assert(projected.diagnostics.some((item) => item.code === "minimum-text-contrast-runtime-unavailable"));
 
 const staleInvocation = managerInvocation();
-staleInvocation.compileContext.detectedClientVersion = "26.715.31925";
-staleInvocation.compileContext.detectedClientBuild = "5551";
-staleInvocation.compileContext.surfaceCatalogId = "chatgpt-macos-26.715.31925";
+staleInvocation.compileContext.detectedClientVersion = "26.715.70719";
+staleInvocation.compileContext.detectedClientBuild = "5650";
+staleInvocation.compileContext.surfaceCatalogId = "chatgpt-macos-26.715.70719";
 const stale = await projectThemeFamilyAdapter(staleInvocation);
 assert.equal(stale.status, "success");
 assert.equal(stale.applyAllowed, false);

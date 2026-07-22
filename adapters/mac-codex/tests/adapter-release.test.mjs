@@ -14,8 +14,10 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const temporary = await fs.mkdtemp(path.join(os.tmpdir(), "mac-codex-adapter-release-"));
 
 try {
-  const { manifest, identity } = await loadAdapterReleaseManifest(root);
-  const adapterVersion = (await fs.readFile(path.join(root, "VERSION"), "utf8")).trim();
+  const releaseSource = root;
+
+  const { manifest, identity } = await loadAdapterReleaseManifest(releaseSource);
+  const adapterVersion = (await fs.readFile(path.join(releaseSource, "VERSION"), "utf8")).trim();
   const expectedIdentity = `mac-codex-${adapterVersion}-r1-macos-arm64`;
   assert.equal(manifest.kind, "mac-codex-adapter.release-manifest");
   assert.equal(manifest.revision, 1, "release-manifest schema revision remains independent");
@@ -39,7 +41,7 @@ try {
   assert(manifest.entries.every((entry) => !/\.(?:cctheme|gif|jpe?g|mov|mp4|png|webm|webp)$/i.test(entry)));
 
   const output = path.join(temporary, "output");
-  const result = await assembleAdapterRelease(output, { sourceRoot: root });
+  const result = await assembleAdapterRelease(output, { sourceRoot: releaseSource });
   assert.equal(result.kind, "mac-codex-adapter.release");
   assert.equal(result.adapterId, "mac-codex");
   assert.equal(result.adapterVersion, adapterVersion);
@@ -56,7 +58,7 @@ try {
   assert.equal(JSON.parse(await fs.readFile(path.join(output, "contracts/adapter-capability.json"), "utf8")).adapterId, "mac-codex");
 
   const cleanCheckoutSource = path.join(temporary, "clean-checkout-source");
-  await fs.cp(root, cleanCheckoutSource, { recursive: true });
+  await fs.cp(releaseSource, cleanCheckoutSource, { recursive: true });
   await fs.rm(path.join(cleanCheckoutSource, "release"), { recursive: true, force: true });
   const cleanCheckoutResult = await assembleAdapterRelease(
     path.join(temporary, "clean-checkout-output"),
@@ -68,10 +70,10 @@ try {
   const occupied = path.join(temporary, "occupied");
   await fs.mkdir(occupied);
   await fs.writeFile(path.join(occupied, "keep.txt"), "do not overwrite\n");
-  await assert.rejects(assembleAdapterRelease(occupied, { sourceRoot: root }), /must be empty/);
+  await assert.rejects(assembleAdapterRelease(occupied, { sourceRoot: releaseSource }), /must be empty/);
 
   const copiedSource = path.join(temporary, "source");
-  await fs.cp(root, copiedSource, { recursive: true, verbatimSymlinks: true });
+  await fs.cp(releaseSource, copiedSource, { recursive: true, verbatimSymlinks: true });
   const outside = path.join(temporary, "outside.css");
   await fs.writeFile(outside, ":root{}\n");
   await fs.rm(path.join(copiedSource, "assets/skin.css"));
@@ -82,7 +84,7 @@ try {
   );
 
   const traversalSource = path.join(temporary, "traversal-source");
-  await fs.cp(root, traversalSource, { recursive: true });
+  await fs.cp(releaseSource, traversalSource, { recursive: true });
   const traversalManifestPath = path.join(traversalSource, "contracts/adapter-release-manifest.json");
   const traversalManifest = JSON.parse(await fs.readFile(traversalManifestPath, "utf8"));
   traversalManifest.entries.push("../escape");
@@ -93,7 +95,7 @@ try {
   );
 
   const invalidRevisionSource = path.join(temporary, "invalid-revision-source");
-  await fs.cp(root, invalidRevisionSource, { recursive: true });
+  await fs.cp(releaseSource, invalidRevisionSource, { recursive: true });
   await fs.rm(path.join(invalidRevisionSource, "release"), { recursive: true, force: true });
   const invalidRevisionPath = path.join(invalidRevisionSource, "contracts/adapter-release-manifest.json");
   const invalidRevision = JSON.parse(await fs.readFile(invalidRevisionPath, "utf8"));
@@ -102,7 +104,7 @@ try {
   await assert.rejects(loadAdapterReleaseManifest(invalidRevisionSource), /positive integer/);
 
   const mismatchedPackageSource = path.join(temporary, "mismatched-package-source");
-  await fs.cp(root, mismatchedPackageSource, { recursive: true });
+  await fs.cp(releaseSource, mismatchedPackageSource, { recursive: true });
   await fs.rm(path.join(mismatchedPackageSource, "release"), { recursive: true, force: true });
   const mismatchedPackagePath = path.join(mismatchedPackageSource, "package.json");
   const mismatchedPackage = JSON.parse(await fs.readFile(mismatchedPackagePath, "utf8"));

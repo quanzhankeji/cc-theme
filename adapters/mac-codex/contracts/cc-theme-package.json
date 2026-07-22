@@ -10,7 +10,7 @@
   "target": {
     "application": "codex",
     "platform": "macos",
-    "version": "26.715.61943",
+    "version": "26.715.71837",
     "adapterId": "mac-codex",
     "adapterContract": "skin.theme",
     "targetPath": "targets/macos/theme.json"

@@ -57,6 +57,19 @@ fn launch_state_admission(
     }
 }
 
+fn exact_surface_admission(
+    operation: ClientOperation,
+    adapter_status: &str,
+) -> Result<(), (&'static str, &'static str)> {
+    if matches!(operation, ClientOperation::Apply) && adapter_status == "compatibility-candidate" {
+        return Err((
+            "current-host-surface-unverified",
+            "Adapter 已是清单最新版，但当前客户端版本尚无精确界面证据，主题应用保持关闭",
+        ));
+    }
+    Ok(())
+}
+
 fn operation_lock(client_id: ClientId) -> &'static Mutex<()> {
     let locks = OPERATION_LOCKS.get_or_init(|| [Mutex::new(()), Mutex::new(()), Mutex::new(())]);
     match client_id {
@@ -206,6 +219,10 @@ pub async fn run_operation(
                 );
             }
             if let Err((code, message)) = launch_state_admission(operation, state.run_state) {
+                return OperationResult::failed(code, message);
+            }
+            if let Err((code, message)) = exact_surface_admission(operation, &state.adapter_status)
+            {
                 return OperationResult::failed(code, message);
             }
             if matches!(operation, ClientOperation::Apply) {
@@ -820,6 +837,32 @@ mod tests {
             key == "CC_THEME_ADAPTER_COMPATIBILITY_ATTEMPT"
                 && value.is_some_and(|value| value == "1")
         }));
+    }
+
+    #[test]
+    fn newer_host_surface_evidence_blocks_apply_but_not_native_launch_or_cleanup() {
+        assert_eq!(
+            exact_surface_admission(ClientOperation::Apply, "compatibility-candidate"),
+            Err((
+                "current-host-surface-unverified",
+                "Adapter 已是清单最新版，但当前客户端版本尚无精确界面证据，主题应用保持关闭",
+            ))
+        );
+        for operation in [
+            ClientOperation::Launch,
+            ClientOperation::Pause,
+            ClientOperation::Restore,
+            ClientOperation::Verify,
+        ] {
+            assert_eq!(
+                exact_surface_admission(operation, "compatibility-candidate"),
+                Ok(())
+            );
+        }
+        assert_eq!(
+            exact_surface_admission(ClientOperation::Apply, "ready"),
+            Ok(())
+        );
     }
 
     #[test]

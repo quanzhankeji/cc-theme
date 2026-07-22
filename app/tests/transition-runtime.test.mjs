@@ -16,9 +16,9 @@ async function fixture(t) {
   t.after(() => fs.rm(root, { recursive: true, force: true }));
   const packageRoot = path.join(root, "package");
   const built = await buildAdapterPackage({
-    sourceRoot: path.join(workspaceRoot, "adapters", "mac-codex"),
+    sourceRoot: path.join(workspaceRoot, "adapters", "mac-workbuddy"),
     outputDirectory: packageRoot,
-    adapterId: "mac-codex",
+    adapterId: "mac-workbuddy",
     architecture: "arm64",
     minimumManagerVersion: "0.2.0",
     unifiedThemeSchemaVersion: 1,

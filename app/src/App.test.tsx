@@ -876,7 +876,7 @@ describe("CC Theme desktop dashboard", () => {
     ));
   });
 
-  it("客户端更新后明确展示旧 Adapter 兼容模式并允许受控尝试", async () => {
+  it("Adapter 已是 Catalog 最新但宿主版本更新后明确阻断应用", async () => {
     const dashboard = cloneDemoDashboard();
     const codex = dashboard.clients.find((client) => client.id === "mac-codex")!;
     codex.version = "26.715.52143";
@@ -890,11 +890,10 @@ describe("CC Theme desktop dashboard", () => {
 
     await user.click(await screen.findByRole("button", { name: /纸月 Paper Moon/ }));
     const card = screen.getByTestId("client-mac-codex");
-    expect(card).toHaveTextContent("正在使用旧版 Adapter 进行兼容尝试");
-    const apply = within(card).getByRole("button", { name: "使用旧版 Adapter 尝试为 Codex 注入主题并启动" });
-    expect(apply).toBeEnabled();
-    expect(apply).toHaveTextContent("兼容尝试并启动");
-    await user.click(apply);
-    await waitFor(() => expect(api.applyTheme).toHaveBeenCalledWith("mac-codex", "paper-moon", true));
+    expect(card).toHaveTextContent("Adapter 已是清单最新版，但当前客户端版本尚无精确界面证据");
+    const apply = within(card).getByRole("button", { name: "Codex 当前版本尚未验证主题应用" });
+    expect(apply).toBeDisabled();
+    expect(apply).toHaveTextContent("当前版本尚未验证");
+    expect(api.applyTheme).not.toHaveBeenCalled();
   });
 });

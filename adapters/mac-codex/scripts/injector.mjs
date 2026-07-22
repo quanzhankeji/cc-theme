@@ -1523,7 +1523,7 @@ async function verifySession(session) {
     );
     // Project selector markup varies across Codex builds — soft requirement.
     const cardsHomePass = result.newTaskLayout === 'cards' && result.homePresent &&
-      result.heading?.visible && result.visibleCardCount === 4 && !result.hero;
+      result.heading?.visible && result.composer?.visible && !result.hero;
     const bannerHomePass = result.newTaskLayout === 'banner' && result.homePresent &&
       result.hero?.visible && result.hero.width >= 280 && result.hero.height >= 120 &&
       result.visibleCardCount >= 1 && result.visibleCardCount <= 6;

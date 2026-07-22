@@ -41,6 +41,15 @@ export async function buildAdapterDistribution({
   if (!ARCHITECTURES.has(architecture)) fail("architecture is unsupported");
   if (!new Set(["development-local", "published"]).has(publicationStatus)) fail("publicationStatus is invalid");
   if (publicationStatus === "published" && !downloadBaseUrl) fail("published output requires an HTTPS download base URL");
+  if (publicationStatus === "published") {
+    let origin;
+    try {
+      origin = new URL(downloadBaseUrl);
+    } catch {
+      fail("published download origin must use HTTPS");
+    }
+    if (origin.protocol !== "https:") fail("published download origin must use HTTPS");
+  }
 
   const layout = await managerLayout(path.dirname(fileURLToPath(import.meta.url)));
   const destination = path.resolve(outputDirectory);

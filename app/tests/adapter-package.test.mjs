@@ -17,11 +17,11 @@ const managerRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 const workspaceRoot = path.resolve(managerRoot, "..");
 const adapters = [
   {
-    adapterId: "mac-codex",
-    adapterVersion: "26.715.61943",
+    adapterId: "mac-doubao",
+    adapterVersion: "2.19.9",
     adapterReleaseRevision: 1,
-    assetIdentity: "mac-codex-26.715.61943-r1-macos-arm64",
-    capabilityVersion: "2.0.0",
+    assetIdentity: "mac-doubao-2.19.9-r1-macos-arm64",
+    capabilityVersion: "1.3.0",
   },
   {
     adapterId: "mac-workbuddy",
@@ -123,7 +123,13 @@ async function syntheticWorkBuddySource(t, entries = []) {
   await fs.mkdir(path.join(root, "contracts"), { recursive: true });
   const required = ["VERSION", "contracts/adapter-capability.json", "contracts/adapter-release-manifest.json"];
   await fs.writeFile(path.join(root, "VERSION"), "0.1.0\n");
-  await fs.writeFile(path.join(root, "contracts", "adapter-capability.json"), `${JSON.stringify({ adapterId: "mac-workbuddy", capabilityVersion: 1 })}\n`);
+  await fs.writeFile(path.join(root, "contracts", "adapter-capability.json"), `${JSON.stringify({
+    adapterId: "mac-workbuddy",
+    capabilityVersion: 1,
+    available: true,
+    runtimeApplyAvailable: true,
+    compatibility: { verifiedClientVersions: ["0.1.0"] },
+  })}\n`);
   await fs.writeFile(path.join(root, "contracts", "adapter-release-manifest.json"), `${JSON.stringify({
     kind: "workbuddy-adapter.release-manifest",
     revision: 1,
@@ -137,6 +143,340 @@ async function syntheticWorkBuddySource(t, entries = []) {
   }, null, 2)}\n`);
   return root;
 }
+
+async function syntheticCodexCandidateSource(t, {
+  admissionStatus = "experimental",
+  runtimeApplyAvailable = true,
+} = {}) {
+  const root = await temporaryDirectory(t, "codex-candidate-source");
+  const version = "26.715.99999";
+  const evidence = `compatibility/chatgpt-macos/${version}/ui-surface-catalog.json`;
+  const required = [
+    "PROJECT_MANIFEST.json",
+    "VERSION",
+    evidence,
+    "contracts/adapter-capability.json",
+    "contracts/adapter-release-manifest.json",
+  ].sort();
+  await fs.mkdir(path.join(root, "contracts"), { recursive: true });
+  await fs.mkdir(path.dirname(path.join(root, evidence)), { recursive: true });
+  await fs.writeFile(path.join(root, "VERSION"), `${version}\n`);
+  await fs.writeFile(path.join(root, "PROJECT_MANIFEST.json"), `${JSON.stringify({
+    contracts: { uiEvidenceCatalog: evidence },
+  }, null, 2)}\n`);
+  await fs.writeFile(path.join(root, "contracts", "adapter-capability.json"), `${JSON.stringify({
+    adapterId: "mac-codex",
+    capabilityVersion: "2.0.0",
+    availability: "available",
+    runtimeApplyAvailable,
+    compatibility: {
+      currentEvidence: {
+        clientVersion: version,
+        clientBuild: "9999",
+        surfaceCatalogId: `chatgpt-macos-${version}`,
+        surfaceCatalogVersion: 1,
+      },
+    },
+  }, null, 2)}\n`);
+  await fs.writeFile(path.join(root, evidence), `${JSON.stringify({
+    schemaVersion: "1.0.0",
+    catalogId: `chatgpt-macos-${version}`,
+    catalogVersion: 1,
+    client: { version, build: "9999" },
+    admission: {
+      status: admissionStatus,
+      failClosed: true,
+      ...(admissionStatus === "verified" ? {} : { pendingGate: "live-surface-revalidation" }),
+    },
+  }, null, 2)}\n`);
+  const assetIdentity = `mac-codex-${version}-r1-macos-arm64`;
+  await fs.writeFile(path.join(root, "contracts", "adapter-release-manifest.json"), `${JSON.stringify({
+    kind: "mac-codex-adapter.release-manifest",
+    revision: 1,
+    adapterId: "mac-codex",
+    adapterVersion: version,
+    adapterReleaseRevision: 1,
+    os: "macos",
+    arch: "arm64",
+    assetIdentity,
+    artifacts: {
+      source: `${assetIdentity}.zip`,
+      client: `cc-theme-${assetIdentity}.zip`,
+    },
+    entries: required,
+  }, null, 2)}\n`);
+  return root;
+}
+
+test("release packaging rejects an experimental Surface candidate before writing an archive", async (t) => {
+  const sourceRoot = await syntheticCodexCandidateSource(t);
+  const outputDirectory = await temporaryDirectory(t, "candidate-release-output");
+  await assert.rejects(
+    buildAdapterPackage({
+      sourceRoot,
+      outputDirectory,
+      adapterId: "mac-codex",
+      architecture: "arm64",
+      minimumManagerVersion: "0.2.0",
+      unifiedThemeSchemaVersion: 1,
+    }),
+    /Surface qualification is not verified/,
+  );
+  assert.deepEqual(await fs.readdir(outputDirectory), []);
+});
+
+test("release packaging rejects runtimeApplyAvailable=false even with verified Surface evidence", async (t) => {
+  const sourceRoot = await syntheticCodexCandidateSource(t, {
+    admissionStatus: "verified",
+    runtimeApplyAvailable: false,
+  });
+  const outputDirectory = await temporaryDirectory(t, "runtime-unavailable-release-output");
+  await assert.rejects(
+    buildAdapterPackage({
+      sourceRoot,
+      outputDirectory,
+      adapterId: "mac-codex",
+      architecture: "arm64",
+      minimumManagerVersion: "0.2.0",
+      unifiedThemeSchemaVersion: 1,
+    }),
+    /runtime apply is unavailable/,
+  );
+  assert.deepEqual(await fs.readdir(outputDirectory), []);
+});
+
+test("release packaging accepts the same closed source only after its Surface evidence is verified", async (t) => {
+  const sourceRoot = await syntheticCodexCandidateSource(t, { admissionStatus: "verified" });
+  const outputDirectory = await temporaryDirectory(t, "verified-release-output");
+  const built = await buildAdapterPackage({
+    sourceRoot,
+    outputDirectory,
+    adapterId: "mac-codex",
+    architecture: "arm64",
+    minimumManagerVersion: "0.2.0",
+    unifiedThemeSchemaVersion: 1,
+  });
+  assert.equal(built.assetName, "mac-codex-26.715.99999-r1-macos-arm64.ccadapter");
+  assert.equal((await fs.readdir(outputDirectory)).sort().join("\n"), [
+    built.assetName,
+    `${built.assetName}.manifest.json`,
+  ].sort().join("\n"));
+});
+
+test("release packaging rejects a verified-looking catalog whose identity is not bound to Capability", async (t) => {
+  const sourceRoot = await syntheticCodexCandidateSource(t, { admissionStatus: "verified" });
+  const capabilityPath = path.join(sourceRoot, "contracts", "adapter-capability.json");
+  const capability = JSON.parse(await fs.readFile(capabilityPath, "utf8"));
+  capability.compatibility.currentEvidence.surfaceCatalogId = "chatgpt-macos-forged";
+  await fs.writeFile(capabilityPath, `${JSON.stringify(capability, null, 2)}\n`);
+  const outputDirectory = await temporaryDirectory(t, "forged-surface-release-output");
+  await assert.rejects(
+    buildAdapterPackage({
+      sourceRoot,
+      outputDirectory,
+      adapterId: "mac-codex",
+      architecture: "arm64",
+      minimumManagerVersion: "0.2.0",
+      unifiedThemeSchemaVersion: 1,
+    }),
+    /Surface Catalog identity differs/,
+  );
+  assert.deepEqual(await fs.readdir(outputDirectory), []);
+});
+
+test("release packaging rejects a Surface build that differs from Capability evidence", async (t) => {
+  const sourceRoot = await syntheticCodexCandidateSource(t, { admissionStatus: "verified" });
+  const capabilityPath = path.join(sourceRoot, "contracts", "adapter-capability.json");
+  const capability = JSON.parse(await fs.readFile(capabilityPath, "utf8"));
+  capability.compatibility.currentEvidence.clientBuild = "9998";
+  await fs.writeFile(capabilityPath, `${JSON.stringify(capability, null, 2)}\n`);
+  const outputDirectory = await temporaryDirectory(t, "mismatched-surface-build-output");
+  await assert.rejects(
+    buildAdapterPackage({
+      sourceRoot,
+      outputDirectory,
+      adapterId: "mac-codex",
+      architecture: "arm64",
+      minimumManagerVersion: "0.2.0",
+      unifiedThemeSchemaVersion: 1,
+    }),
+    /Surface evidence targets a different host build/,
+  );
+  assert.deepEqual(await fs.readdir(outputDirectory), []);
+});
+
+test("release packaging rejects a noncanonical CodeX Surface evidence path", async (t) => {
+  const sourceRoot = await syntheticCodexCandidateSource(t, { admissionStatus: "verified" });
+  const version = "26.715.99999";
+  const canonical = `compatibility/chatgpt-macos/${version}/ui-surface-catalog.json`;
+  const noncanonical = `compatibility/chatgpt-macos/${version}/alternate-surface-catalog.json`;
+  await fs.rename(path.join(sourceRoot, canonical), path.join(sourceRoot, noncanonical));
+  await fs.writeFile(path.join(sourceRoot, "PROJECT_MANIFEST.json"), `${JSON.stringify({
+    contracts: { uiEvidenceCatalog: noncanonical },
+  }, null, 2)}\n`);
+  const releasePath = path.join(sourceRoot, "contracts", "adapter-release-manifest.json");
+  const release = JSON.parse(await fs.readFile(releasePath, "utf8"));
+  release.entries = release.entries.map((entry) => entry === canonical ? noncanonical : entry).sort();
+  await fs.writeFile(releasePath, `${JSON.stringify(release, null, 2)}\n`);
+  const outputDirectory = await temporaryDirectory(t, "noncanonical-surface-path-output");
+  await assert.rejects(
+    buildAdapterPackage({
+      sourceRoot,
+      outputDirectory,
+      adapterId: "mac-codex",
+      architecture: "arm64",
+      minimumManagerVersion: "0.2.0",
+      unifiedThemeSchemaVersion: 1,
+    }),
+    /non-canonical CodeX Surface evidence path/,
+  );
+  assert.deepEqual(await fs.readdir(outputDirectory), []);
+});
+
+test("release packaging cannot bypass current Surface evidence by removing its Project Manifest binding", async (t) => {
+  const sourceRoot = await syntheticCodexCandidateSource(t, { admissionStatus: "verified" });
+  await fs.writeFile(path.join(sourceRoot, "PROJECT_MANIFEST.json"), `${JSON.stringify({ contracts: {} }, null, 2)}\n`);
+  const outputDirectory = await temporaryDirectory(t, "missing-surface-binding-output");
+  await assert.rejects(
+    buildAdapterPackage({
+      sourceRoot,
+      outputDirectory,
+      adapterId: "mac-codex",
+      architecture: "arm64",
+      minimumManagerVersion: "0.2.0",
+      unifiedThemeSchemaVersion: 1,
+    }),
+    /has no bound UI Surface evidence path/,
+  );
+  assert.deepEqual(await fs.readdir(outputDirectory), []);
+});
+
+test("release packaging cannot bypass current Surface evidence by deleting admission", async (t) => {
+  const sourceRoot = await syntheticCodexCandidateSource(t, { admissionStatus: "verified" });
+  const evidencePath = path.join(
+    sourceRoot,
+    "compatibility/chatgpt-macos/26.715.99999/ui-surface-catalog.json",
+  );
+  const evidence = JSON.parse(await fs.readFile(evidencePath, "utf8"));
+  delete evidence.admission;
+  await fs.writeFile(evidencePath, `${JSON.stringify(evidence, null, 2)}\n`);
+  const outputDirectory = await temporaryDirectory(t, "missing-surface-admission-output");
+  await assert.rejects(
+    buildAdapterPackage({
+      sourceRoot,
+      outputDirectory,
+      adapterId: "mac-codex",
+      architecture: "arm64",
+      minimumManagerVersion: "0.2.0",
+      unifiedThemeSchemaVersion: 1,
+    }),
+    /Surface qualification is not verified/,
+  );
+  assert.deepEqual(await fs.readdir(outputDirectory), []);
+});
+
+test("release packaging cannot downgrade CodeX to a legacy verified-version gate", async (t) => {
+  const sourceRoot = await syntheticCodexCandidateSource(t, { admissionStatus: "verified" });
+  const capabilityPath = path.join(sourceRoot, "contracts", "adapter-capability.json");
+  const capability = JSON.parse(await fs.readFile(capabilityPath, "utf8"));
+  capability.compatibility = { verifiedClientVersions: ["26.715.99999"] };
+  await fs.writeFile(capabilityPath, `${JSON.stringify(capability, null, 2)}\n`);
+  const releasePath = path.join(sourceRoot, "contracts", "adapter-release-manifest.json");
+  const release = JSON.parse(await fs.readFile(releasePath, "utf8"));
+  release.entries = release.entries.filter((entry) =>
+    entry !== "PROJECT_MANIFEST.json" && !entry.endsWith("/ui-surface-catalog.json"));
+  await fs.writeFile(releasePath, `${JSON.stringify(release, null, 2)}\n`);
+  const outputDirectory = await temporaryDirectory(t, "downgraded-surface-gate-output");
+  await assert.rejects(
+    buildAdapterPackage({
+      sourceRoot,
+      outputDirectory,
+      adapterId: "mac-codex",
+      architecture: "arm64",
+      minimumManagerVersion: "0.2.0",
+      unifiedThemeSchemaVersion: 1,
+    }),
+    /cannot downgrade.*current Surface evidence gate/,
+  );
+  assert.deepEqual(await fs.readdir(outputDirectory), []);
+});
+
+test("release packaging rejects a forged CodeX Catalog identity even when Capability and Surface agree", async (t) => {
+  const sourceRoot = await syntheticCodexCandidateSource(t, { admissionStatus: "verified" });
+  const capabilityPath = path.join(sourceRoot, "contracts", "adapter-capability.json");
+  const capability = JSON.parse(await fs.readFile(capabilityPath, "utf8"));
+  capability.compatibility.currentEvidence.surfaceCatalogId = "attacker-controlled-catalog";
+  await fs.writeFile(capabilityPath, `${JSON.stringify(capability, null, 2)}\n`);
+  const evidencePath = path.join(
+    sourceRoot,
+    "compatibility/chatgpt-macos/26.715.99999/ui-surface-catalog.json",
+  );
+  const evidence = JSON.parse(await fs.readFile(evidencePath, "utf8"));
+  evidence.catalogId = "attacker-controlled-catalog";
+  await fs.writeFile(evidencePath, `${JSON.stringify(evidence, null, 2)}\n`);
+  const outputDirectory = await temporaryDirectory(t, "forged-both-catalog-ids-output");
+  await assert.rejects(
+    buildAdapterPackage({
+      sourceRoot,
+      outputDirectory,
+      adapterId: "mac-codex",
+      architecture: "arm64",
+      minimumManagerVersion: "0.2.0",
+      unifiedThemeSchemaVersion: 1,
+    }),
+    /Surface Catalog identity differs/,
+  );
+  assert.deepEqual(await fs.readdir(outputDirectory), []);
+});
+
+test("release packaging requires versioned CodeX Surface evidence", async (t) => {
+  const sourceRoot = await syntheticCodexCandidateSource(t, { admissionStatus: "verified" });
+  const evidencePath = path.join(
+    sourceRoot,
+    "compatibility/chatgpt-macos/26.715.99999/ui-surface-catalog.json",
+  );
+  const evidence = JSON.parse(await fs.readFile(evidencePath, "utf8"));
+  delete evidence.schemaVersion;
+  delete evidence.catalogVersion;
+  await fs.writeFile(evidencePath, `${JSON.stringify(evidence, null, 2)}\n`);
+  const outputDirectory = await temporaryDirectory(t, "missing-surface-version-output");
+  await assert.rejects(
+    buildAdapterPackage({
+      sourceRoot,
+      outputDirectory,
+      adapterId: "mac-codex",
+      architecture: "arm64",
+      minimumManagerVersion: "0.2.0",
+      unifiedThemeSchemaVersion: 1,
+    }),
+    /Surface Catalog version differs/,
+  );
+  assert.deepEqual(await fs.readdir(outputDirectory), []);
+});
+
+test("release packaging requires the CodeX Surface client version", async (t) => {
+  const sourceRoot = await syntheticCodexCandidateSource(t, { admissionStatus: "verified" });
+  const evidencePath = path.join(
+    sourceRoot,
+    "compatibility/chatgpt-macos/26.715.99999/ui-surface-catalog.json",
+  );
+  const evidence = JSON.parse(await fs.readFile(evidencePath, "utf8"));
+  delete evidence.client.version;
+  await fs.writeFile(evidencePath, `${JSON.stringify(evidence, null, 2)}\n`);
+  const outputDirectory = await temporaryDirectory(t, "missing-surface-client-version-output");
+  await assert.rejects(
+    buildAdapterPackage({
+      sourceRoot,
+      outputDirectory,
+      adapterId: "mac-codex",
+      architecture: "arm64",
+      minimumManagerVersion: "0.2.0",
+      unifiedThemeSchemaVersion: 1,
+    }),
+    /Surface evidence targets a different host version/,
+  );
+  assert.deepEqual(await fs.readdir(outputDirectory), []);
+});
 
 test("the public schema is closed and extensible while current build admission stays Mac-only", async () => {
   const schema = JSON.parse(await fs.readFile(path.join(managerRoot, "contracts", "ccadapter-package.schema.json"), "utf8"));
@@ -159,7 +499,7 @@ test("the public schema is closed and extensible while current build admission s
   assert.deepEqual(schema.$defs.file.properties.mode.enum, [420, 493]);
 });
 
-test("all three active Mac Adapters preserve their host-version and release-revision identity in the verified package", async (t) => {
+test("release-qualified Mac Adapters preserve their host-version and release-revision identity in the verified package", async (t) => {
   const outputDirectory = await temporaryDirectory(t, "two-mac");
   for (const { adapterId, adapterVersion, adapterReleaseRevision, assetIdentity, capabilityVersion } of adapters) {
     const built = await buildAdapterPackage({
@@ -201,8 +541,8 @@ test("packing identical input is byte-for-byte deterministic", async (t) => {
   const leftDirectory = await temporaryDirectory(t, "deterministic-left");
   const rightDirectory = await temporaryDirectory(t, "deterministic-right");
   const input = {
-    sourceRoot: path.join(workspaceRoot, "adapters", "mac-codex"),
-    adapterId: "mac-codex",
+    sourceRoot: path.join(workspaceRoot, "adapters", "mac-workbuddy"),
+    adapterId: "mac-workbuddy",
     architecture: "arm64",
     minimumManagerVersion: "0.1.0",
     unifiedThemeSchemaVersion: 1,

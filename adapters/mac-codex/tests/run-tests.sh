@@ -745,12 +745,16 @@ if (projectManifest.client.versionPolicy !== "always-latest" ||
     projectManifest.securityBoundary.blocksByClientVersion !== false ||
     projectManifest.securityBoundary.requiresCurrentSurfaceEvidence !== true ||
     capability.compatibility?.currentEvidence?.clientVersion !== version ||
-    capability.compatibility?.currentEvidence?.clientBuild !== "5628" ||
+    capability.compatibility?.currentEvidence?.clientBuild !== "5702" ||
     capability.compatibility?.currentEvidence?.surfaceCatalogVersion !== 1 ||
     uiEvidenceCatalog.client?.version !== version ||
-    uiEvidenceCatalog.client?.build !== "5628" ||
+    uiEvidenceCatalog.client?.build !== "5702" ||
     uiEvidenceCatalog.admission?.status !== "verified" ||
     uiEvidenceCatalog.admission?.failClosed !== true ||
+    uiEvidenceCatalog.admission?.pendingGate !== undefined ||
+    uiEvidenceCatalog.processEvidence?.status !== "verified" ||
+    uiEvidenceCatalog.liveEvidence?.captureResult !== "passed" ||
+    uiEvidenceCatalog.liveEvidence?.pendingRouteCoverage?.length !== 0 ||
     uiEvidenceCatalog.bundleEvidence.stableSelectorCounts?.["data-settings-panel-slug"] < 1 ||
     uiEvidenceCatalog.bundleEvidence.stableSelectorCounts?.["data-codex-composer-root"] < 1) {
   throw new Error("Always-latest runtime policy or current UI evidence admission is inconsistent");

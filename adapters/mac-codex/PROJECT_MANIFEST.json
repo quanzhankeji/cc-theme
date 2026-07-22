@@ -2,20 +2,20 @@
   "kind": "mac-codex.repository",
   "schemaVersion": "1.0.0",
   "adapterId": "mac-codex",
-  "adapterVersion": "26.715.61943",
+  "adapterVersion": "26.715.71837",
   "adapterReleaseRevision": 1,
-  "productVersion": "26.715.61943",
+  "productVersion": "26.715.71837",
   "platform": "macOS",
   "releaseTarget": {
     "os": "macos",
     "arch": "arm64",
-    "assetIdentity": "mac-codex-26.715.61943-r1-macos-arm64",
-    "sourceArtifact": "mac-codex-26.715.61943-r1-macos-arm64.zip",
-    "clientArtifact": "cc-theme-mac-codex-26.715.61943-r1-macos-arm64.zip"
+    "assetIdentity": "mac-codex-26.715.71837-r1-macos-arm64",
+    "sourceArtifact": "mac-codex-26.715.71837-r1-macos-arm64.zip",
+    "clientArtifact": "cc-theme-mac-codex-26.715.71837-r1-macos-arm64.zip"
   },
   "client": {
     "bundleId": "com.openai.codex",
-    "supportedShortVersion": "26.715.61943",
+    "supportedShortVersion": "26.715.71837",
     "versionPolicy": "always-latest",
     "transport": "loopback-cdp",
     "defaultPort": 9341
@@ -60,8 +60,8 @@
     "styleCatalogValidator": "scripts/theme-style-catalog.mjs",
     "editorLocalesValidator": "scripts/theme-editor-locales.mjs",
     "liveSurfaceEvidenceImplementation": "scripts/live-surface-evidence.mjs",
-    "uiEvidenceCatalog": "compatibility/chatgpt-macos/26.715.61943/ui-surface-catalog.json",
-    "semanticRoleVisualReport": "compatibility/chatgpt-macos/26.715.61943/semantic-role-visual-report.json",
+    "uiEvidenceCatalog": "compatibility/chatgpt-macos/26.715.71837/ui-surface-catalog.json",
+    "semanticRoleVisualReport": "compatibility/chatgpt-macos/26.715.71837/semantic-role-visual-report.json",
     "surfaceAdmissionImplementation": "scripts/surface-admission.mjs"
   },
   "securityBoundary": {

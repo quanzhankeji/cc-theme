@@ -5,8 +5,8 @@ import { fileURLToPath } from "node:url";
 import { evaluateSurfaceAdmissionFacts } from "../scripts/surface-admission.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const catalog = JSON.parse(await fs.readFile(path.join(root, "compatibility", "chatgpt-macos", "26.715.61943", "ui-surface-catalog.json"), "utf8"));
-const visualReport = JSON.parse(await fs.readFile(path.join(root, "compatibility", "chatgpt-macos", "26.715.61943", "semantic-role-visual-report.json"), "utf8"));
+const catalog = JSON.parse(await fs.readFile(path.join(root, "compatibility", "chatgpt-macos", "26.715.71837", "ui-surface-catalog.json"), "utf8"));
+const visualReport = JSON.parse(await fs.readFile(path.join(root, "compatibility", "chatgpt-macos", "26.715.71837", "semantic-role-visual-report.json"), "utf8"));
 assert(catalog.styleEvidence.consumers["colors.text"].includes("--skin-text"));
 assert(catalog.styleEvidence.consumers["colors.muted"].includes("--skin-muted"));
 assert.match(catalog.styleEvidence.unsupportedConsumers["fonts.code"], /no verified/);
@@ -27,11 +27,11 @@ assert.deepEqual(catalog.liveEvidence.pendingRouteCoverage, []);
 const verifiedCatalog = structuredClone(catalog);
 const facts = {
   bundleId: "com.openai.codex",
-  version: "26.715.61943",
-  build: "5628",
+  version: "26.715.71837",
+  build: "5702",
   chromium: "150.0.7871.124",
   teamId: "2DC432GLL2",
-  asarSha256: "7501dd25c22e090bb131fe3fe6423e5c3b21b7f275c7e45b86ebe00a68052c80",
+  asarSha256: "11292b6a04d8aef36c30940b94ce3a744844dc5a52797228fbebb87f8529f102",
   markerCounts: structuredClone(verifiedCatalog.bundleEvidence.stableSelectorCounts),
 };
 
@@ -43,7 +43,7 @@ assert.equal(allowed.evidencePolicy, "current-host-evidence-required");
 assert.deepEqual(allowed.diagnostics, []);
 
 const newerCompatibleFacts = structuredClone(facts);
-newerCompatibleFacts.version = "26.715.52143";
+newerCompatibleFacts.version = "26.715.80000";
 newerCompatibleFacts.build = "6000";
 newerCompatibleFacts.chromium = "151.0.8000.1";
 newerCompatibleFacts.asarSha256 = "1".repeat(64);
@@ -57,12 +57,20 @@ assert(compatibilityAttempt.diagnostics.some((item) =>
   item.code === "surface-evidence-client-version-mismatch" && item.severity === "error"));
 
 const oldHostFacts = structuredClone(facts);
-oldHostFacts.version = "26.715.31925";
-oldHostFacts.build = "5551";
-oldHostFacts.asarSha256 = "0c9dd677134340cb944e7642b8bc2504c7b73c7dc334d9d756547858171eea41";
+oldHostFacts.version = "26.715.61943";
+oldHostFacts.build = "5628";
+oldHostFacts.asarSha256 = "7501dd25c22e090bb131fe3fe6423e5c3b21b7f275c7e45b86ebe00a68052c80";
 const oldHost = evaluateSurfaceAdmissionFacts(oldHostFacts, verifiedCatalog);
-assert.equal(oldHost.allowed, false, "26.715.61943-r1 must reject the stale 26.715.31925 host context");
+assert.equal(oldHost.allowed, false, "26.715.71837-r1 must reject the stale 26.715.61943 host context");
 assert(oldHost.diagnostics.some((item) => item.code === "surface-evidence-client-version-mismatch"));
+
+const previousHostFacts = structuredClone(facts);
+previousHostFacts.version = "26.715.70719";
+previousHostFacts.build = "5650";
+previousHostFacts.asarSha256 = "954760af20a1b74275a9db50c99a09266da4f5d1e08f4b613c8a46f97adc9ce4";
+const previousHost = evaluateSurfaceAdmissionFacts(previousHostFacts, verifiedCatalog);
+assert.equal(previousHost.allowed, false, "the unverified 26.715.70719 candidate must not reuse current Surface evidence");
+assert(previousHost.diagnostics.some((item) => item.code === "surface-evidence-client-version-mismatch"));
 
 const incompatibleStructure = structuredClone(newerCompatibleFacts);
 incompatibleStructure.markerCounts["data-settings-panel-slug"] = 0;

@@ -86,10 +86,10 @@ Adapter 验证外部包内的本地图片、H.264 MP4、静态 WebP 方向图集
 ```
 
 当前 arm64 用户包为
-`cc-theme-mac-codex-26.715.61943-r1-macos-arm64.zip`，源码包为
-`mac-codex-26.715.61943-r1-macos-arm64.zip`，校验文件分别为
-`cc-theme-mac-codex-26.715.61943-r1-macos-arm64.zip.sha256` 和
-`mac-codex-26.715.61943-r1-macos-arm64.zip.sha256`。
+`cc-theme-mac-codex-26.715.71837-r1-macos-arm64.zip`，源码包为
+`mac-codex-26.715.71837-r1-macos-arm64.zip`，校验文件分别为
+`cc-theme-mac-codex-26.715.71837-r1-macos-arm64.zip.sha256` 和
+`mac-codex-26.715.71837-r1-macos-arm64.zip.sha256`。
 `adapterVersion` 严格跟随 Codex `CFBundleShortVersionString`；同版本再发布时递增
 `adapterReleaseRevision`，构建器拒绝覆盖已有同修订制品。精确 build 只存在
 compatibility evidence 和 Manager compile context，不进入资产名。

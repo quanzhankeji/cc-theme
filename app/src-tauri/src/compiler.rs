@@ -462,7 +462,8 @@ fn build_compile_context_for(
                 && matches!(state.signature.status, SignatureState::Verified)
         });
         let probe_passed = identity_admitted && !compatibility_attempt;
-        let apply_allowed = identity_admitted && capability.runtime_apply_available;
+        let apply_allowed =
+            identity_admitted && capability.runtime_apply_available && !compatibility_attempt;
         let catalog_version = capability
             .catalog_version
             .as_deref()
@@ -478,7 +479,7 @@ fn build_compile_context_for(
                 "compileAllowed": capability.availability != CapabilityAvailability::Unavailable,
                 "applyAllowed": apply_allowed,
                 "reasonCode": if compatibility_attempt {
-                    Value::String("older-adapter-compatibility-attempt".to_string())
+                    Value::String("current-host-surface-unverified".to_string())
                 } else if apply_allowed {
                     Value::Null
                 } else {
@@ -802,7 +803,7 @@ mod tests {
     }
 
     #[test]
-    fn newer_host_context_marks_an_explicit_runtime_compatibility_attempt() {
+    fn newer_host_context_keeps_compile_available_but_blocks_runtime_apply() {
         let state = ClientState {
             id: ClientId::Codex,
             name: "Codex".to_string(),
@@ -829,8 +830,8 @@ mod tests {
         let context = build_compile_context_for("mac-codex", Some(&state));
         let adapter = &context["adapters"]["mac-codex"];
         assert_eq!(adapter["probeStatus"], "not-run");
-        assert_eq!(adapter["applyAllowed"], true);
-        assert_eq!(adapter["reasonCode"], "older-adapter-compatibility-attempt");
+        assert_eq!(adapter["applyAllowed"], false);
+        assert_eq!(adapter["reasonCode"], "current-host-surface-unverified");
         assert_eq!(adapter["detectedClientVersion"], "26.715.52143");
     }
 

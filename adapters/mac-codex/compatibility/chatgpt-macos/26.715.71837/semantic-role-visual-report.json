@@ -1,0 +1,103 @@
+{
+  "kind": "skin.semantic-role-visual-report",
+  "schemaVersion": "1.0.0",
+  "adapterId": "mac-codex",
+  "catalogId": "chatgpt-macos-26.715.71837",
+  "capturedAt": "2026-07-22",
+  "status": "verified-isolated-current-version-live-qa",
+  "client": {
+    "product": "Codex Desktop",
+    "version": "26.715.71837",
+    "build": "5702",
+    "bundleTeamId": "2DC432GLL2",
+    "codeDirectoryHash": "c0719964dbf463a36cbf31fe274d01a087b0a59b",
+    "asarSha256": "11292b6a04d8aef36c30940b94ce3a744844dc5a52797228fbebb87f8529f102"
+  },
+  "privacy": {
+    "profile": "structural-computed-style-only-v1",
+    "excluded": [
+      "innerText",
+      "textContent",
+      "input values",
+      "accessible names",
+      "URL",
+      "query",
+      "hash",
+      "link targets",
+      "media sources"
+    ]
+  },
+  "applyAdmission": {
+    "allowed": true,
+    "policy": "official-signature-plus-current-surface-evidence-plus-live-adapter-verification",
+    "surfaceEvidenceIsGate": true,
+    "diagnostics": []
+  },
+  "semanticRoles": {
+    "main": { "status": "verified-live", "pass": true },
+    "sidebar": { "status": "verified-live", "pass": true },
+    "header": { "status": "verified-native-layout-preserved", "pass": true },
+    "composer": { "status": "verified-live", "pass": true },
+    "heading": { "status": "verified-live", "pass": true },
+    "body": { "status": "verified-live", "pass": true },
+    "textMuted": { "status": "verified-live", "pass": true },
+    "interaction": { "status": "verified-live-and-automated", "pass": true },
+    "focus": { "status": "verified-live", "pass": true },
+    "background": { "status": "verified-static-live-dynamic-automated", "pass": true }
+  },
+  "homeAcceptance": {
+    "movingBackgroundPolicy": "preserve-current-native-layout",
+    "required": [
+      "home-root-visible",
+      "heading-visible",
+      "composer-visible"
+    ],
+    "forbiddenAssumption": "exactly-four-demo-cards",
+    "status": "verified-zero-to-many-native-suggestions",
+    "pass": true
+  },
+  "accessibility": {
+    "reducedMotionRuntimeOwner": "host",
+    "status": "verified-host-authority-and-automated-reduced-motion",
+    "pass": true
+  },
+  "lifecycle": {
+    "surfaceAdmission": "verified-exact-71837-build5702",
+    "payloadPreflight": "verified-live-and-automated",
+    "processAndListenerGuard": "verified-guest-loopback-only",
+    "generationSingleFlight": "verified-live-and-automated",
+    "pauseRestoreCleanup": "verified-live-and-automated",
+    "managerRemoteInstallActivationRollback": "deferred-to-manager-end-to-end"
+  },
+  "isolatedQa": {
+    "guestOs": "macOS 15.6.1",
+    "architecture": "arm64",
+    "clientVersion": "26.715.71837",
+    "clientBuild": "5702",
+    "cdpExposure": "guest-loopback-only",
+    "hostProcessUnaffected": true,
+    "lightAppearance": "passed",
+    "darkAppearance": "passed",
+    "settingsCcThemeEntry": "passed",
+    "coldApply": "passed",
+    "verify": "passed",
+    "pause": "passed",
+    "hotReapply": "passed",
+    "restore": "passed",
+    "failureRollback": "passed-before-final-fix",
+    "cleanup": "passed"
+  },
+  "result": {
+    "semanticStyleEvidencePass": true,
+    "adapterReleaseQualificationPass": true,
+    "managerEndToEndDeferred": true,
+    "diagnostics": [],
+    "pass": true
+  },
+  "limitations": [
+    "This report qualifies only the exact 71837 build5702 Adapter release boundary; a later host requires new evidence.",
+    "It contains no user-visible copy, account data, conversation data, URL, accessible name, or media source.",
+    "No 61943 or 70719 live success conclusion is reused.",
+    "Manager semantic equivalence remains blocked until independent Manager cross-validation accepts this Adapter revision."
+  ]
+}

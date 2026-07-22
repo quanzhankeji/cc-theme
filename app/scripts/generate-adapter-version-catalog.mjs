@@ -5,7 +5,7 @@ import { lstat, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { verifyAdapterPackage } from "./adapter-package.mjs";
+import { verifyAdapterPackage, verifyAdapterReleaseSource } from "./adapter-package.mjs";
 
 const ADAPTER_IDS = Object.freeze(["mac-codex", "mac-doubao", "mac-workbuddy"]);
 const SIDECAR_SUFFIX = ".ccadapter.manifest.json";
@@ -254,6 +254,12 @@ async function readEngineFacts(
   if (adapterDescriptor.assetIdentity !== undefined) {
     assert(adapterDescriptor.assetIdentity === assetIdentity, `${adapterId} package descriptor assetIdentity differs from release manifest`);
   }
+  const qualification = await verifyAdapterReleaseSource({
+    sourceRoot: adapterRoot,
+    adapterId,
+    architecture,
+  });
+  assert(qualification.assetIdentity === assetIdentity, `${adapterId} release qualification identity differs`);
   const minimumManagerVersion = stableMinimumManagerVersions.get(assetIdentity) ?? managerVersion;
   assert(
     compareSemver(managerVersion, minimumManagerVersion) >= 0,
@@ -269,7 +275,7 @@ async function readEngineFacts(
     assetIdentity,
     contracts: {
       minimumManagerVersion,
-      capabilityVersion: normalizeCapabilityVersion(capability.capabilityVersion, `${adapterId} capabilityVersion`),
+      capabilityVersion: qualification.capabilityVersion,
       unifiedThemeSchemaVersion,
       adapterPackageSchemaVersion: PACKAGE_SCHEMA_VERSION,
     },

@@ -29,7 +29,10 @@ async function build(copy) {
 }
 
 try {
-  const [firstRoot, secondRoot] = await Promise.all([cleanCopy("source-a"), cleanCopy("source-b")]);
+  const [firstRoot, secondRoot] = await Promise.all([
+    cleanCopy("source-a"),
+    cleanCopy("source-b"),
+  ]);
   const firstArchive = await build(firstRoot);
   const secondArchive = await build(secondRoot);
   assert.deepEqual(await fs.readFile(firstArchive), await fs.readFile(secondArchive),

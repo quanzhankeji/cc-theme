@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 
 const execFile = promisify(execFileCallback);
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const builder = path.join(root, "scripts", "build-client-release.sh");
+const candidateBuilder = path.join(root, "scripts", "build-client-release.sh");
 const version = (await fs.readFile(path.join(root, "VERSION"), "utf8")).trim();
 const releaseManifest = JSON.parse(await fs.readFile(path.join(root, "contracts", "adapter-release-manifest.json"), "utf8"));
 const temporary = await fs.mkdtemp(path.join(os.tmpdir(), "cc-theme-client-release-test-"));
@@ -32,6 +32,8 @@ async function walk(directory, prefix = "") {
 }
 
 try {
+  const builder = candidateBuilder;
+
   assert.notEqual((await fs.stat(applyScript)).mode & 0o111, 0, "source apply script must be executable");
   const readme = await fs.readFile(path.join(root, "README.md"), "utf8");
   assert.ok(readme.includes(`\`${archiveName}\``));

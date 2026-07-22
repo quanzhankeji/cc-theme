@@ -5,13 +5,15 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const readJson = (relative) => fs.readFile(path.join(root, relative), "utf8").then(JSON.parse);
-const [versionText, packageManifest, projectManifest, capability, releaseManifest, packageContract] = await Promise.all([
+const [versionText, packageManifest, projectManifest, capability, releaseManifest, packageContract, surfaceCatalog, semanticReport] = await Promise.all([
   fs.readFile(path.join(root, "VERSION"), "utf8"),
   readJson("package.json"),
   readJson("PROJECT_MANIFEST.json"),
   readJson("contracts/adapter-capability.json"),
   readJson("contracts/adapter-release-manifest.json"),
   readJson("contracts/cc-theme-package.json"),
+  readJson("compatibility/chatgpt-macos/26.715.71837/ui-surface-catalog.json"),
+  readJson("compatibility/chatgpt-macos/26.715.71837/semantic-role-visual-report.json"),
 ]);
 
 const adapterVersion = versionText.trim();
@@ -22,7 +24,7 @@ const expectedArtifacts = {
   client: `cc-theme-${assetIdentity}.zip`,
 };
 
-assert.equal(adapterVersion, "26.715.61943");
+assert.equal(adapterVersion, "26.715.71837");
 assert.match(adapterVersion, /^\d+(?:\.\d+){2}$/);
 assert(Number.isSafeInteger(adapterReleaseRevision) && adapterReleaseRevision > 0);
 assert.equal(releaseManifest.revision, 1, "manifest schema revision is not the release revision");
@@ -60,14 +62,16 @@ assert.equal(capability.adapterVersion, adapterVersion);
 assert.equal(capability.adapterReleaseRevision, adapterReleaseRevision);
 assert.equal(capability.releaseTarget.assetIdentity, assetIdentity);
 assert.equal(capability.compatibility.currentEvidence.clientVersion, adapterVersion);
-assert.equal(capability.compatibility.currentEvidence.clientBuild, "5628");
-assert.equal(capability.compatibility.currentEvidence.surfaceCatalogId, "chatgpt-macos-26.715.61943");
+assert.equal(capability.compatibility.currentEvidence.clientBuild, "5702");
+assert.equal(capability.compatibility.currentEvidence.surfaceCatalogId, "chatgpt-macos-26.715.71837");
+assert.equal(capability.compatibility.currentEvidence.verifiedAt, surfaceCatalog.client.capturedAt);
+assert.equal(capability.compatibility.currentEvidence.verifiedAt, semanticReport.capturedAt);
 assert.equal(packageContract.target.adapterId, "mac-codex");
 assert.equal(packageContract.target.version, adapterVersion);
 
 assert.equal(assetIdentity, `mac-codex-${adapterVersion}-r${adapterReleaseRevision}-macos-arm64`,
   "host build must not participate in the canonical asset identity");
-assert.notEqual(assetIdentity, `mac-codex-${adapterVersion}+5628-r${adapterReleaseRevision}-macos-arm64`);
+assert.notEqual(assetIdentity, `mac-codex-${adapterVersion}+5702-r${adapterReleaseRevision}-macos-arm64`);
 
 const [common, injector, sourceBuilder, clientBuilder] = await Promise.all([
   fs.readFile(path.join(root, "scripts/common-macos.sh"), "utf8"),

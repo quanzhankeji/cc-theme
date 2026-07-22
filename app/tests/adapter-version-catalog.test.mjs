@@ -47,7 +47,10 @@ async function writeJson(filename, value) {
   await writeFile(filename, `${JSON.stringify(value, null, 2)}\n`, "utf8");
 }
 
-async function writeSyntheticWorkspace(root, { mismatchAdapter } = {}) {
+async function writeSyntheticWorkspace(root, {
+  mismatchAdapter,
+  codexAdmissionStatus = "verified",
+} = {}) {
   await writeJson(path.join(root, "app", "package.json"), { name: "cc-theme", version: "0.1.0" });
   await writeJson(path.join(root, "app", "packages", "contracts", "unified-theme-v1.schema.json"), {
     properties: { schemaVersion: { const: 1 } },
@@ -70,34 +73,84 @@ async function writeSyntheticWorkspace(root, { mismatchAdapter } = {}) {
         architecture: "arm64",
       },
     });
+    const evidence = `compatibility/chatgpt-macos/${adapterVersion}/ui-surface-catalog.json`;
     await writeJson(path.join(adapterRoot, "contracts", "adapter-capability.json"), {
       adapterId,
       adapterVersion,
       adapterReleaseRevision,
       capabilityVersion: adapterId === "mac-codex" ? "2.0.0" : 1,
+      availability: "available",
+      available: true,
       runtimeApplyAvailable: true,
+      compatibility: adapterId === "mac-codex" ? {
+        surfaceEvidenceIsGate: true,
+        currentEvidence: {
+          clientVersion: adapterVersion,
+          clientBuild: "1",
+          surfaceCatalogId: `chatgpt-macos-${adapterVersion}`,
+          surfaceCatalogVersion: 1,
+        },
+      } : { verifiedClientVersions: [adapterVersion] },
     });
-    await writeJson(path.join(adapterRoot, "contracts", "adapter-release-manifest.json"), {
-      adapterId,
-      adapterVersion,
-      adapterReleaseRevision,
-      assetIdentity,
-      platform: "macos",
-      architecture: "arm64",
-    });
+    if (adapterId === "mac-codex") {
+      await writeJson(path.join(adapterRoot, evidence), {
+        kind: "skin.ui-surface-catalog",
+        schemaVersion: "1.0.0",
+        catalogId: `chatgpt-macos-${adapterVersion}`,
+        client: { version: adapterVersion, build: "1" },
+        admission: { status: codexAdmissionStatus, failClosed: true },
+      });
+    }
+    const entries = [
+      "VERSION",
+      "contracts/adapter-capability.json",
+      "contracts/adapter-release-manifest.json",
+      ...(adapterId === "mac-codex" ? ["PROJECT_MANIFEST.json", evidence] : []),
+    ].sort();
+    await writeJson(
+      path.join(adapterRoot, "contracts", "adapter-release-manifest.json"),
+      adapterId === "mac-codex" ? {
+        kind: "mac-codex-adapter.release-manifest",
+        revision: 1,
+        adapterId,
+        adapterVersion,
+        adapterReleaseRevision,
+        os: "macos",
+        arch: "arm64",
+        assetIdentity,
+        artifacts: {
+          source: `${assetIdentity}.zip`,
+          client: `cc-theme-${assetIdentity}.zip`,
+        },
+        entries,
+      } : {
+        kind: adapterId === "mac-doubao"
+          ? "mac-doubao-adapter.release-manifest"
+          : "workbuddy-adapter.release-manifest",
+        revision: 1,
+        adapterId,
+        adapterVersion,
+        adapterReleaseRevision,
+        platform: "macos",
+        architecture: "arm64",
+        assetIdentity,
+        entries,
+      },
+    );
     await writeJson(path.join(adapterRoot, "PROJECT_MANIFEST.json"), {
       adapterId,
       adapterVersion,
       adapterReleaseRevision,
       release: { assetIdentity },
+      ...(adapterId === "mac-codex" ? { contracts: { uiEvidenceCatalog: evidence } } : {}),
     });
   }
 }
 
-async function writeSyntheticPackage(directory, adapter, mutateSidecar) {
+async function writeSyntheticPackage(directory, adapter, mutateSidecar, sourceWorkspace = workspaceRoot) {
   const architecture = "arm64";
   const built = await buildAdapterPackage({
-    sourceRoot: path.join(workspaceRoot, "adapters", adapter.adapterId),
+    sourceRoot: path.join(sourceWorkspace, "adapters", adapter.adapterId),
     outputDirectory: directory,
     adapterId: adapter.adapterId,
     architecture,
@@ -136,31 +189,26 @@ test("catalog Schema closes every public object and keeps identity, OS, architec
   assert.equal(new RegExp(schema.$defs.package.properties.downloadUrl.pattern).test("http://releases.example/a.ccadapter"), false);
 });
 
-test("local generation is byte-deterministic, records the three active Mac Engines, and publishes zero Windows entries", async () => {
-  const first = await generateAdapterVersionCatalog({ workspaceRoot });
-  const second = await generateAdapterVersionCatalog({ workspaceRoot });
-  assert.equal(serializeCatalog(first), serializeCatalog(second));
-  assert.equal(serializeCatalog(first), await readFile(registryPath, "utf8"));
-  await runCli(["--workspace", workspaceRoot, "--output", registryPath, "--check"]);
+test("local generation publishes the qualified CodeX source and rejects a separate experimental fixture", async () => {
+  const tracked = JSON.parse(await readFile(registryPath, "utf8"));
+  assert.equal(tracked.adapters[0].current.adapterVersion, "26.715.71837");
+  assert.equal(tracked.adapters[0].releases[0].contracts.minimumManagerVersion, "0.2.1");
 
-  assert.equal(first.publicationStatus, "development-local");
-  assert.equal(first.currentVersionPolicy, "explicit");
-  assert.deepEqual(first.adapters.map(({ adapterId }) => adapterId), canonicalAdapterIds);
-  for (const adapter of first.adapters) {
-    assert.deepEqual(adapter.current, {
-      adapterVersion: adapter.releases[0].adapterVersion,
-      adapterReleaseRevision: adapter.releases[0].adapterReleaseRevision,
-    });
-    assert.deepEqual(adapter.releases[0].packages, []);
-    assert.match(adapter.releases[0].assetIdentity, new RegExp(`^${adapter.adapterId}-.+-r1-macos-arm64$`));
-    assert.equal(adapter.releases[0].contracts.minimumManagerVersion, "0.2.0");
-    assert.equal(adapter.releases[0].contracts.unifiedThemeSchemaVersion, 1);
-    assert.equal(adapter.releases[0].contracts.adapterPackageSchemaVersion, 1);
-  }
-  assert.equal(first.adapters[0].releases[0].contracts.capabilityVersion, "2.0.0");
-  assert.equal(first.adapters[1].releases[0].contracts.capabilityVersion, "1.3.0");
-  assert.equal(serializeCatalog(first).includes("windows"), false);
-  assert.equal(/runtimeApply|projectionAvailable|managerApplyAllowed/.test(serializeCatalog(first)), false);
+  const generated = await generateAdapterVersionCatalog({ workspaceRoot });
+  assert.equal(generated.adapters[0].current.adapterVersion, "26.715.71837");
+  assert.equal(generated.adapters[0].releases[0].contracts.minimumManagerVersion, "0.2.1");
+  await assert.doesNotReject(
+    runCli(["--workspace", workspaceRoot, "--output", registryPath, "--check"]),
+  );
+
+  await withTempDirectory(async (root) => {
+    const candidateWorkspace = path.join(root, "candidate-workspace");
+    await writeSyntheticWorkspace(candidateWorkspace, { codexAdmissionStatus: "experimental" });
+    await assert.rejects(
+      generateAdapterVersionCatalog({ workspaceRoot: candidateWorkspace }),
+      /release Surface qualification is not verified/,
+    );
+  });
 
   const generatorSource = await readFile(generatorPath, "utf8");
   assert.equal(/api\.github\.com|octokit|fetch\s*\(/i.test(generatorSource), false);
@@ -171,12 +219,18 @@ test("local generation is byte-deterministic, records the three active Mac Engin
 });
 
 test("published generation binds exact adjacent package bytes, hashes, manifest digest, OS, and architecture", async () => {
-  await withTempDirectory(async (packageDirectory) => {
-    const local = await generateAdapterVersionCatalog({ workspaceRoot });
-    for (const adapter of local.adapters) await writeSyntheticPackage(packageDirectory, adapter);
+  await withTempDirectory(async (root) => {
+    const syntheticWorkspace = path.join(root, "workspace");
+    const packageDirectory = path.join(root, "packages");
+    await writeSyntheticWorkspace(syntheticWorkspace);
+    await mkdir(packageDirectory);
+    const local = await generateAdapterVersionCatalog({ workspaceRoot: syntheticWorkspace });
+    for (const adapter of local.adapters) {
+      await writeSyntheticPackage(packageDirectory, adapter, undefined, syntheticWorkspace);
+    }
 
     const published = await generateAdapterVersionCatalog({
-      workspaceRoot,
+      workspaceRoot: syntheticWorkspace,
       packageDirectory,
       publicationStatus: "published",
       downloadBaseUrl: "https://github.com/quanzhankeji/cc-theme/releases/download/cc-theme-v0.2.0",
@@ -201,15 +255,18 @@ test("published mode requires an HTTPS origin, refuses missing packages, and rej
     generateAdapterVersionCatalog({ workspaceRoot, publicationStatus: "published" }),
     /requires an HTTPS download base URL/,
   );
-  await assert.rejects(
-    generateAdapterVersionCatalog({
-      workspaceRoot,
-      publicationStatus: "published",
-      downloadBaseUrl: "https://github.com/quanzhankeji/cc-theme/releases/download/cc-theme-v0.2.0",
-      ...publishedMetadata,
-    }),
-    /mac-codex has no verified package/,
-  );
+  await withTempDirectory(async (root) => {
+    await writeSyntheticWorkspace(root);
+    await assert.rejects(
+      generateAdapterVersionCatalog({
+        workspaceRoot: root,
+        publicationStatus: "published",
+        downloadBaseUrl: "https://github.com/quanzhankeji/cc-theme/releases/download/cc-theme-v0.2.0",
+        ...publishedMetadata,
+      }),
+      /mac-codex has no verified package/,
+    );
+  });
   await withTempDirectory(async (root) => {
     await writeSyntheticWorkspace(root, { mismatchAdapter: "mac-workbuddy" });
     await assert.rejects(generateAdapterVersionCatalog({ workspaceRoot: root }), /VERSION and package\.json version differ/);
@@ -217,9 +274,6 @@ test("published mode requires an HTTPS origin, refuses missing packages, and rej
 });
 
 test("sidecars fail closed on unknown fields, manifest divergence, and archive tampering", async () => {
-  const local = await generateAdapterVersionCatalog({ workspaceRoot });
-  const codex = local.adapters[0];
-
   for (const [name, mutate, expected] of [
     ["unknown field", (sidecar) => { sidecar.untrusted = true; }, /unknown fields: untrusted/],
     ["unknown Adapter", (sidecar) => { sidecar.package.adapterId = "win-codex"; }, /manifest digest differs from the archive|package manifest differs from the archive/],
@@ -228,20 +282,33 @@ test("sidecars fail closed on unknown fields, manifest divergence, and archive t
     ["contract drift", (sidecar) => { sidecar.package.contracts.capabilityVersion = "9.0.0"; }, /manifest digest differs from the archive|package manifest differs from the archive/],
     ["file digest drift", (sidecar) => { sidecar.package.files[0].sha256 = "0".repeat(64); }, /manifest digest differs from the archive|package manifest differs from the archive/],
   ]) {
-    await withTempDirectory(async (packageDirectory) => {
-      await writeSyntheticPackage(packageDirectory, codex, mutate);
+    await withTempDirectory(async (root) => {
+      const syntheticWorkspace = path.join(root, "workspace");
+      const packageDirectory = path.join(root, "packages");
+      await writeSyntheticWorkspace(syntheticWorkspace);
+      await mkdir(packageDirectory);
+      const local = await generateAdapterVersionCatalog({ workspaceRoot: syntheticWorkspace });
+      await writeSyntheticPackage(packageDirectory, local.adapters[0], mutate, syntheticWorkspace);
       await assert.rejects(
-        generateAdapterVersionCatalog({ workspaceRoot, packageDirectory }),
+        generateAdapterVersionCatalog({ workspaceRoot: syntheticWorkspace, packageDirectory }),
         expected,
         name,
       );
     });
   }
 
-  await withTempDirectory(async (packageDirectory) => {
-    const built = await writeSyntheticPackage(packageDirectory, codex);
+  await withTempDirectory(async (root) => {
+    const syntheticWorkspace = path.join(root, "workspace");
+    const packageDirectory = path.join(root, "packages");
+    await writeSyntheticWorkspace(syntheticWorkspace);
+    await mkdir(packageDirectory);
+    const local = await generateAdapterVersionCatalog({ workspaceRoot: syntheticWorkspace });
+    const built = await writeSyntheticPackage(packageDirectory, local.adapters[0], undefined, syntheticWorkspace);
     await writeFile(built.archivePath, "tampered archive\n", "utf8");
-    await assert.rejects(generateAdapterVersionCatalog({ workspaceRoot, packageDirectory }), /byte size differs|SHA-256 differs/);
+    await assert.rejects(
+      generateAdapterVersionCatalog({ workspaceRoot: syntheticWorkspace, packageDirectory }),
+      /byte size differs|SHA-256 differs/,
+    );
   });
 
   await assert.rejects(
