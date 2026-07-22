@@ -129,6 +129,7 @@ function normalizeCapability(raw, descriptor) {
       incompatiblePolicy: local.incompatibleValuePolicy ?? local.incompatiblePolicy ?? local.incompatible ?? "quarantine-and-notify",
     },
     compatibility: clone(raw.compatibility ?? {}),
+    presentationProfiles: clone(raw.presentationProfiles ?? {}),
     projection: {
       module: descriptor.projectorModule,
       export: descriptor.projectorExport,

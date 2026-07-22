@@ -16,6 +16,7 @@ function createDoubaoSkinRuntime(options = {}) {
   const HOST_APPEARANCE_ATTRIBUTE = "data-cc-theme-doubao-host-appearance";
   const APPEARANCE_ATTRIBUTE = "data-cc-theme-doubao-appearance";
   const PALETTE_STRATEGY_ATTRIBUTE = "data-cc-theme-doubao-palette-strategy";
+  const PRESENTATION_ATTRIBUTE = "data-cc-theme-doubao-presentation";
   const STATE_ATTRIBUTE = "data-cc-theme-doubao-state";
   const STYLE_ID = "cc-theme-doubao-style";
   const BACKGROUND_ID = "cc-theme-doubao-background";
@@ -67,6 +68,7 @@ function createDoubaoSkinRuntime(options = {}) {
   let previousHostAppearanceAttribute = null;
   let previousAppearanceAttribute = null;
   let previousPaletteStrategyAttribute = null;
+  let previousPresentationAttribute = null;
   let styleNode = null;
   let backgroundNode = null;
   let currentVersion = null;
@@ -318,6 +320,8 @@ function createDoubaoSkinRuntime(options = {}) {
       else document.documentElement.setAttribute(APPEARANCE_ATTRIBUTE, previousAppearanceAttribute);
       if (previousPaletteStrategyAttribute === null) document.documentElement.removeAttribute(PALETTE_STRATEGY_ATTRIBUTE);
       else document.documentElement.setAttribute(PALETTE_STRATEGY_ATTRIBUTE, previousPaletteStrategyAttribute);
+      if (previousPresentationAttribute === null) document.documentElement.removeAttribute(PRESENTATION_ATTRIBUTE);
+      else document.documentElement.setAttribute(PRESENTATION_ATTRIBUTE, previousPresentationAttribute);
     }
     previousRootAttribute = null;
     previousGenerationAttribute = null;
@@ -325,6 +329,7 @@ function createDoubaoSkinRuntime(options = {}) {
     previousHostAppearanceAttribute = null;
     previousAppearanceAttribute = null;
     previousPaletteStrategyAttribute = null;
+    previousPresentationAttribute = null;
     currentVersion = null;
     currentGeneration = null;
     currentDocumentIdentity = null;
@@ -346,6 +351,9 @@ function createDoubaoSkinRuntime(options = {}) {
     }
     if (payload.videoExpected !== undefined && typeof payload.videoExpected !== "boolean") {
       throw new Error("Doubao runtime video expectation is invalid");
+    }
+    if (payload.presentationProfile !== undefined && payload.presentationProfile !== "immersive-scene-v1") {
+      throw new Error("Doubao runtime presentation profile is invalid");
     }
     const paletteStrategy = payload.paletteStrategy ?? "system";
     if (!["system", "adaptive"].includes(paletteStrategy)) {
@@ -374,6 +382,7 @@ function createDoubaoSkinRuntime(options = {}) {
     previousHostAppearanceAttribute = document.documentElement.getAttribute(HOST_APPEARANCE_ATTRIBUTE);
     previousAppearanceAttribute = document.documentElement.getAttribute(APPEARANCE_ATTRIBUTE);
     previousPaletteStrategyAttribute = document.documentElement.getAttribute(PALETTE_STRATEGY_ATTRIBUTE);
+    previousPresentationAttribute = document.documentElement.getAttribute(PRESENTATION_ATTRIBUTE);
     appearanceQuery = matchMedia?.("(prefers-color-scheme: dark)") ?? null;
     appearanceListener = scheduleReconcile;
     appearanceQuery?.addEventListener?.("change", appearanceListener);
@@ -443,6 +452,7 @@ function createDoubaoSkinRuntime(options = {}) {
     document.documentElement.setAttribute(ROOT_ATTRIBUTE, payload.version);
     document.documentElement.setAttribute(GENERATION_ATTRIBUTE, payload.generation);
     document.documentElement.setAttribute(PALETTE_STRATEGY_ATTRIBUTE, paletteStrategy);
+    if (payload.presentationProfile) document.documentElement.setAttribute(PRESENTATION_ATTRIBUTE, payload.presentationProfile);
     currentVersion = payload.version;
     currentGeneration = payload.generation;
     currentDocumentIdentity = payload.documentIdentity;

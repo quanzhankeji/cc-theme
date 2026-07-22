@@ -19,15 +19,15 @@ const adapters = [
   {
     adapterId: "mac-doubao",
     adapterVersion: "2.19.9",
-    adapterReleaseRevision: 1,
-    assetIdentity: "mac-doubao-2.19.9-r1-macos-arm64",
+    adapterReleaseRevision: 2,
+    assetIdentity: "mac-doubao-2.19.9-r2-macos-arm64",
     capabilityVersion: "1.3.0",
   },
   {
     adapterId: "mac-workbuddy",
     adapterVersion: "5.2.6",
-    adapterReleaseRevision: 1,
-    assetIdentity: "mac-workbuddy-5.2.6-r1-macos-arm64",
+    adapterReleaseRevision: 2,
+    assetIdentity: "mac-workbuddy-5.2.6-r2-macos-arm64",
     capabilityVersion: "1.0.0",
   },
 ];

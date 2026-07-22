@@ -52,7 +52,7 @@ const DIRECTIONAL_KEYS = new Set([
 ]);
 const TOP_LEVEL_KEYS = new Set([
   "kind", "id", "name", "image", "backgroundVideo", "interactiveBackground",
-  "colors", "semanticColors", "fonts", "appearance",
+  "colors", "semanticColors", "fonts", "appearance", "presentation",
 ]);
 const COLOR_KEYS = new Set([
   "background", "panel", "panelAlt", "accent", "accentAlt", "secondary", "highlight", "text", "muted", "line",
@@ -69,6 +69,24 @@ const APPEARANCE_KEYS = new Set([
   "paletteStrategy", "shellMode", "backgroundPosition", "backgroundVideoPosterMode",
   "backgroundScrimOpacity", "backdropBlurPx", "backdropSaturation", "radiusScale",
 ]);
+const IMMERSIVE_SCENE_SURFACES = new Set(["shell", "navigation", "home", "conversation", "composer", "cards", "overlays"]);
+
+// Adapter releases are standalone. Shared Core owns detailed validation before
+// projection; this release-local gate admits only the fixed inert envelope.
+function normalizePresentation(value, label) {
+  const presentation = plainObject(value);
+  const allowed = new Set(["profileId", "profileVersion", "strictness", "geometryPolicy", "surfaces", "parameters", "assetSlots", "fallbackPolicy"]);
+  if (!presentation || Object.keys(presentation).some((key) => !allowed.has(key)) ||
+      presentation.profileId !== "immersive-scene-v1" || presentation.profileVersion !== 1 ||
+      presentation.strictness !== "exact-required" || presentation.geometryPolicy !== "scene-bounded" ||
+      !Array.isArray(presentation.surfaces) || presentation.surfaces.length !== IMMERSIVE_SCENE_SURFACES.size ||
+      new Set(presentation.surfaces).size !== IMMERSIVE_SCENE_SURFACES.size ||
+      presentation.surfaces.some((surface) => !IMMERSIVE_SCENE_SURFACES.has(surface)) ||
+      !plainObject(presentation.parameters) || !plainObject(presentation.assetSlots) || !plainObject(presentation.fallbackPolicy)) {
+    throw new Error(`${label} must use the validated immersive-scene-v1 envelope`);
+  }
+  return structuredClone(presentation);
+}
 
 function rejectUnsupportedKeys(value, allowed, label) {
   const unsupported = Object.keys(value).filter((key) => !allowed.has(key));
@@ -192,6 +210,7 @@ export function assertSkinThemeIdentity(value, label = "Theme config") {
   if (theme.image.trim() !== theme.image || theme.image.includes("/") || theme.image.includes("\\")) {
     throw new Error(`${label} image must be a file in the theme directory`);
   }
+  if (theme.presentation !== undefined) normalizePresentation(theme.presentation, `${label} presentation`);
   return theme;
 }
 
@@ -216,6 +235,7 @@ export function normalizeSkinTheme(value, label = "Theme config") {
   }
   const backgroundVideo = optionalMediaName(raw.backgroundVideo, "backgroundVideo", label);
   const interactiveBackground = normalizeInteractiveBackground(raw.interactiveBackground, backgroundVideo, label);
+  const presentation = raw.presentation === undefined ? null : normalizePresentation(raw.presentation, `${label} presentation`);
   const backgroundVideoPosterMode = appearance.backgroundVideoPosterMode ?? "image";
   if (!["none", "image"].includes(backgroundVideoPosterMode)) {
     throw new Error(`${label} appearance.backgroundVideoPosterMode must be none or image`);
@@ -232,6 +252,7 @@ export function normalizeSkinTheme(value, label = "Theme config") {
     image: raw.image,
     ...(backgroundVideo ? { backgroundVideo } : {}),
     ...(interactiveBackground ? { interactiveBackground } : {}),
+    ...(presentation ? { presentation } : {}),
     backgroundRenderMode: interactiveBackground?.type ?? "media",
     paletteStrategy,
     shellMode,

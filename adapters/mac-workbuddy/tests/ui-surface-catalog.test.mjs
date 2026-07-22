@@ -10,7 +10,7 @@ const catalog = await loadUiSurfaceCatalog();
 assert.deepEqual(validateUiSurfaceCatalog(catalog), []);
 assert.equal(catalog.adapter, "mac-workbuddy");
 assert.equal(catalog.adapterVersion, catalog.target.version);
-assert.equal(catalog.adapterReleaseRevision, 1);
+assert.equal(catalog.adapterReleaseRevision, 2);
 assert.equal(catalog.capture.visualStates, 55);
 assert.equal(catalog.capture.computedStyleSnapshots, 65);
 assert.ok(catalog.domHierarchy.length >= 18);

@@ -6,6 +6,13 @@ import {
   capabilityFor,
   loadAdapterProjector,
 } from "../adapter-sdk/adapter-registry.mjs";
+import {
+  IMMERSIVE_SCENE_PROFILE_ID,
+  IMMERSIVE_SCENE_PROFILE_VERSION,
+  IMMERSIVE_SCENE_SURFACES,
+  normalizePresentation,
+  presentationCapability,
+} from "./presentation.mjs";
 
 export const UNIFIED_THEME_KIND = "cc-theme.unified-theme";
 export const SKIN_THEME_KIND = "skin.theme";
@@ -189,7 +196,7 @@ export function stableStringify(value, space = 2) {
   return `${JSON.stringify(canonicalize(value), null, space)}\n`;
 }
 
-const FAMILY_ROOT_KEYS = ["kind", "schemaVersion", "id", "name", "version", "sharedCore", "targets", "targetProfiles"];
+const FAMILY_ROOT_KEYS = ["kind", "schemaVersion", "id", "name", "version", "sharedCore", "presentation", "targets", "targetProfiles"];
 const SHARED_CORE_KEYS = ["tokens", "background", "accessibility"];
 const PROFILE_FORBIDDEN_KEYS = new Set([
   "css", "javascript", "script", "html", "shader", "selector", "selectors", "command", "commands", "url", "urls", "path", "paths",
@@ -245,6 +252,12 @@ function validateThemeFamilyVersion(value, expectedSchemaVersion, registry = DEF
     capabilityFor(adapterId, registry);
     validateTargetProfilePayload(profile, `theme.targetProfiles.${adapterId}`);
   }
+  if (theme.presentation !== undefined) {
+    const presentation = normalizePresentation(theme.presentation, "theme.presentation");
+    if (presentation.assetSlots["scene.backdrop"] !== core.background.image) {
+      throw new ThemeCompilerError("scene.backdrop must bind the Shared Core background image", "theme.presentation.assetSlots.scene.backdrop");
+    }
+  }
   return value;
 }
 
@@ -278,6 +291,31 @@ function effectiveCore(source) {
 
 function profileFor(source, capability) {
   return structuredClone(source.theme.targetProfiles?.[capability.adapterId] ?? {});
+}
+
+function presentationFor(source) {
+  return source.theme.presentation === undefined ? null : normalizePresentation(source.theme.presentation, "theme.presentation");
+}
+
+function assertPresentationCapability(capability, presentation) {
+  if (!presentation) return [];
+  const declared = presentationCapability(capability.presentationProfiles?.[presentation.profileId]);
+  if (presentation.profileId !== IMMERSIVE_SCENE_PROFILE_ID || presentation.profileVersion !== IMMERSIVE_SCENE_PROFILE_VERSION ||
+      declared.profileVersion !== presentation.profileVersion || declared.geometryPolicy !== presentation.geometryPolicy) {
+    throw new ThemeCompilerError("does not support the required immersive-scene-v1 profile revision", `${capability.adapterId}.presentation`);
+  }
+  for (const surface of IMMERSIVE_SCENE_SURFACES) {
+    if (declared.surfaces[surface] !== "exact") {
+      throw new ThemeCompilerError(`does not provide an exact immersive-scene-v1 consumer for ${surface}`, `${capability.adapterId}.presentation.surfaces.${surface}`);
+    }
+  }
+  return IMMERSIVE_SCENE_SURFACES.map((surface) => ({
+    severity: "info",
+    field: `presentation.surfaces.${surface}`,
+    decision: "exact",
+    code: "immersive-scene-consumer-exact",
+    message: `${capability.adapterId} provides an exact immersive-scene-v1 consumer for ${surface}.`,
+  }));
 }
 
 function contextFor(capability, compileContext) {
@@ -355,7 +393,11 @@ export async function compileThemeFamily(value, compileContext, { registry = DEF
       capability,
       await (await loadAdapterProjector(capability))(adapterProjectorInvocation(source, capability, context)),
     );
-    themes[capability.adapterId] = projected.theme;
+    const presentation = presentationFor(source);
+    const presentationDiagnostics = assertPresentationCapability(capability, presentation);
+    themes[capability.adapterId] = presentation
+      ? { ...projected.theme, presentation }
+      : projected.theme;
     const applyAllowed = capability.runtimeApplyAvailable && context.applyAllowed === true && projected.applyAllowed !== false;
     const applyDiagnostic = applyAllowed ? [] : [{
       code: context.reasonCode ?? "runtime-apply-unavailable",
@@ -364,7 +406,7 @@ export async function compileThemeFamily(value, compileContext, { registry = DEF
       severity: "warning",
       message: `${capability.adapterId} can be projected but cannot currently be applied.`,
     }];
-    diagnostics[capability.adapterId] = [...projected.diagnostics, ...applyDiagnostic];
+    diagnostics[capability.adapterId] = [...projected.diagnostics, ...presentationDiagnostics, ...applyDiagnostic];
     applyAvailability[capability.adapterId] = { allowed: applyAllowed, reasonCode: applyAllowed ? null : context.reasonCode ?? "runtime-apply-unavailable" };
   }
   return { kind: "cc-theme.compiled-family", schemaVersion: 1, themes, diagnostics, applyAvailability };

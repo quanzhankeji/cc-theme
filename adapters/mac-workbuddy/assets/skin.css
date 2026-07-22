@@ -82,6 +82,56 @@ html.workbuddy-skin #workbuddy-skin-background-video[data-playback-state="disabl
   display: none;
 }
 
+/* Adapter-owned immersive scene recipe: every selector is a versioned
+   WorkBuddy Surface Role and does not replace native controls or focus. */
+html.workbuddy-skin[data-workbuddy-skin-presentation="immersive-scene-v1"] [data-workbuddy-skin-role="shell"] {
+  background: linear-gradient(90deg, rgba(9, 8, 9, .83), rgba(14, 11, 10, .44) 57%, rgba(13, 10, 9, .15)) !important;
+}
+
+html.workbuddy-skin:not([data-workbuddy-skin-palette="system"]):not([data-workbuddy-skin-video-state="disabled"])[data-workbuddy-skin-presentation="immersive-scene-v1"] :is(
+  [data-workbuddy-skin-role="sidebar"],
+  [data-workbuddy-skin-role="topbar"]
+) {
+  background: color-mix(in srgb, var(--wbs-surface-raised) 94%, #090707) !important;
+  border-color: color-mix(in srgb, #c8a55a 32%, transparent) !important;
+  box-shadow: var(--wbs-shadow-sidebar) !important;
+}
+
+html.workbuddy-skin[data-workbuddy-skin-presentation="immersive-scene-v1"] :is(
+  [data-workbuddy-skin-role="page-home"],
+  [data-workbuddy-skin-role="page-chat"],
+  [data-workbuddy-skin-role="page-project"],
+  [data-workbuddy-skin-role="page-expert"],
+  [data-workbuddy-skin-role="page-automation"]
+) {
+  background: linear-gradient(90deg, rgba(10, 9, 10, .52), rgba(16, 13, 11, .22)) !important;
+}
+
+html.workbuddy-skin[data-workbuddy-skin-presentation="immersive-scene-v1"] :is(
+  [data-workbuddy-skin-role="home-heading"],
+  [data-workbuddy-skin-role="composer"],
+  [data-workbuddy-skin-role="quick-action"],
+  [data-workbuddy-skin-role="project-card"],
+  [data-workbuddy-skin-role="expert-card"],
+  [data-workbuddy-skin-role="automation-template-card"],
+  [data-workbuddy-skin-role="artifact-card"]
+) {
+  background: color-mix(in srgb, var(--wbs-surface-raised) 82%, transparent) !important;
+  border: 1px solid color-mix(in srgb, #c8a55a 32%, transparent) !important;
+  box-shadow: var(--wbs-shadow-detail) !important;
+}
+
+html.workbuddy-skin:not([data-workbuddy-skin-palette="system"]):not([data-workbuddy-skin-video-state="disabled"])[data-workbuddy-skin-presentation="immersive-scene-v1"] :is(
+  [data-workbuddy-skin-role="overlay-popover"],
+  [data-workbuddy-skin-role="overlay-search-modal"],
+  [data-workbuddy-skin-role="overlay-settings-modal"],
+  [data-workbuddy-skin-role="overlay-create-modal"],
+  [data-workbuddy-skin-role="overlay-listbox"]
+) {
+  border-color: color-mix(in srgb, #c8a55a 32%, transparent) !important;
+  box-shadow: var(--wbs-shadow-modal) !important;
+}
+
 html.workbuddy-skin #workbuddy-skin-video-toggle[data-workbuddy-skin-role="video-playback-control"] {
   width: var(--wbs-video-toggle-size, 32px);
   height: var(--wbs-video-toggle-size, 32px);

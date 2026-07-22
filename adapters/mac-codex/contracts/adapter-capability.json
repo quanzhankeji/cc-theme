@@ -3,11 +3,11 @@
   "revision": 2,
   "adapterId": "mac-codex",
   "adapterVersion": "26.715.71837",
-  "adapterReleaseRevision": 1,
+  "adapterReleaseRevision": 2,
   "releaseTarget": {
     "os": "macos",
     "arch": "arm64",
-    "assetIdentity": "mac-codex-26.715.71837-r1-macos-arm64"
+    "assetIdentity": "mac-codex-26.715.71837-r2-macos-arm64"
   },
   "displayName": "Mac Codex",
   "availability": "available",
@@ -64,6 +64,21 @@
     "transactionPolicy": "single-file-lock-serialized-merge",
     "previewPolicy": "immediate-preview-debounced-atomic-persist",
     "saveButton": false
+  },
+  "presentationProfiles": {
+    "immersive-scene-v1": {
+      "profileVersion": 1,
+      "geometryPolicy": "scene-bounded",
+      "surfaces": {
+        "shell": "exact",
+        "navigation": "exact",
+        "home": "exact",
+        "conversation": "exact",
+        "composer": "exact",
+        "cards": "exact",
+        "overlays": "exact"
+      }
+    }
   },
   "security": {
     "forbiddenPayloads": ["css", "javascript", "html", "shader", "selector", "command", "url", "absolute-path", "path-traversal", "host-version-fact"],

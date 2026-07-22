@@ -22,6 +22,7 @@
         "accessibility": { "$ref": "#/$defs/accessibility" }
       }
     },
+    "presentation": { "$ref": "#/$defs/immersiveScenePresentation" },
     "targets": {
       "type": "array",
       "minItems": 1,
@@ -204,6 +205,53 @@
         "minimumLargeTextContrast": { "type": "number", "minimum": 3, "maximum": 7 },
         "preserveSystemFocusRing": { "type": "boolean" },
         "transparencyFallback": { "enum": ["opaque", "increased-scrim"] }
+      }
+    },
+    "immersiveScenePresentation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profileId", "profileVersion", "strictness", "geometryPolicy", "surfaces", "parameters", "assetSlots", "fallbackPolicy"],
+      "properties": {
+        "profileId": { "const": "immersive-scene-v1" },
+        "profileVersion": { "const": 1 },
+        "strictness": { "const": "exact-required" },
+        "geometryPolicy": { "const": "scene-bounded" },
+        "surfaces": {
+          "type": "array",
+          "uniqueItems": true,
+          "minItems": 7,
+          "maxItems": 7,
+          "items": { "enum": ["shell", "navigation", "home", "conversation", "composer", "cards", "overlays"] }
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["density", "borderTreatment", "textureIntensity", "surfaceOpacity", "navigationTreatment", "composerTreatment", "cardTreatment"],
+          "properties": {
+            "density": { "const": "comfortable" },
+            "borderTreatment": { "const": "etched" },
+            "textureIntensity": { "type": "number", "minimum": 0, "maximum": 1 },
+            "surfaceOpacity": { "type": "number", "minimum": 0.4, "maximum": 0.88 },
+            "navigationTreatment": { "const": "framed" },
+            "composerTreatment": { "const": "anchored" },
+            "cardTreatment": { "const": "elevated" }
+          }
+        },
+        "assetSlots": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["scene.backdrop"],
+          "properties": { "scene.backdrop": { "$ref": "#/$defs/localImage" } }
+        },
+        "fallbackPolicy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["unsupportedSurface", "reducedMotion"],
+          "properties": {
+            "unsupportedSurface": { "const": "block" },
+            "reducedMotion": { "const": "static" }
+          }
+        }
       }
     }
   }

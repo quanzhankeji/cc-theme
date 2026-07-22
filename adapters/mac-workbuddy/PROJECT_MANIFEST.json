@@ -3,7 +3,7 @@
   "schemaVersion": 1,
   "adapterId": "mac-workbuddy",
   "adapterVersion": "5.2.6",
-  "adapterReleaseRevision": 1,
+  "adapterReleaseRevision": 2,
   "platform": "macos",
   "architecture": "arm64",
   "host": {
@@ -16,9 +16,9 @@
     }
   },
   "release": {
-    "assetIdentity": "mac-workbuddy-5.2.6-r1-macos-arm64",
-    "sourceArchive": "mac-workbuddy-5.2.6-r1-macos-arm64.zip",
-    "clientArchive": "cc-theme-mac-workbuddy-5.2.6-r1-macos-arm64.zip",
+    "assetIdentity": "mac-workbuddy-5.2.6-r2-macos-arm64",
+    "sourceArchive": "mac-workbuddy-5.2.6-r2-macos-arm64.zip",
+    "clientArchive": "cc-theme-mac-workbuddy-5.2.6-r2-macos-arm64.zip",
     "publicationStatus": "unpublished-development",
     "overwritePolicy": "replace-unpublished-development-revision"
   }

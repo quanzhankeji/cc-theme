@@ -61,7 +61,7 @@ oldHostFacts.version = "26.715.61943";
 oldHostFacts.build = "5628";
 oldHostFacts.asarSha256 = "7501dd25c22e090bb131fe3fe6423e5c3b21b7f275c7e45b86ebe00a68052c80";
 const oldHost = evaluateSurfaceAdmissionFacts(oldHostFacts, verifiedCatalog);
-assert.equal(oldHost.allowed, false, "26.715.71837-r1 must reject the stale 26.715.61943 host context");
+assert.equal(oldHost.allowed, false, "26.715.71837-r2 must reject the stale 26.715.61943 host context");
 assert(oldHost.diagnostics.some((item) => item.code === "surface-evidence-client-version-mismatch"));
 
 const previousHostFacts = structuredClone(facts);

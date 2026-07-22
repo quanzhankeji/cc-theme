@@ -134,6 +134,44 @@ html[data-cc-theme-doubao-version] [data-cc-theme-doubao-role="sidebar-inner"] {
   background: transparent !important;
 }
 
+/* Adapter-owned immersive scene recipe using only cataloged Doubao roles. */
+html[data-cc-theme-doubao-presentation="immersive-scene-v1"] {
+  --cc-doubao-scene-gold: #c8a55a;
+  --cc-doubao-scene-line: color-mix(in srgb, var(--cc-doubao-scene-gold) 32%, transparent);
+  --cc-doubao-scene-panel: color-mix(in srgb, var(--cc-doubao-surface-raised) 82%, transparent);
+}
+
+html[data-cc-theme-doubao-presentation="immersive-scene-v1"] [data-cc-theme-doubao-role="shell"] {
+  background: linear-gradient(90deg, rgba(9, 8, 9, .84), rgba(14, 11, 10, .45) 58%, rgba(13, 10, 9, .15)) !important;
+}
+
+html[data-cc-theme-doubao-presentation="immersive-scene-v1"] :is(
+  [data-cc-theme-doubao-role="sidebar"],
+  [data-cc-theme-doubao-role="header-surface"],
+  [data-cc-theme-doubao-role="right-side"]
+) {
+  border-color: var(--cc-doubao-scene-line) !important;
+  box-shadow: inset -1px 0 rgba(255, 239, 197, .05) !important;
+}
+
+html[data-cc-theme-doubao-presentation="immersive-scene-v1"] :is(
+  [data-cc-theme-doubao-role="home-surface"],
+  [data-cc-theme-doubao-role="message-list"],
+  [data-cc-theme-doubao-role="chat-list"]
+) {
+  background: linear-gradient(90deg, rgba(10, 9, 10, .46), rgba(16, 13, 11, .14)) !important;
+}
+
+html[data-cc-theme-doubao-presentation="immersive-scene-v1"] :is(
+  [data-cc-theme-doubao-role="reference-card"],
+  [data-cc-theme-doubao-role="document-card"],
+  [data-cc-theme-doubao-role="overlay-surface"]
+) {
+  background: var(--cc-doubao-scene-panel) !important;
+  border: 1px solid var(--cc-doubao-scene-line) !important;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, .28), inset 0 1px rgba(255, 239, 197, .05) !important;
+}
+
 /* Native controls, content, typography, icons, focus rings, overlays, and motion
    deliberately remain host-owned. Only large structural paint surfaces are themed. */
 html[data-cc-theme-doubao-version] [data-cc-theme-doubao-role="right-side"] {

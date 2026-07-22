@@ -155,6 +155,7 @@ export async function loadRuntimePayload(themeDirectory) {
     backgroundUrl: `data:${imageMime(extension)};base64,${imageBytes.toString("base64")}`,
     position: structuredClone(position),
     variables: Object.freeze(variablesFor(theme)),
+    ...(theme.presentation ? { presentationProfile: theme.presentation.profileId } : {}),
     ...(video ? { video } : {}),
   });
 }
@@ -375,6 +376,7 @@ async function apply(port, themeDirectory, timeoutMs) {
     backgroundUrl: payload.backgroundUrl,
     backgroundPosition: `${payload.position.xPercent}% ${payload.position.yPercent}%`,
     variables: payload.variables,
+    ...(payload.presentationProfile ? { presentationProfile: payload.presentationProfile } : {}),
     styleText: assets.styleText,
     ...(payload.video ? {
       videoExpected: true,
@@ -404,6 +406,7 @@ async function apply(port, themeDirectory, timeoutMs) {
     document.documentElement.removeAttribute("data-cc-theme-doubao-host-appearance");
     document.documentElement.removeAttribute("data-cc-theme-doubao-appearance");
     document.documentElement.removeAttribute("data-cc-theme-doubao-palette-strategy");
+    document.documentElement.removeAttribute("data-cc-theme-doubao-presentation");
     const factory = (${assets.factory});
     const runtime = factory({ document: globalThis.document, location: globalThis.location });
     const result = runtime.apply(${JSON.stringify(runtimePayload)});

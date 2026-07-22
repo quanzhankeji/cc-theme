@@ -15,7 +15,7 @@ const FORBIDDEN_THEME_EXTENSIONS = new Set([".cctheme", ".gif", ".jpeg", ".jpg",
 const SAFE_ARCHIVE_ENTRY = /^[A-Za-z0-9._+ -]+(?:\/[A-Za-z0-9._+ -]+)*\/?$/;
 const RUNTIME_PACKAGE_FILES = Object.freeze({
   "adapter-sdk": ["adapter-registry.mjs", "workspace-root.mjs", "package.json"],
-  "theme-core": ["cli.mjs", "compiler.mjs", "runtime-overrides.mjs", "package.json"],
+  "theme-core": ["cli.mjs", "compiler.mjs", "presentation.mjs", "runtime-overrides.mjs", "package.json"],
 });
 const TRANSITION_PROFILE = "transition-baseline";
 

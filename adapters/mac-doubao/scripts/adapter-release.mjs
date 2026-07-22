@@ -25,8 +25,8 @@ export async function assembleAdapterRelease(destinationRoot) {
   const manifest = JSON.parse(await fs.readFile(path.join(sourceRoot, "contracts/adapter-release-manifest.json"), "utf8"));
   if (manifest.kind !== "mac-doubao-adapter.release-manifest" || manifest.revision !== 1 ||
       manifest.adapterId !== "mac-doubao" || manifest.adapterVersion !== "2.19.9" ||
-      manifest.adapterReleaseRevision !== 1 || manifest.platform !== "macos" || manifest.architecture !== "arm64" ||
-      manifest.assetIdentity !== "mac-doubao-2.19.9-r1-macos-arm64" || !Array.isArray(manifest.entries)) {
+      manifest.adapterReleaseRevision !== 2 || manifest.platform !== "macos" || manifest.architecture !== "arm64" ||
+      manifest.assetIdentity !== "mac-doubao-2.19.9-r2-macos-arm64" || !Array.isArray(manifest.entries)) {
     throw new Error("Invalid Mac Doubao Adapter release manifest");
   }
   await fs.mkdir(destinationRoot, { recursive: true });
