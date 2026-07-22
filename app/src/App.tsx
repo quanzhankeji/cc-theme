@@ -111,6 +111,13 @@ function statusText(client: ClientState, t: Translate): string {
   return t("status.unknown");
 }
 
+function themeImportFailureMessage(code: string, t: Translate): string {
+  if (code === "theme-package-presentation-invalid") {
+    return t("themes.importPresentationInvalid");
+  }
+  return t("themes.importFailed");
+}
+
 function shortMark(name: string): string {
   const words = name.match(/[A-Z]?[a-z]+|[A-Z]+(?=[A-Z]|$)|[\p{L}\p{N}]+/gu) ?? [];
   if (words.length > 1) return words.slice(0, 2).map((word) => word[0]).join("");
@@ -831,7 +838,7 @@ export default function App({ api = desktopApi, windowApi = managerWindowApi, pa
     setError(null);
     try {
       const result = await api.importThemePackage(packagePath);
-      if (result.status === "failed") throw new Error(t("themes.importFailed"));
+      if (result.status === "failed") throw new Error(themeImportFailureMessage(result.code, t));
       const fresh = await api.getDashboardState();
       setDashboard((current) => ({ ...fresh, activities: current?.activities ?? fresh.activities }));
       const importedThemeId = result.details?.themeId;

@@ -277,6 +277,27 @@ describe("CC Theme desktop dashboard", () => {
     expect(screen.queryByText("English theme description")).not.toBeInTheDocument();
   });
 
+  it("为 presentation 合同失败显示精确的主题导入诊断", async () => {
+    const api = makeApi({
+      importThemePackage: vi.fn(() => Promise.resolve({
+        status: "failed" as const,
+        code: "theme-package-presentation-invalid",
+        message: "主题 presentation 合同无效",
+      })),
+    });
+    const packagePicker: ThemePackagePicker = {
+      chooseThemePackage: vi.fn(() => Promise.resolve("/Users/example/GothicVoidCrusade.cctheme")),
+    };
+    const user = userEvent.setup();
+    render(<App api={api} packagePicker={packagePicker} />);
+
+    await screen.findByRole("heading", { name: "主题与应用" });
+    await user.click(screen.getByRole("button", { name: "导入本地主题" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("主题的沉浸式展示档案不符合支持的安全规范");
+    expect(screen.queryByText("主题包未通过安全校验，格式不正确，或同名主题已经安装")).not.toBeInTheDocument();
+  });
+
   it("主题封面发生一次瞬时加载错误时重试，连续失败后才回退占位图", async () => {
     const dashboard = cloneDemoDashboard();
     dashboard.themes = [{

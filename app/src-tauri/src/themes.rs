@@ -121,9 +121,50 @@ struct UnifiedThemeSource {
     name: String,
     version: String,
     shared_core: SharedCoreSource,
+    #[serde(default)]
+    presentation: Option<ThemePresentationSource>,
     targets: Vec<String>,
     #[serde(default)]
     target_profiles: BTreeMap<String, Value>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ThemePresentationSource {
+    profile_id: String,
+    profile_version: u64,
+    strictness: String,
+    geometry_policy: String,
+    surfaces: Vec<String>,
+    parameters: ThemePresentationParameters,
+    asset_slots: ThemePresentationAssetSlots,
+    fallback_policy: ThemePresentationFallbackPolicy,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ThemePresentationParameters {
+    density: String,
+    border_treatment: String,
+    texture_intensity: f64,
+    surface_opacity: f64,
+    navigation_treatment: String,
+    composer_treatment: String,
+    card_treatment: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ThemePresentationAssetSlots {
+    #[serde(rename = "scene.backdrop")]
+    scene_backdrop: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ThemePresentationFallbackPolicy {
+    unsupported_surface: String,
+    reduced_motion: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -528,11 +569,16 @@ fn validate_package_source_and_media(
     family: &Path,
     manifest: &ThemePackageManifest,
 ) -> Result<(), String> {
-    let source: UnifiedThemeSource = serde_json::from_slice(
-        &fs::read(family.join("unified-theme.json"))
-            .map_err(|_| "theme-package-source-unreadable".to_string())?,
-    )
-    .map_err(|_| "theme-package-source-invalid".to_string())?;
+    let source_bytes = fs::read(family.join("unified-theme.json"))
+        .map_err(|_| "theme-package-source-unreadable".to_string())?;
+    let source_value: Value = serde_json::from_slice(&source_bytes)
+        .map_err(|_| "theme-package-source-invalid".to_string())?;
+    if let Some(presentation) = source_value.get("presentation") {
+        serde_json::from_value::<ThemePresentationSource>(presentation.clone())
+            .map_err(|_| "theme-package-presentation-invalid".to_string())?;
+    }
+    let source: UnifiedThemeSource = serde_json::from_value(source_value)
+        .map_err(|_| "theme-package-source-invalid".to_string())?;
     let required_assets = validate_unified_theme_source(&source, manifest)?;
     for asset in &manifest.assets {
         let mut file = fs::File::open(family.join(&asset.path))
@@ -584,7 +630,64 @@ fn validate_unified_theme_source<'a>(
 
     validate_theme_tokens(&source.shared_core.tokens)?;
     validate_theme_accessibility(&source.shared_core.accessibility)?;
-    validate_theme_background(&source.shared_core.background)
+    let assets = validate_theme_background(&source.shared_core.background)?;
+    if let Some(presentation) = &source.presentation {
+        validate_theme_presentation(presentation, &source.shared_core.background)?;
+    }
+    Ok(assets)
+}
+
+fn validate_theme_presentation(
+    value: &ThemePresentationSource,
+    background: &ThemeBackgroundSource,
+) -> Result<(), String> {
+    const SURFACES: [&str; 7] = [
+        "shell",
+        "navigation",
+        "home",
+        "conversation",
+        "composer",
+        "cards",
+        "overlays",
+    ];
+    let parameters = &value.parameters;
+    let declared_surfaces = value
+        .surfaces
+        .iter()
+        .map(String::as_str)
+        .collect::<BTreeSet<_>>();
+    let expected_surfaces = SURFACES.into_iter().collect::<BTreeSet<_>>();
+    let background_image = match background {
+        ThemeBackgroundSource::Media { image, .. }
+        | ThemeBackgroundSource::Ripple { image, .. }
+        | ThemeBackgroundSource::Directional { image, .. } => image,
+    };
+    if value.profile_id != "immersive-scene-v1"
+        || value.profile_version != 1
+        || value.strictness != "exact-required"
+        || value.geometry_policy != "scene-bounded"
+        || value.surfaces.len() != SURFACES.len()
+        || declared_surfaces != expected_surfaces
+        || parameters.density != "comfortable"
+        || parameters.border_treatment != "etched"
+        || !parameters.texture_intensity.is_finite()
+        || !(0.0..=1.0).contains(&parameters.texture_intensity)
+        || !parameters.surface_opacity.is_finite()
+        || !(0.4..=0.88).contains(&parameters.surface_opacity)
+        || parameters.navigation_treatment != "framed"
+        || parameters.composer_treatment != "anchored"
+        || parameters.card_treatment != "elevated"
+        || !valid_local_asset(
+            &value.asset_slots.scene_backdrop,
+            &["png", "jpg", "jpeg", "webp"],
+        )
+        || value.asset_slots.scene_backdrop != *background_image
+        || value.fallback_policy.unsupported_surface != "block"
+        || value.fallback_policy.reduced_motion != "static"
+    {
+        return Err("theme-package-presentation-invalid".to_string());
+    }
+    Ok(())
 }
 
 fn validate_theme_tokens(tokens: &ThemeTokensSource) -> Result<(), String> {
@@ -2149,6 +2252,27 @@ mod tests {
         manifest_entry.1 = serde_json::to_vec(&manifest).unwrap();
     }
 
+    fn immersive_scene_presentation(image: &str) -> Value {
+        serde_json::json!({
+            "profileId": "immersive-scene-v1",
+            "profileVersion": 1,
+            "strictness": "exact-required",
+            "geometryPolicy": "scene-bounded",
+            "surfaces": ["shell", "navigation", "home", "conversation", "composer", "cards", "overlays"],
+            "parameters": {
+                "density": "comfortable",
+                "borderTreatment": "etched",
+                "textureIntensity": 0.36,
+                "surfaceOpacity": 0.72,
+                "navigationTreatment": "framed",
+                "composerTreatment": "anchored",
+                "cardTreatment": "elevated"
+            },
+            "assetSlots": { "scene.backdrop": image },
+            "fallbackPolicy": { "unsupportedSurface": "block", "reducedMotion": "static" }
+        })
+    }
+
     #[test]
     fn theme_ids_reject_traversal_and_shell_metacharacters() {
         assert!(valid_theme_id("fixture-v2_1"));
@@ -2221,6 +2345,97 @@ mod tests {
             .unwrap()
             .flatten()
             .all(|entry| !entry.file_name().to_string_lossy().starts_with(".import-")));
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn cctheme_import_accepts_a_closed_immersive_scene_presentation() {
+        let root = scratch("gothic-void-crusade-presentation");
+        fs::create_dir_all(&root).unwrap();
+        let package = root.join("gothic-void-crusade.cctheme");
+        let library = root.join("library");
+        let mut entries = package_entries("gothic-void-crusade");
+        mutate_package_source(&mut entries, |source| {
+            source["presentation"] = immersive_scene_presentation("background.webp");
+        });
+        write_package(&package, entries);
+
+        assert_eq!(
+            import_theme_package_to(&package, &library).unwrap(),
+            "gothic-void-crusade"
+        );
+        assert!(library
+            .join("gothic-void-crusade/unified-theme.json")
+            .is_file());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn cctheme_import_rejects_unsafe_or_invalid_immersive_scene_presentation() {
+        let root = scratch("immersive-scene-presentation-invalid");
+        fs::create_dir_all(&root).unwrap();
+        let mutations: Vec<(&str, Box<dyn FnOnce(&mut Value)>)> = vec![
+            (
+                "unknown-field",
+                Box::new(|source| {
+                    source["presentation"] = immersive_scene_presentation("background.webp");
+                    source["presentation"]["selector"] = Value::String(".host-ui".into());
+                }),
+            ),
+            (
+                "invalid-policy",
+                Box::new(|source| {
+                    source["presentation"] = immersive_scene_presentation("background.webp");
+                    source["presentation"]["geometryPolicy"] =
+                        Value::String("replace-layout".into());
+                }),
+            ),
+            (
+                "invalid-asset-slot",
+                Box::new(|source| {
+                    source["presentation"] = immersive_scene_presentation("background.webp");
+                    source["presentation"]["assetSlots"]["scene.backdrop"] =
+                        Value::String("../outside.png".into());
+                }),
+            ),
+            (
+                "unknown-asset-slot",
+                Box::new(|source| {
+                    source["presentation"] = immersive_scene_presentation("background.webp");
+                    source["presentation"]["assetSlots"]["scene.overlay"] =
+                        Value::String("background.webp".into());
+                }),
+            ),
+        ];
+        for (index, (name, mutate)) in mutations.into_iter().enumerate() {
+            let package = root.join(format!("{index}-{name}.cctheme"));
+            let library = root.join(format!("library-{index}"));
+            let mut entries = package_entries("gothic-void-crusade");
+            mutate_package_source(&mut entries, mutate);
+            write_package(&package, entries);
+
+            assert_eq!(
+                import_theme_package_to(&package, &library).unwrap_err(),
+                "theme-package-presentation-invalid",
+                "{name} must fail closed"
+            );
+            assert!(!library.join("gothic-void-crusade").exists());
+        }
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn cctheme_import_keeps_legacy_themes_without_presentation_compatible() {
+        let root = scratch("legacy-no-presentation");
+        fs::create_dir_all(&root).unwrap();
+        let package = root.join("legacy.cctheme");
+        let library = root.join("library");
+        write_package(&package, package_entries("legacy-theme"));
+
+        assert_eq!(
+            import_theme_package_to(&package, &library).unwrap(),
+            "legacy-theme"
+        );
         fs::remove_dir_all(root).unwrap();
     }
 
