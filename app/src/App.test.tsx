@@ -856,6 +856,95 @@ describe("CC Theme desktop dashboard", () => {
     expect(await within(card).findByRole("button", { name: "下载 Doubao Adapter 更新" })).toBeEnabled();
   });
 
+  it("允许用户主动绕过缓存检查 Adapter 更新，并在发现新版后显示下载入口", async () => {
+    const dashboard = cloneDemoDashboard();
+    const checkAdapterUpdates = vi.fn()
+      .mockResolvedValueOnce({
+        status: "success" as const,
+        code: "adapter-catalog-ready",
+        message: "已从缓存读取 Adapter 清单",
+        details: {
+          sequence: 2,
+          source: "cache" as const,
+          checkedAt: "2026-07-21T10:00:00Z",
+          adapters: [{
+            adapterId: "mac-codex",
+            status: "current" as const,
+            latestVersion: "26.715.61943",
+            latestReleaseRevision: 1,
+            source: "cache" as const,
+            message: "缓存清单中已是最新版",
+          }],
+        },
+      })
+      .mockResolvedValueOnce({
+        status: "success" as const,
+        code: "adapter-catalog-ready",
+        message: "已刷新官方签名清单",
+        details: {
+          sequence: 3,
+          source: "network" as const,
+          checkedAt: "2026-07-22T06:00:00Z",
+          adapters: [{
+            adapterId: "mac-codex",
+            status: "update-available" as const,
+            latestVersion: "26.715.71837",
+            latestReleaseRevision: 1,
+            source: "network" as const,
+            message: "发现官方 Adapter 更新",
+          }],
+        },
+      });
+    const api = makeApi({
+      getDashboardState: vi.fn(() => Promise.resolve(dashboard)),
+      checkAdapterUpdates,
+    });
+    const user = userEvent.setup();
+
+    render(<App api={api} />);
+
+    const card = await screen.findByTestId("client-mac-codex");
+    await waitFor(() => expect(checkAdapterUpdates).toHaveBeenCalledWith(false));
+    expect(within(card).getByText("已是最新版")).toBeInTheDocument();
+
+    await user.click(within(card).getByRole("button", { name: "检查 Codex Adapter 更新" }));
+
+    await waitFor(() => expect(checkAdapterUpdates).toHaveBeenLastCalledWith(true));
+    expect(await within(card).findByRole("button", { name: "下载 Codex Adapter 更新" })).toBeEnabled();
+  });
+
+  it("主动检查时只在所选客户端显示进度，并保持现有状态和操作布局", async () => {
+    const check = deferred<Awaited<ReturnType<DesktopApi["checkAdapterUpdates"]>>>();
+    const initial = makeApi().checkAdapterUpdates();
+    const checkAdapterUpdates = vi.fn()
+      .mockImplementationOnce(() => initial)
+      .mockImplementationOnce(() => check.promise);
+    const api = makeApi({ checkAdapterUpdates });
+    const user = userEvent.setup();
+
+    render(<App api={api} />);
+
+    const codex = await screen.findByTestId("client-mac-codex");
+    const doubao = screen.getByTestId("client-mac-doubao");
+    const workbuddy = screen.getByTestId("client-mac-workbuddy");
+    await waitFor(() => expect(checkAdapterUpdates).toHaveBeenCalledWith(false));
+    await within(codex).findByText("已是最新版");
+
+    const checkButton = within(codex).getByRole("button", { name: "检查 Codex Adapter 更新" });
+    await user.click(checkButton);
+
+    await waitFor(() => expect(checkAdapterUpdates).toHaveBeenLastCalledWith(true));
+    expect(within(codex).getByText("已是最新版")).toBeInTheDocument();
+    expect(checkButton).toHaveTextContent("检查更新");
+    expect(checkButton).toHaveAttribute("aria-busy", "true");
+    expect(checkButton.querySelector(".spinner")).toBeInTheDocument();
+    expect(doubao.querySelector(".spinner")).not.toBeInTheDocument();
+    expect(workbuddy.querySelector(".spinner")).not.toBeInTheDocument();
+
+    check.resolve(await makeApi().checkAdapterUpdates());
+    await waitFor(() => expect(checkButton).not.toHaveAttribute("aria-busy"));
+  });
+
   it("已就绪的 Adapter 展示版本与来源，并允许导入本地更新", async () => {
     const dashboard = cloneDemoDashboard();
     const api = makeApi({ getDashboardState: vi.fn(() => Promise.resolve(dashboard)) });
@@ -868,7 +957,8 @@ describe("CC Theme desktop dashboard", () => {
     const card = await screen.findByTestId("client-mac-workbuddy");
     expect(card).toHaveTextContent("5.2.6 · r1");
     expect(card).toHaveTextContent("应用内置");
-    expect(within(card).getByRole("button", { name: "已是最新版" })).toBeDisabled();
+    expect(within(card).getByText("已是最新版")).toBeInTheDocument();
+    expect(within(card).getByRole("button", { name: "检查 WorkBuddy Adapter 更新" })).toBeEnabled();
     await user.click(within(card).getByRole("button", { name: "为 WorkBuddy 导入本地 Adapter 包" }));
     await waitFor(() => expect(api.installLocalAdapter).toHaveBeenCalledWith(
       "mac-workbuddy",
