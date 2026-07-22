@@ -105,8 +105,8 @@ export async function assembleAdapterRelease(destinationRoot, { sourceRoot = pro
   const raw = JSON.parse(await fs.readFile(manifestPath, "utf8"));
   if (raw?.kind !== "workbuddy-adapter.release-manifest" || raw?.revision !== 1 ||
       raw?.adapterId !== "mac-workbuddy" || raw?.adapterVersion !== "5.2.6" ||
-      raw?.adapterReleaseRevision !== 1 || raw?.platform !== "macos" || raw?.architecture !== "arm64" ||
-      raw?.assetIdentity !== "mac-workbuddy-5.2.6-r1-macos-arm64" || !Array.isArray(raw.entries)) {
+      raw?.adapterReleaseRevision !== 2 || raw?.platform !== "macos" || raw?.architecture !== "arm64" ||
+      raw?.assetIdentity !== "mac-workbuddy-5.2.6-r2-macos-arm64" || !Array.isArray(raw.entries)) {
     throw new Error("Invalid WorkBuddy Adapter release manifest");
   }
   await fs.mkdir(destinationRoot, { recursive: true });

@@ -364,6 +364,8 @@
   root.classList.add("workbuddy-skin");
   root.dataset.workbuddySkinVersion = VERSION;
   root.dataset.workbuddySkinTheme = THEME.id;
+  if (THEME.presentation?.profileId === "immersive-scene-v1") root.dataset.workbuddySkinPresentation = "immersive-scene-v1";
+  else delete root.dataset.workbuddySkinPresentation;
   root.dataset.workbuddySkinMode = THEME.shellMode;
   root.dataset.workbuddySkinPalette = activePaletteStrategy;
   root.dataset.workbuddySkinNativeMode = nativeMode;
@@ -1622,6 +1624,7 @@
     root.classList.remove("workbuddy-skin");
     delete root.dataset.workbuddySkinVersion;
     delete root.dataset.workbuddySkinTheme;
+    delete root.dataset.workbuddySkinPresentation;
     delete root.dataset.workbuddySkinMode;
     delete root.dataset.workbuddySkinPalette;
     delete root.dataset.workbuddySkinNativeMode;

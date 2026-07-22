@@ -22,7 +22,7 @@ const styleCatalog = await loadThemeStyleCatalog(uiCatalog.runtimeRoles);
 assert.equal(capability.adapterVersion, "5.2.6");
 assert.equal(capability.adapterVersion, uiCatalog.target.version);
 assert.equal(capability.adapterVersion, uiCatalog.adapterVersion);
-assert.equal(capability.adapterReleaseRevision, 1);
+assert.equal(capability.adapterReleaseRevision, 2);
 assert.equal(capability.adapterReleaseRevision, uiCatalog.adapterReleaseRevision);
 assert.equal(capability.platform, "macos");
 assert.equal(capability.architecture, "arm64");

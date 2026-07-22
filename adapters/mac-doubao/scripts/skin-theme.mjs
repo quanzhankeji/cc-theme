@@ -4,7 +4,7 @@ export const ADAPTER_ID = "mac-doubao";
 export const SKIN_THEME_KIND = "skin.theme";
 
 const ROOT_KEYS = new Set([
-  "kind", "id", "name", "sourceVersion", "image", "backgroundVideo", "colors", "semanticColors", "fonts", "appearance",
+  "kind", "id", "name", "sourceVersion", "image", "backgroundVideo", "colors", "semanticColors", "fonts", "appearance", "presentation",
 ]);
 const COLOR_PATTERN = /^(?:#[0-9a-f]{6}|rgba?\([0-9., %]+\))$/i;
 const COLOR_KEYS = new Set(["text", "muted"]);
@@ -20,8 +20,26 @@ const APPEARANCE_KEYS = new Set([
   "paletteStrategy", "backdropBlurPx", "backdropSaturation", "backgroundPosition",
   "backgroundVideoPosterMode", "backgroundVideoScrimOpacity", "backgroundVideoPosition",
 ]);
+const IMMERSIVE_SCENE_SURFACES = new Set(["shell", "navigation", "home", "conversation", "composer", "cards", "overlays"]);
 
 const plainObject = (value) => value && typeof value === "object" && !Array.isArray(value) ? value : null;
+
+// Adapter releases are standalone. Shared Core owns detailed validation before
+// projection; this release-local gate admits only the fixed inert envelope.
+function normalizePresentation(value, label) {
+  const presentation = plainObject(value);
+  const allowed = new Set(["profileId", "profileVersion", "strictness", "geometryPolicy", "surfaces", "parameters", "assetSlots", "fallbackPolicy"]);
+  if (!presentation || Object.keys(presentation).some((key) => !allowed.has(key)) ||
+      presentation.profileId !== "immersive-scene-v1" || presentation.profileVersion !== 1 ||
+      presentation.strictness !== "exact-required" || presentation.geometryPolicy !== "scene-bounded" ||
+      !Array.isArray(presentation.surfaces) || presentation.surfaces.length !== IMMERSIVE_SCENE_SURFACES.size ||
+      new Set(presentation.surfaces).size !== IMMERSIVE_SCENE_SURFACES.size ||
+      presentation.surfaces.some((surface) => !IMMERSIVE_SCENE_SURFACES.has(surface)) ||
+      !plainObject(presentation.parameters) || !plainObject(presentation.assetSlots) || !plainObject(presentation.fallbackPolicy)) {
+    throw new Error(`${label} must use the validated immersive-scene-v1 envelope`);
+  }
+  return structuredClone(presentation);
+}
 
 function objectWithKeys(value, keys, label, optional = false) {
   if (value === undefined && optional) return {};
@@ -116,12 +134,14 @@ export function normalizeSkinTheme(value, label = "Doubao theme") {
   }
   fonts(theme.fonts);
   const themeAppearance = appearance(theme.appearance);
+  const presentation = theme.presentation === undefined ? null : normalizePresentation(theme.presentation, `${label} presentation`);
   if (!theme.backgroundVideo && [
     "backgroundVideoPosterMode", "backgroundVideoScrimOpacity", "backgroundVideoPosition",
   ].some((key) => themeAppearance[key] !== undefined)) {
     throw new Error(`${label} video appearance requires backgroundVideo`);
   }
   const normalized = structuredClone(theme);
+  if (presentation) normalized.presentation = presentation;
   normalized.appearance = {
     ...themeAppearance,
     paletteStrategy: themeAppearance.paletteStrategy ?? "system",

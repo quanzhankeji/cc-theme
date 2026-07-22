@@ -15,7 +15,7 @@ export const ADAPTER_CAPABILITY_KIND = "cc-theme.adapter-capability";
 export const TARGET_PROFILE_KIND = "cc-theme.target-profile";
 export const ADAPTER_ID = "mac-workbuddy";
 export const ADAPTER_VERSION = "5.2.6";
-export const ADAPTER_RELEASE_REVISION = 1;
+export const ADAPTER_RELEASE_REVISION = 2;
 export const ADAPTER_PLATFORM = "macos";
 export const ADAPTER_ARCHITECTURE = "arm64";
 
@@ -35,7 +35,7 @@ export function validateAdapterCapability(value, label = "WorkBuddy adapter capa
   const capability = exactKeys(value, [
     "kind", "schemaVersion", "capabilityVersion", "adapterId", "adapterVersion",
     "adapterReleaseRevision", "platform", "architecture", "available", "runtimeApplyAvailable",
-    "catalogs", "compatibility", "sharedCore", "targetProfile", "localRuntimeOverrides", "paletteStrategy",
+    "catalogs", "compatibility", "sharedCore", "targetProfile", "presentationProfiles", "localRuntimeOverrides", "paletteStrategy",
     "transactionSeam", "migration",
   ], label);
   if (capability.kind !== ADAPTER_CAPABILITY_KIND || capability.schemaVersion !== 1 ||
@@ -117,6 +117,13 @@ export function validateAdapterCapability(value, label = "WorkBuddy adapter capa
       throw new Error(`${label} has an invalid or duplicate Target Profile field`);
     }
     profileIds.add(field.id);
+  }
+  const presentationProfiles = exactKeys(capability.presentationProfiles, ["immersive-scene-v1"], `${label}.presentationProfiles`);
+  const immersive = exactKeys(presentationProfiles["immersive-scene-v1"], ["profileVersion", "geometryPolicy", "surfaces"], `${label}.presentationProfiles.immersive-scene-v1`);
+  const sceneSurfaces = exactKeys(immersive.surfaces, ["shell", "navigation", "home", "conversation", "composer", "cards", "overlays"], `${label}.presentationProfiles.immersive-scene-v1.surfaces`);
+  if (immersive.profileVersion !== 1 || immersive.geometryPolicy !== "scene-bounded" ||
+      Object.values(sceneSurfaces).some((value) => value !== "exact")) {
+    throw new Error(`${label} has an invalid immersive scene capability declaration`);
   }
   const localRuntimeOverrides = exactKeys(capability.localRuntimeOverrides, [
     "kind", "schema", "schemaVersion", "catalog", "catalogVersion", "editableTokens", "rebase", "incompatible",

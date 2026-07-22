@@ -4,7 +4,7 @@
   "title": "CC Theme normalized Adapter capability discovery result",
   "type": "object",
   "additionalProperties": false,
-  "required": ["kind", "schemaVersion", "adapterId", "availability", "capabilityVersion", "compileAvailable", "runtimeApplyAvailable", "sharedCore", "targetProfile", "localRuntimeOverrides", "compatibility", "projection", "sourceCapabilityFile", "raw"],
+  "required": ["kind", "schemaVersion", "adapterId", "availability", "capabilityVersion", "compileAvailable", "runtimeApplyAvailable", "sharedCore", "targetProfile", "presentationProfiles", "localRuntimeOverrides", "compatibility", "projection", "sourceCapabilityFile", "raw"],
   "properties": {
     "kind": { "const": "cc-theme.normalized-adapter-capability" },
     "schemaVersion": { "const": 1 },
@@ -31,6 +31,32 @@
       }
     },
     "targetProfile": { "type": "object" },
+    "presentationProfiles": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["profileVersion", "geometryPolicy", "surfaces"],
+        "properties": {
+          "profileVersion": { "type": "integer", "minimum": 1 },
+          "geometryPolicy": { "enum": ["scene-bounded"] },
+          "surfaces": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["shell", "navigation", "home", "conversation", "composer", "cards", "overlays"],
+            "properties": {
+              "shell": { "enum": ["exact", "approximated", "unsupported"] },
+              "navigation": { "enum": ["exact", "approximated", "unsupported"] },
+              "home": { "enum": ["exact", "approximated", "unsupported"] },
+              "conversation": { "enum": ["exact", "approximated", "unsupported"] },
+              "composer": { "enum": ["exact", "approximated", "unsupported"] },
+              "cards": { "enum": ["exact", "approximated", "unsupported"] },
+              "overlays": { "enum": ["exact", "approximated", "unsupported"] }
+            }
+          }
+        }
+      }
+    },
     "localRuntimeOverrides": {
       "type": "object",
       "additionalProperties": false,

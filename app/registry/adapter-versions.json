@@ -8,13 +8,13 @@
       "adapterId": "mac-codex",
       "current": {
         "adapterVersion": "26.715.71837",
-        "adapterReleaseRevision": 1
+        "adapterReleaseRevision": 2
       },
       "releases": [
         {
           "adapterVersion": "26.715.71837",
-          "adapterReleaseRevision": 1,
-          "assetIdentity": "mac-codex-26.715.71837-r1-macos-arm64",
+          "adapterReleaseRevision": 2,
+          "assetIdentity": "mac-codex-26.715.71837-r2-macos-arm64",
           "contracts": {
             "minimumManagerVersion": "0.2.1",
             "capabilityVersion": "2.0.0",
@@ -29,15 +29,15 @@
       "adapterId": "mac-doubao",
       "current": {
         "adapterVersion": "2.19.9",
-        "adapterReleaseRevision": 1
+        "adapterReleaseRevision": 2
       },
       "releases": [
         {
           "adapterVersion": "2.19.9",
-          "adapterReleaseRevision": 1,
-          "assetIdentity": "mac-doubao-2.19.9-r1-macos-arm64",
+          "adapterReleaseRevision": 2,
+          "assetIdentity": "mac-doubao-2.19.9-r2-macos-arm64",
           "contracts": {
-            "minimumManagerVersion": "0.2.0",
+            "minimumManagerVersion": "0.2.1",
             "capabilityVersion": "1.3.0",
             "unifiedThemeSchemaVersion": 1,
             "adapterPackageSchemaVersion": 1
@@ -50,15 +50,15 @@
       "adapterId": "mac-workbuddy",
       "current": {
         "adapterVersion": "5.2.6",
-        "adapterReleaseRevision": 1
+        "adapterReleaseRevision": 2
       },
       "releases": [
         {
           "adapterVersion": "5.2.6",
-          "adapterReleaseRevision": 1,
-          "assetIdentity": "mac-workbuddy-5.2.6-r1-macos-arm64",
+          "adapterReleaseRevision": 2,
+          "assetIdentity": "mac-workbuddy-5.2.6-r2-macos-arm64",
           "contracts": {
-            "minimumManagerVersion": "0.2.0",
+            "minimumManagerVersion": "0.2.1",
             "capabilityVersion": "1.0.0",
             "unifiedThemeSchemaVersion": 1,
             "adapterPackageSchemaVersion": 1

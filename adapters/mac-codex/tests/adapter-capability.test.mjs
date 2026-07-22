@@ -24,11 +24,11 @@ assert.equal(capability.revision, 2);
 assert.equal(capability.capabilityVersion, "2.0.0");
 assert.equal(capability.adapterId, "mac-codex");
 assert.equal(capability.adapterVersion, adapterVersion);
-assert.equal(capability.adapterReleaseRevision, 1);
+assert.equal(capability.adapterReleaseRevision, 2);
 assert.deepEqual(capability.releaseTarget, {
   os: "macos",
   arch: "arm64",
-  assetIdentity: `mac-codex-${adapterVersion}-r1-macos-arm64`,
+  assetIdentity: `mac-codex-${adapterVersion}-r2-macos-arm64`,
 });
 assert.equal(capability.availability, "available");
 assert.equal(capability.runtimeApplyAvailable, true);

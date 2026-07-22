@@ -1,6 +1,10 @@
 # Changelog
 
-## Mac-CodeX 26.715.71837 r1 — Unreleased
+## Mac-CodeX 26.715.71837 r2 — Unreleased
+
+- Added the adapter-owned `immersive-scene-v1` presentation recipe.
+
+## Mac-CodeX 26.715.71837 r1
 
 - Defined Mac-CodeX as a reversible Codex Theme Adapter.
 - Added external package validation, target projection, current Surface

@@ -1691,6 +1691,47 @@ html.cc-theme[data-skin-theme-bridge] .skin-home > div:first-child > div:first-c
   background: linear-gradient(90deg, var(--skin-main-scrim-start) 0%, var(--skin-main-scrim-mid) 72%, transparent 100%) !important;
 }
 
+/* Adapter-owned immersive scene recipe. It consumes stable Skin Surface Roles
+   only; native controls remain live nodes with their host interaction geometry. */
+html.cc-theme[data-skin-presentation="immersive-scene-v1"] {
+  --scene-gold: #c8a55a;
+  --scene-line: color-mix(in srgb, var(--scene-gold) 34%, transparent);
+  --scene-panel: color-mix(in srgb, var(--skin-panel, #171513) 78%, transparent);
+  --scene-raised: color-mix(in srgb, var(--skin-panel-2, #211d18) 84%, transparent);
+}
+
+html.cc-theme[data-skin-presentation="immersive-scene-v1"] body {
+  background: linear-gradient(90deg, rgba(8, 8, 10, .94) 0%, rgba(11, 10, 11, .74) 49%, rgba(14, 11, 9, .26) 100%) !important;
+}
+
+html.cc-theme[data-skin-presentation="immersive-scene-v1"] .app-shell-left-panel {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--scene-panel) 94%, #070606), color-mix(in srgb, var(--scene-panel) 78%, #0d0907)) !important;
+  border-right: 1px solid var(--scene-line) !important;
+  box-shadow: inset -1px 0 rgba(255, 240, 202, .05), 12px 0 32px rgba(0, 0, 0, .34) !important;
+}
+
+html.cc-theme[data-skin-presentation="immersive-scene-v1"] :is(main.main-surface, [data-app-shell-main-content-layout]) {
+  background: linear-gradient(90deg, rgba(9, 8, 9, .80), rgba(14, 11, 10, .44) 56%, rgba(12, 10, 9, .16)) !important;
+  box-shadow: inset 1px 0 var(--scene-line) !important;
+}
+
+html.cc-theme[data-skin-presentation="immersive-scene-v1"] [data-skin-role="home-hero"] {
+  border: 1px solid var(--scene-line) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 22px 54px rgba(0, 0, 0, .42), inset 0 1px rgba(255, 243, 212, .08) !important;
+}
+
+html.cc-theme[data-skin-presentation="immersive-scene-v1"] :is([data-skin-role="home-suggestion-card"], [data-skin-role="composer-root"], .composer-surface-chrome, article) {
+  background: var(--scene-raised) !important;
+  border: 1px solid var(--scene-line) !important;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, .28), inset 0 1px rgba(255, 243, 212, .05) !important;
+}
+
+html.cc-theme[data-skin-presentation="immersive-scene-v1"] :is([role="dialog"], [role="menu"], [role="listbox"], [role="tooltip"]) {
+  background: color-mix(in srgb, var(--skin-panel-2, #211d18) 96%, #080707) !important;
+  border-color: var(--scene-line) !important;
+}
+
 html.cc-theme[data-skin-theme-bridge] .skin-home [data-feature="game-source"] {
   color: var(--skin-text-strong) !important;
   text-shadow: 0 2px 14px rgba(0, 0, 0, .64) !important;

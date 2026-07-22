@@ -4,7 +4,7 @@
   "catalogVersion": 4,
   "adapterId": "mac-doubao",
   "adapterVersion": "2.19.9",
-  "adapterReleaseRevision": 1,
+  "adapterReleaseRevision": 2,
   "catalogId": "mac-doubao-theme",
   "geometryPolicy": "native",
   "description": "Unified Theme media and structural translucency for Doubao. Native typography, icons, control paint, focus, borders, overlays, shadows, geometry, and motion remain host-owned.",

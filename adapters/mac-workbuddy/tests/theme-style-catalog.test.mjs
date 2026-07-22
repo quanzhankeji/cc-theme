@@ -17,7 +17,7 @@ const [styleCatalog, css, renderer, capability] = await Promise.all([
 assert.equal(styleCatalog.kind, "theme.style-catalog");
 assert.equal(styleCatalog.adapterId, "mac-workbuddy");
 assert.equal(styleCatalog.adapterVersion, uiCatalog.target.version);
-assert.equal(styleCatalog.adapterReleaseRevision, 1);
+assert.equal(styleCatalog.adapterReleaseRevision, 2);
 assert.equal(styleCatalog.geometryPolicy, "native");
 const configuredVariables = new Set(styleCatalog.bindings.map((binding) => binding.cssVariable));
 const usedVariables = new Set([...css.matchAll(/--wbs-[a-z0-9-]+/g)].map((match) => match[0]));

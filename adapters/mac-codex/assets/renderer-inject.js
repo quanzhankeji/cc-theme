@@ -47,6 +47,7 @@
   const VERSION = __SKIN_VERSION_JSON__;
   const STYLE_REVISION = __SKIN_STYLE_REVISION_JSON__;
   const THEME = themeConfig && typeof themeConfig === "object" ? themeConfig : {};
+  const PRESENTATION_PROFILE = THEME.presentation?.profileId === "immersive-scene-v1" ? "immersive-scene-v1" : null;
   const STYLE_CATALOG = styleCatalogConfig && typeof styleCatalogConfig === "object" ? styleCatalogConfig : { groups: [], tokens: [] };
   const EDITOR_LOCALES = editorLocalesConfig && typeof editorLocalesConfig === "object"
     ? editorLocalesConfig : { defaultLocale: "en-US", locales: ["en-US"], aliases: {},
@@ -2947,9 +2948,12 @@
       root.setAttribute("data-skin-theme-bridge", "1");
       root.setAttribute("data-skin-theme-id", String(THEME.id || "custom"));
       root.setAttribute(HOME_LAYOUT_ATTR, HOME_LAYOUT);
+      if (PRESENTATION_PROFILE) root.setAttribute("data-skin-presentation", PRESENTATION_PROFILE);
+      else root.removeAttribute("data-skin-presentation");
     } else {
       root.removeAttribute("data-skin-theme-bridge");
       root.removeAttribute("data-skin-theme-id");
+      root.removeAttribute("data-skin-presentation");
       root.removeAttribute(HOME_LAYOUT_ATTR);
       root.removeAttribute(SURFACE_CONTEXT_ATTR);
       root.removeAttribute("data-skin-route");
@@ -3537,6 +3541,7 @@
     document.documentElement?.removeAttribute(VIDEO_PLAYBACK_ATTR);
     document.documentElement?.removeAttribute(VIDEO_POSTER_ATTR);
     document.documentElement?.removeAttribute("data-skin-route");
+    document.documentElement?.removeAttribute("data-skin-presentation");
     document.getElementById(STYLE_ID)?.remove();
     document.getElementById(CHROME_ID)?.remove();
     document.getElementById(VIDEO_LAYER_ID)?.remove();

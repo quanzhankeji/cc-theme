@@ -13,7 +13,7 @@ export const MAC_CODEX_TARGET_PATH = "targets/macos/theme.json";
 const TOP_LEVEL_KEYS = new Set([
   "kind", "id", "name", "brandSubtitle", "tagline", "projectPrefix", "projectLabel",
   "statusText", "quote", "image", "homeHeroImage", "backgroundVideo", "interactiveBackground", "pet", "colors",
-  "semanticColors", "fonts", "art", "appearance",
+  "semanticColors", "fonts", "art", "appearance", "presentation",
 ]);
 const COLOR_KEYS = new Set(["background", "panel", "panelAlt", "accent", "accentAlt", "secondary", "highlight", "text", "muted", "line"]);
 const SEMANTIC_COLOR_KEYS = new Set([
@@ -35,6 +35,25 @@ const DIRECTIONAL_BACKGROUND_KEYS = new Set([
   "type", "atlas", "directions", "columns", "rows", "firstDirectionDegrees",
   "idleFrame", "origin", "scrimOpacity",
 ]);
+const IMMERSIVE_SCENE_SURFACES = new Set(["shell", "navigation", "home", "conversation", "composer", "cards", "overlays"]);
+
+// Target packages are standalone Adapter releases. The Shared Core validates the
+// full declaration before projection; this local gate only accepts that fixed,
+// inert profile envelope so a release never imports repository source at runtime.
+function normalizePresentation(value, label) {
+  const presentation = plainObject(value);
+  const allowed = new Set(["profileId", "profileVersion", "strictness", "geometryPolicy", "surfaces", "parameters", "assetSlots", "fallbackPolicy"]);
+  if (!presentation || Object.keys(presentation).some((key) => !allowed.has(key)) ||
+      presentation.profileId !== "immersive-scene-v1" || presentation.profileVersion !== 1 ||
+      presentation.strictness !== "exact-required" || presentation.geometryPolicy !== "scene-bounded" ||
+      !Array.isArray(presentation.surfaces) || presentation.surfaces.length !== IMMERSIVE_SCENE_SURFACES.size ||
+      new Set(presentation.surfaces).size !== IMMERSIVE_SCENE_SURFACES.size ||
+      presentation.surfaces.some((surface) => !IMMERSIVE_SCENE_SURFACES.has(surface)) ||
+      !plainObject(presentation.parameters) || !plainObject(presentation.assetSlots) || !plainObject(presentation.fallbackPolicy)) {
+    throw new Error(`${label} must use the validated immersive-scene-v1 envelope`);
+  }
+  return structuredClone(presentation);
+}
 
 // Themes default to the same neutral light/dark polarity as the host app. The
 // surface values remain translucent so a validated image or video can stay
@@ -332,6 +351,7 @@ export function assertSkinThemeIdentity(value, label = "Theme config") {
   }
   normalizeInteractiveBackground(theme.interactiveBackground, theme.backgroundVideo, label);
   normalizeThemePetReference(theme.pet, theme.id, label);
+  if (theme.presentation !== undefined) normalizePresentation(theme.presentation, `${label} presentation`);
   return theme;
 }
 
@@ -362,6 +382,7 @@ export function normalizeSkinTheme(value, label = "Theme config") {
   const homeHeroImage = optionalMediaName(raw.homeHeroImage, "homeHeroImage", label);
   const backgroundVideo = optionalMediaName(raw.backgroundVideo, "backgroundVideo", label);
   const interactiveBackground = normalizeInteractiveBackground(raw.interactiveBackground, backgroundVideo, label);
+  const presentation = raw.presentation === undefined ? null : normalizePresentation(raw.presentation, `${label} presentation`);
   const configuredVideoPosterMode = rawAppearance.backgroundVideoPosterMode;
   if (configuredVideoPosterMode !== undefined && !["none", "image"].includes(configuredVideoPosterMode)) {
     throw new Error(`${label} appearance.backgroundVideoPosterMode must be "none" or "image"`);
@@ -419,6 +440,7 @@ export function normalizeSkinTheme(value, label = "Theme config") {
     ...(homeHeroImage ? { homeHeroImage } : {}),
     ...(backgroundVideo ? { backgroundVideo } : {}),
     ...(interactiveBackground ? { interactiveBackground } : {}),
+    ...(presentation ? { presentation } : {}),
     ...(pet ? { pet: {
       manifest: pet.manifest,
       spritesheet: pet.spritesheet,

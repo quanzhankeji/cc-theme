@@ -4,7 +4,7 @@
   "capabilityVersion": 1,
   "adapterId": "mac-workbuddy",
   "adapterVersion": "5.2.6",
-  "adapterReleaseRevision": 1,
+  "adapterReleaseRevision": 2,
   "platform": "macos",
   "architecture": "arm64",
   "available": true,
@@ -105,6 +105,21 @@
       { "id": "paletteStrategy", "decision": "exact", "values": ["system", "adaptive", "custom"] },
       { "id": "backgroundVideoPosterMode", "decision": "exact", "values": ["none", "image"] }
     ]
+  },
+  "presentationProfiles": {
+    "immersive-scene-v1": {
+      "profileVersion": 1,
+      "geometryPolicy": "scene-bounded",
+      "surfaces": {
+        "shell": "exact",
+        "navigation": "exact",
+        "home": "exact",
+        "conversation": "exact",
+        "composer": "exact",
+        "cards": "exact",
+        "overlays": "exact"
+      }
+    }
   },
   "localRuntimeOverrides": {
     "kind": "theme.runtime-settings",

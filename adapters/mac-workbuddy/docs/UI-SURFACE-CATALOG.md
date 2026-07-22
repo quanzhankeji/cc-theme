@@ -5,7 +5,7 @@
 ## 采集基线
 
 - WorkBuddy `5.2.6` / Electron `37.10.3`
-- Adapter: `mac-workbuddy` `5.2.6` release `r1`
+- Adapter: `mac-workbuddy` `5.2.6` release `r2`
 - 原生主题：`light`
 - 可视状态：`55`
 - 计算样式快照：`65`

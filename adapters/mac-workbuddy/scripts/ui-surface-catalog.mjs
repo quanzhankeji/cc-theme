@@ -41,7 +41,7 @@ export function validateUiSurfaceCatalog(catalog) {
   add(catalog.adapter === "mac-workbuddy", "adapter must be mac-workbuddy");
   add(catalog.adapterVersion === DEFAULT_VERSION,
     `adapterVersion must match the supported WorkBuddy ShortVersion ${DEFAULT_VERSION}`);
-  add(catalog.adapterReleaseRevision === 1,
+  add(catalog.adapterReleaseRevision === 2,
     "adapterReleaseRevision must be the current positive Adapter release revision");
   add(Boolean(catalog.target?.version), "target.version is required");
   add(catalog.capture?.visualStates >= 1, "capture.visualStates must be positive");

@@ -3,7 +3,7 @@
   "revision": 4,
   "adapterId": "mac-doubao",
   "adapterVersion": "2.19.9",
-  "adapterReleaseRevision": 1,
+  "adapterReleaseRevision": 2,
   "displayName": "Mac Doubao",
   "availability": "available",
   "capabilityVersion": "1.3.0",
@@ -98,6 +98,21 @@
         "default": "system"
       }
     ]
+  },
+  "presentationProfiles": {
+    "immersive-scene-v1": {
+      "profileVersion": 1,
+      "geometryPolicy": "scene-bounded",
+      "surfaces": {
+        "shell": "exact",
+        "navigation": "exact",
+        "home": "exact",
+        "conversation": "exact",
+        "composer": "exact",
+        "cards": "exact",
+        "overlays": "exact"
+      }
+    }
   },
   "localRuntimeOverrides": {
     "editableTokens": [],

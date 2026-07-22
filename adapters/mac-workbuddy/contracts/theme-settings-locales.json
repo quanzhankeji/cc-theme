@@ -4,7 +4,7 @@
   "catalogVersion": 3,
   "adapter": "mac-workbuddy",
   "adapterVersion": "5.2.6",
-  "adapterReleaseRevision": 1,
+  "adapterReleaseRevision": 2,
   "host": {
     "application": "WorkBuddy",
     "version": "5.2.6",

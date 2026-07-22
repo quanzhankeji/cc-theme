@@ -18,7 +18,7 @@ export function validateThemeSettingsLocales(value, label = "Theme Settings Loca
   if (!contract || contract.kind !== THEME_SETTINGS_LOCALES_KIND ||
       contract.schemaVersion !== 2 || contract.catalogVersion !== 3 ||
       contract.adapter !== "mac-workbuddy" || contract.adapterVersion !== "5.2.6" ||
-      contract.adapterReleaseRevision !== 1) {
+      contract.adapterReleaseRevision !== 2) {
     throw new Error(`${label} has an invalid identity`);
   }
   if (!Array.isArray(contract.locales) || contract.locales.length < 2 ||

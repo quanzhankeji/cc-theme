@@ -16,7 +16,7 @@
     "capabilityVersion": { "type": "integer", "const": 1 },
     "adapterId": { "const": "mac-workbuddy" },
     "adapterVersion": { "const": "5.2.6" },
-    "adapterReleaseRevision": { "type": "integer", "const": 1 },
+    "adapterReleaseRevision": { "type": "integer", "const": 2 },
     "platform": { "const": "macos" },
     "architecture": { "const": "arm64" },
     "available": { "const": true },

@@ -18,12 +18,12 @@ try {
 
   const { manifest, identity } = await loadAdapterReleaseManifest(releaseSource);
   const adapterVersion = (await fs.readFile(path.join(releaseSource, "VERSION"), "utf8")).trim();
-  const expectedIdentity = `mac-codex-${adapterVersion}-r1-macos-arm64`;
+  const expectedIdentity = `mac-codex-${adapterVersion}-r2-macos-arm64`;
   assert.equal(manifest.kind, "mac-codex-adapter.release-manifest");
   assert.equal(manifest.revision, 1, "release-manifest schema revision remains independent");
   assert.equal(manifest.adapterId, "mac-codex");
   assert.equal(manifest.adapterVersion, adapterVersion);
-  assert.equal(manifest.adapterReleaseRevision, 1);
+  assert.equal(manifest.adapterReleaseRevision, 2);
   assert(Number.isSafeInteger(manifest.adapterReleaseRevision) && manifest.adapterReleaseRevision > 0);
   assert.equal(identity.assetIdentity, expectedIdentity);
   assert.deepEqual(identity.artifacts, {
@@ -45,7 +45,7 @@ try {
   assert.equal(result.kind, "mac-codex-adapter.release");
   assert.equal(result.adapterId, "mac-codex");
   assert.equal(result.adapterVersion, adapterVersion);
-  assert.equal(result.adapterReleaseRevision, 1);
+  assert.equal(result.adapterReleaseRevision, 2);
   assert.equal(result.os, "macos");
   assert.equal(result.arch, "arm64");
   assert.equal(result.assetIdentity, expectedIdentity);
