@@ -3,6 +3,6 @@
   "schemaVersion": 1,
   "keyId": "cc-theme-adapter-root-2026-07",
   "algorithm": "Ed25519",
-  "signedSha256": "2ab70efe90266629dd816fdef359a03b180e11fc292c12447b17562975bc6c66",
-  "signature": "QGVmpkc+G+iwnvQ1hn2lDqW1gVPujwZB+iQ6mtTuUCQpgSZyjHe8kFElXEPKDMowIvqlmf8CjaxwshMGvR36Bw=="
+  "signedSha256": "addda250fb0ec960181341f53f0987fea40a90d29a5e1648986642d9c9504392",
+  "signature": "QEsczJzaZMQ98goUSJyQCmm0g9TEKuShWrBvF2eX7YwY3X9A4aSqCdipsn4QYDwBKNxIhejRuQClCUE4RJ5mBA=="
 }

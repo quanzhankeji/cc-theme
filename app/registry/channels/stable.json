@@ -2,14 +2,14 @@
   "kind": "cc-theme.adapter-channel-pointer",
   "schemaVersion": 1,
   "channel": "stable",
-  "sequence": 2,
-  "issuedAt": "2026-07-22T02:37:12Z",
-  "expiresAt": "2027-01-18T02:30:00Z",
+  "sequence": 3,
+  "issuedAt": "2026-07-22T05:49:56Z",
+  "expiresAt": "2027-01-18T05:44:26Z",
   "keyId": "cc-theme-adapter-root-2026-07",
   "catalog": {
-    "url": "https://raw.githubusercontent.com/quanzhankeji/cc-theme/f205cdeaeda986e8d7d1b9b9cb43f473fe8c9285/app/registry/catalogs/stable/000002.json",
-    "signatureUrl": "https://raw.githubusercontent.com/quanzhankeji/cc-theme/f205cdeaeda986e8d7d1b9b9cb43f473fe8c9285/app/registry/catalogs/stable/000002.json.sig",
+    "url": "https://raw.githubusercontent.com/quanzhankeji/cc-theme/41841c0fa0140e42d9e5ed03e6bbba0cbb017f77/app/registry/catalogs/stable/000003.json",
+    "signatureUrl": "https://raw.githubusercontent.com/quanzhankeji/cc-theme/41841c0fa0140e42d9e5ed03e6bbba0cbb017f77/app/registry/catalogs/stable/000003.json.sig",
     "bytes": 3989,
-    "sha256": "21cbfe29177dd26661c710ceda76c1eda566f2f16be3dd16a8926136c8a0fa6a"
+    "sha256": "9934f2faf5c9582c151bdf239d772751f698ec74f79deaef240279170156dec4"
   }
 }
