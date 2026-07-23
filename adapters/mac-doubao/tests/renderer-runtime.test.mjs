@@ -24,15 +24,34 @@ test("verified structural surfaces expose the theme media without taking control
   assert.doesNotMatch(skinCss, /\[data-cc-theme-doubao-role="composer"\]::after/);
 });
 
-test("adaptive and system palettes preserve native icons, type, interaction states, and overlays", () => {
+test("adaptive and system palettes preserve native icons, type, and interaction states", () => {
   assert.doesNotMatch(skinCss, /:where\(#chat-route-main\) \*/);
   assert.doesNotMatch(skinCss, /:where\(#flow_chat_sidebar\) \*/);
   assert.doesNotMatch(skinCss, /:where\(svg, path\)/);
   assert.doesNotMatch(skinCss, /fill:\s*currentColor\s*!important/);
   assert.doesNotMatch(skinCss, /stroke:\s*currentColor\s*!important/);
   assert.doesNotMatch(skinCss, /\[data-cc-theme-doubao-role="create-action"\][\s\S]*?>\s*:first-child\s*>\s*svg/);
-  assert.doesNotMatch(skinCss, /\[data-cc-theme-doubao-role="overlay-surface"\]\s*\{/);
   assert.doesNotMatch(skinCss, /transition:\s*color 140ms/);
+});
+
+test("immersive scene consumes only cataloged role paint and its bounded parameters", () => {
+  for (const role of [
+    "sidebar", "header-surface", "home-title", "suggestion", "assistant-content", "user-content",
+    "composer", "composer-input", "composer-toolbar", "composer-action", "reference-card",
+    "document-card", "overlay-surface",
+  ]) {
+    assert.match(skinCss, new RegExp(`data-cc-theme-doubao-role="${role}"`), role);
+  }
+  assert.match(skinCss, /--cc-doubao-scene-panel-opacity/);
+  assert.match(skinCss, /--cc-doubao-scene-texture-opacity/);
+  assert.match(skinCss, /--cc-doubao-theme-text/);
+  assert.match(skinCss, /--cc-doubao-theme-muted/);
+  assert.match(skinCss, /data-cc-theme-doubao-state="selected"/);
+  assert.match(skinCss, /data-cc-theme-doubao-role="sidebar-item"\] \{/);
+  assert.match(skinCss, /\[data-cc-theme-doubao-role="composer"\]\s*>\s*:is\(div, textarea\)/);
+  assert.doesNotMatch(skinCss, /font-family:\s*var\(--cc-doubao-theme/);
+  assert.doesNotMatch(skinCss, /\[data-cc-theme-doubao-role="composer"\]\s*>\s*\*/);
+  assert.doesNotMatch(skinCss, /html\[data-cc-theme-doubao-presentation="immersive-scene-v1"\]\s+\*/);
 });
 
 test("host light and dark appearances own coherent native text and control palettes", () => {
@@ -47,15 +66,54 @@ test("host light and dark appearances own coherent native text and control palet
   assert.doesNotMatch(skinCss, /font-family:\s*var\(--cc-doubao-font-(?:ui|display|code)\)/);
 });
 
-test("composer, suggestions, and focus indicators remain native-owned", () => {
-  assert.doesNotMatch(skinCss, /\[data-cc-theme-doubao-role="composer"\][^{]*\{[^}]*box-shadow:/);
+test("immersive scenes select a complete theme-owned palette for each host appearance", () => {
+  const blockFor = (mode) => skinCss.match(new RegExp(
+    `html\\[data-cc-theme-doubao-presentation="immersive-scene-v1"\\]\\[data-cc-theme-doubao-appearance="${mode}"\\]\\s*\\{([\\s\\S]*?)\\n\\}`,
+  ))?.[1] ?? "";
+  const light = blockFor("light");
+  const dark = blockFor("dark");
+  for (const [mode, block] of [["light", light], ["dark", dark]]) {
+    for (const token of ["surface-base", "sidebar-surface", "header-surface", "main-scrim-start", "text", "muted"]) {
+      assert.match(block, new RegExp(`--cc-doubao-${mode}-theme-${token}`), `${mode}: ${token}`);
+    }
+  }
+  assert.match(light, /--cc-doubao-scene-interactive-surface:\s*#FFFFFF/);
+  assert.match(dark, /--cc-doubao-scene-interactive-surface:\s*#F7F0E1/);
+});
+
+test("immersive composer paint is bounded while native suggestion interaction and focus remain owned", () => {
+  assert.match(skinCss, /data-cc-theme-doubao-presentation="immersive-scene-v1"[\s\S]*?\[data-cc-theme-doubao-role="composer"\][^{]*\{[^}]*box-shadow:/);
   assert.doesNotMatch(skinCss, /\[data-cc-theme-doubao-role="composer"\]:focus-within/);
-  assert.doesNotMatch(skinCss, /\[data-cc-theme-doubao-role="composer-input"\][^{]*\{[^}]*caret-color:/);
   assert.doesNotMatch(skinCss, /\[data-cc-theme-doubao-role="suggestion"\][^{]*\{[^}]*border:/);
   assert.doesNotMatch(skinCss, /\[data-cc-theme-doubao-role="suggestion"\][^{]*\{[^}]*backdrop-filter:/);
   assert.doesNotMatch(skinCss, /:focus-visible\s*\{/);
   assert.match(skinCss, /data-cc-theme-doubao-role="content-link"/);
   assert.doesNotMatch(skinCss, /html\[data-cc-theme-doubao-version\]\s+a\s*\{/);
+});
+
+test("immersive scene gives nested home, suggestion, and composer text an explicit readable bridge", () => {
+  const readableBridge = skinCss.match(
+    /\/\* Scene text content bridge:[\s\S]*?\)\s*:is\(div, span, a, p, button, strong, em, li, h1, h2, h3, h4, h5, h6, blockquote, code\)\s*\{[\s\S]*?\}/,
+  )?.[0] ?? "";
+  for (const role of ["home-title", "suggestion", "followup-suggestion", "composer", "composer-toolbar", "create-action"]) {
+    assert.match(readableBridge, new RegExp(`data-cc-theme-doubao-role="${role}"`), role);
+  }
+  assert.match(readableBridge, /color:\s*inherit\s*!important/);
+  assert.match(skinCss, /\[data-cc-theme-doubao-role="composer"\]\s*>\s*:is\(div, textarea\)\s*\{\s*background:\s*transparent\s*!important/);
+  assert.doesNotMatch(readableBridge, /font-family|:focus-visible|backdrop-filter/);
+});
+
+test("immersive scene keeps native dark-icon controls on contrast-safe parchment interaction surfaces", () => {
+  assert.match(skinCss, /--cc-doubao-scene-interactive-surface:\s*#F7F0E1/);
+  assert.match(skinCss, /--cc-doubao-scene-interactive-text:\s*#241C15/);
+  assert.match(skinCss, /data-cc-theme-doubao-role="create-action"\]\s*\{[\s\S]*?background:\s*var\(--cc-doubao-scene-interactive-surface\)/);
+  assert.match(
+    skinCss,
+    /data-cc-theme-doubao-role="create-action"\]\s*:is\(div, span, a, p, button, strong, em, li, h1, h2, h3, h4, h5, h6, blockquote, code\)\s*\{[\s\S]*?color:\s*var\(--cc-doubao-scene-interactive-text\)\s*!important/,
+  );
+  assert.match(skinCss, /data-cc-theme-doubao-role="composer"\]\s*\{[\s\S]*?background:\s*var\(--cc-doubao-scene-interactive-surface\)/);
+  assert.doesNotMatch(skinCss, /:where\(svg, path\)/);
+  assert.doesNotMatch(skinCss, /filter:\s*invert/);
 });
 
 test("home greeting reveal mask stays native but cannot overflow onto the themed canvas", () => {
@@ -259,7 +317,7 @@ test("deferred video source reaches playing state and is fully disposed", async 
   });
 
   const applied = runtime.apply({
-    version: "2.19.9-r2",
+    version: "2.19.9-r4",
     generation: "fedcba9876543210",
     documentIdentity: "d".repeat(64),
     styleText: "#cc-theme-doubao-background-video { object-fit: cover; }",
@@ -319,7 +377,7 @@ test("removal cancels a pending decoded-frame callback without reviving stale vi
     clearInterval() {},
   });
   runtime.apply({
-    version: "2.19.9-r2",
+    version: "2.19.9-r4",
     generation: "abababababababab",
     documentIdentity: "9".repeat(64),
     styleText: "#cc-theme-doubao-background-video { object-fit: cover; }",
@@ -353,7 +411,7 @@ test("deferred video transfer commits one generation-bound renderer Blob", async
     matchMedia() { return { matches: false, addEventListener() {}, removeEventListener() {} }; },
   });
   runtime.apply({
-    version: "2.19.9-r2",
+    version: "2.19.9-r4",
     generation: "1234567890abcdef",
     documentIdentity: "e".repeat(64),
     styleText: "#cc-theme-doubao-background-video { object-fit: cover; }",
@@ -392,7 +450,7 @@ test("deferred video transfer cannot commit after its runtime generation is remo
     matchMedia() { return { matches: false, addEventListener() {}, removeEventListener() {} }; },
   });
   runtime.apply({
-    version: "2.19.9-r2",
+    version: "2.19.9-r4",
     generation: "aaaaaaaaaaaaaaaa",
     documentIdentity: "f".repeat(64),
     styleText: "#cc-theme-doubao-background-video { object-fit: cover; }",
@@ -444,7 +502,7 @@ test("surface reconciliation marks new route and portal roles without leaking ob
     clearTimeout() {},
   });
   runtime.apply({
-    version: "2.19.9-r2",
+    version: "2.19.9-r4",
     generation: "bbbbbbbbbbbbbbbb",
     documentIdentity: "1".repeat(64),
     styleText: "[data-cc-theme-doubao-role] { color: var(--cc-doubao-text); }",
@@ -507,7 +565,7 @@ test("host appearance changes reconcile without replacing the runtime generation
     matchMedia() { return { matches: false, addEventListener() {}, removeEventListener() {} }; },
   });
   runtime.apply({
-    version: "2.19.9-r2",
+    version: "2.19.9-r4",
     generation: "cdcdcdcdcdcdcdcd",
     documentIdentity: "8".repeat(64),
     styleText: "[data-cc-theme-doubao-role] { color: var(--cc-doubao-text); }",

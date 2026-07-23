@@ -87,6 +87,17 @@ export interface ThemeCompatibility {
   note: string;
 }
 
+export interface ThemeAppearanceVariants {
+  light: [string, string, string];
+  dark: [string, string, string];
+}
+
+/** Semantic main-content veil stops for the static workbench preview. */
+export interface ThemePresentationScrim {
+  light: [string, string, string];
+  dark: [string, string, string];
+}
+
 export interface ThemeFamily {
   id: string;
   name: string;
@@ -95,7 +106,11 @@ export interface ThemeFamily {
   defaultLocale?: string;
   localizations?: Record<string, { name: string; description: string }>;
   colors: [string, string, string];
+  appearanceVariants?: ThemeAppearanceVariants;
+  presentationSurfaceOpacity?: number;
+  presentationScrim?: ThemePresentationScrim;
   previewUrl?: string | null;
+  hasLocalDraft?: boolean;
   installed: boolean;
   updatedAt: string;
   compatibility: Record<string, ThemeCompatibility>;

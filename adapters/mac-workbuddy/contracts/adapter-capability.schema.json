@@ -8,7 +8,7 @@
     "kind", "schemaVersion", "capabilityVersion", "adapterId", "adapterVersion",
     "adapterReleaseRevision", "platform", "architecture", "available",
     "runtimeApplyAvailable", "catalogs", "compatibility", "sharedCore",
-    "targetProfile", "localRuntimeOverrides", "paletteStrategy", "transactionSeam", "migration"
+    "targetProfile", "presentationProfiles", "presentationBoundaries", "localRuntimeOverrides", "paletteStrategy", "transactionSeam", "migration"
   ],
   "properties": {
     "kind": { "const": "cc-theme.adapter-capability" },
@@ -16,7 +16,7 @@
     "capabilityVersion": { "type": "integer", "const": 1 },
     "adapterId": { "const": "mac-workbuddy" },
     "adapterVersion": { "const": "5.2.6" },
-    "adapterReleaseRevision": { "type": "integer", "const": 2 },
+    "adapterReleaseRevision": { "type": "integer", "const": 4 },
     "platform": { "const": "macos" },
     "architecture": { "const": "arm64" },
     "available": { "const": true },
@@ -94,6 +94,44 @@
         }
       }
     },
+    "presentationProfiles": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["immersive-scene-v1"],
+      "properties": {
+        "immersive-scene-v1": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["profileVersion", "geometryPolicy", "sceneSemantics"],
+          "properties": {
+            "profileVersion": { "const": 1 },
+            "geometryPolicy": { "const": "scene-bounded" },
+            "sceneSemantics": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["scope", "surfaces", "parameters", "assetSlots"],
+              "properties": {
+                "scope": { "const": "presentation-scene" },
+                "surfaces": { "$ref": "#/$defs/immersiveSurfaceDecisions" },
+                "parameters": { "$ref": "#/$defs/immersiveParameterDecisions" },
+                "assetSlots": { "$ref": "#/$defs/immersiveAssetSlotDecisions" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "presentationBoundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nativeControls", "layout", "uncataloguedPortals", "fonts"],
+      "properties": {
+        "nativeControls": { "$ref": "#/$defs/unsupportedPresentationBoundary" },
+        "layout": { "$ref": "#/$defs/unsupportedPresentationBoundary" },
+        "uncataloguedPortals": { "$ref": "#/$defs/unsupportedPresentationBoundary" },
+        "fonts": { "$ref": "#/$defs/unsupportedPresentationBoundary" }
+      }
+    },
     "localRuntimeOverrides": {
       "type": "object",
       "additionalProperties": false,
@@ -146,6 +184,60 @@
     }
   },
   "$defs": {
+    "exactPresentationDecision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision", "consumerId", "diagnostic"],
+      "properties": {
+        "decision": { "const": "exact" },
+        "consumerId": { "type": "string", "pattern": "^workbuddy\\.presentation\\.(surface|parameter|asset)\\.[a-z0-9.-]{1,120}$" },
+        "diagnostic": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,79}$" }
+      }
+    },
+    "immersiveSurfaceDecisions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["shell", "navigation", "home", "conversation", "composer", "cards", "overlays"],
+      "properties": {
+        "shell": { "$ref": "#/$defs/exactPresentationDecision" },
+        "navigation": { "$ref": "#/$defs/exactPresentationDecision" },
+        "home": { "$ref": "#/$defs/exactPresentationDecision" },
+        "conversation": { "$ref": "#/$defs/exactPresentationDecision" },
+        "composer": { "$ref": "#/$defs/exactPresentationDecision" },
+        "cards": { "$ref": "#/$defs/exactPresentationDecision" },
+        "overlays": { "$ref": "#/$defs/exactPresentationDecision" }
+      }
+    },
+    "immersiveParameterDecisions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["density", "borderTreatment", "textureIntensity", "surfaceOpacity", "navigationTreatment", "composerTreatment", "cardTreatment"],
+      "properties": {
+        "density": { "$ref": "#/$defs/exactPresentationDecision" },
+        "borderTreatment": { "$ref": "#/$defs/exactPresentationDecision" },
+        "textureIntensity": { "$ref": "#/$defs/exactPresentationDecision" },
+        "surfaceOpacity": { "$ref": "#/$defs/exactPresentationDecision" },
+        "navigationTreatment": { "$ref": "#/$defs/exactPresentationDecision" },
+        "composerTreatment": { "$ref": "#/$defs/exactPresentationDecision" },
+        "cardTreatment": { "$ref": "#/$defs/exactPresentationDecision" }
+      }
+    },
+    "immersiveAssetSlotDecisions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scene.backdrop"],
+      "properties": { "scene.backdrop": { "$ref": "#/$defs/exactPresentationDecision" } }
+    },
+    "unsupportedPresentationBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision", "consumerId", "diagnostic"],
+      "properties": {
+        "decision": { "const": "unsupported" },
+        "consumerId": { "type": "null" },
+        "diagnostic": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,79}$" }
+      }
+    },
     "safeRelative": {
       "type": "string",
       "minLength": 3,

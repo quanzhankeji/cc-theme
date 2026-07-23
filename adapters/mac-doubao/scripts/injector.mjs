@@ -69,7 +69,9 @@ async function readStableFile(file, label, maxBytes) {
 
 function variablesFor(theme) {
   const semantic = theme.semanticColors ?? {};
+  const colors = theme.colors ?? {};
   const appearance = theme.appearance ?? {};
+  const scene = theme.presentation?.parameters;
   const surfaceBase = semantic.surfaceBase ?? "#10151F";
   const surfaceRaised = semantic.surfaceRaised ?? semantic.sidebarSurface ?? surfaceBase;
   const sidebarSurface = semantic.sidebarSurface ?? surfaceRaised;
@@ -77,7 +79,7 @@ function variablesFor(theme) {
   const scrimStart = semantic.mainScrimStart ?? `color-mix(in srgb, ${surfaceBase} 72%, transparent)`;
   const scrimMid = semantic.mainScrimMid ?? `color-mix(in srgb, ${surfaceBase} 54%, transparent)`;
   const scrimEnd = semantic.mainScrimEnd ?? `color-mix(in srgb, ${surfaceBase} 34%, transparent)`;
-  return {
+  const variables = {
     "--cc-doubao-theme-surface-base": surfaceBase,
     "--cc-doubao-theme-surface-raised": surfaceRaised,
     "--cc-doubao-theme-sidebar-surface": sidebarSurface,
@@ -95,6 +97,36 @@ function variablesFor(theme) {
     "--cc-doubao-backdrop-blur": `${appearance.backdropBlurPx ?? 18}px`,
     "--cc-doubao-saturation": String(appearance.backdropSaturation ?? 1),
   };
+  // A presentation can provide two complete semantic palettes. They remain
+  // inert for ordinary themes; the bounded immersive recipe selects one only
+  // after the host has established its effective light/dark appearance.
+  for (const mode of ["light", "dark"]) {
+    const variant = theme.appearanceVariants?.[mode];
+    if (!variant) continue;
+    const variantSemantic = variant.semanticColors ?? {};
+    const variantColors = variant.colors ?? {};
+    const prefix = `--cc-doubao-${mode}-theme-`;
+    variables[`${prefix}surface-base`] = variantSemantic.surfaceBase;
+    variables[`${prefix}surface-raised`] = variantSemantic.surfaceRaised;
+    variables[`${prefix}sidebar-surface`] = variantSemantic.sidebarSurface;
+    variables[`${prefix}header-surface`] = variantSemantic.headerSurface;
+    variables[`${prefix}main-scrim-start`] = variantSemantic.mainScrimStart;
+    variables[`${prefix}main-scrim-mid`] = variantSemantic.mainScrimMid;
+    variables[`${prefix}main-scrim-end`] = variantSemantic.mainScrimEnd;
+    variables[`--cc-doubao-${mode}-theme-text`] = variantColors.text;
+    variables[`--cc-doubao-${mode}-theme-muted`] = variantColors.muted;
+  }
+  if (scene) {
+    variables["--cc-doubao-theme-text"] = colors.text;
+    variables["--cc-doubao-theme-muted"] = colors.muted;
+    variables["--cc-doubao-scene-panel-opacity"] = `${Math.round(scene.surfaceOpacity * 100)}%`;
+    variables["--cc-doubao-scene-texture-opacity"] = `${Math.round(scene.textureIntensity * 44)}%`;
+    // The profile permits one bounded density/border recipe only. Pass its
+    // concrete paint values, not CSS, selectors, or host geometry.
+    variables["--cc-doubao-scene-density-inset"] = scene.density === "comfortable" ? "1px" : "0px";
+    variables["--cc-doubao-scene-etched-highlight-opacity"] = scene.borderTreatment === "etched" ? "5%" : "0%";
+  }
+  return variables;
 }
 
 export async function loadRuntimePayload(themeDirectory) {

@@ -30,6 +30,24 @@ assert.equal(normalized.backgroundVideo, "ignored.mp4");
 assert.equal(normalized.appearance.backgroundVideoPosterMode, "image");
 assert.equal(normalized.appearance.backgroundVideoPosition, undefined);
 assert.equal(normalized.appearance.backgroundScrimOpacity, 1);
+
+// Palette variants inherit only the already-validated outer media presence.
+// This prevents a legal video poster policy from being rejected while still
+// keeping variants closed to paint data.
+const dualAppearanceVideo = normalizeSkinTheme({
+  kind: "skin.theme",
+  id: "dual-appearance-video",
+  image: "background.png",
+  backgroundVideo: "ambient.mp4",
+  appearance: { backgroundVideoPosterMode: "image" },
+  appearanceVariants: {
+    light: { colors: { text: "#1D2D3D", muted: "#5B6D7E" }, semanticColors: { surfaceBase: "#F7FAFC" } },
+    dark: { colors: { text: "#F5F8FC", muted: "#B8C4D0" }, semanticColors: { surfaceBase: "#101820" } },
+  },
+});
+assert.equal(dualAppearanceVideo.backgroundVideo, "ambient.mp4");
+assert.equal(dualAppearanceVideo.appearanceVariants.light.colors.text, "#1D2D3D");
+assert.equal(dualAppearanceVideo.appearanceVariants.dark.colors.text, "#F5F8FC");
 assert.throws(() => normalizeSkinTheme({
   kind: "skin.theme",
   id: "hero-is-not-a-workbuddy-field",

@@ -34,7 +34,7 @@
   "ccThemeAdapter": {
     "adapterId": "mac-workbuddy",
     "adapterVersion": "5.2.6",
-    "adapterReleaseRevision": 2,
+    "adapterReleaseRevision": 4,
     "platform": "macos",
     "architecture": "arm64"
   },

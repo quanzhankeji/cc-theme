@@ -9,9 +9,13 @@ import {
 import {
   IMMERSIVE_SCENE_PROFILE_ID,
   IMMERSIVE_SCENE_PROFILE_VERSION,
+  IMMERSIVE_SCENE_ASSET_SLOTS,
+  IMMERSIVE_SCENE_BOUNDARIES,
+  IMMERSIVE_SCENE_PARAMETERS,
   IMMERSIVE_SCENE_SURFACES,
   normalizePresentation,
   presentationCapability,
+  validatePresentationBoundaries,
 } from "./presentation.mjs";
 
 export const UNIFIED_THEME_KIND = "cc-theme.unified-theme";
@@ -126,6 +130,98 @@ function validateColors(value, field, required = []) {
   }
 }
 
+function parseColorComponent(value, field, { alpha = false } = {}) {
+  const source = value.trim();
+  const percent = source.endsWith("%");
+  const numeric = Number(percent ? source.slice(0, -1) : source);
+  if (!Number.isFinite(numeric)) throw new ThemeCompilerError("contains an invalid color component", field);
+  if (alpha) {
+    const normalized = percent ? numeric / 100 : numeric;
+    if (normalized < 0 || normalized > 1) throw new ThemeCompilerError("contains an out-of-range alpha channel", field);
+    return normalized;
+  }
+  const normalized = percent ? numeric * 2.55 : numeric;
+  if (normalized < 0 || normalized > 255) throw new ThemeCompilerError("contains an out-of-range RGB channel", field);
+  return normalized;
+}
+
+function parseCssColor(value, field) {
+  const hex = /^#([0-9A-Fa-f]{6})$/.exec(value);
+  if (hex) {
+    return {
+      red: Number.parseInt(hex[1].slice(0, 2), 16),
+      green: Number.parseInt(hex[1].slice(2, 4), 16),
+      blue: Number.parseInt(hex[1].slice(4, 6), 16),
+      alpha: 1,
+    };
+  }
+  const functional = /^(rgb|rgba)\((.*)\)$/.exec(value);
+  if (!functional) throw new ThemeCompilerError("cannot be used for an accessibility contrast audit", field);
+  const channels = functional[2].split(",");
+  const expected = functional[1] === "rgb" ? 3 : 4;
+  if (channels.length !== expected) throw new ThemeCompilerError("contains an invalid RGB color value", field);
+  return {
+    red: parseColorComponent(channels[0], field),
+    green: parseColorComponent(channels[1], field),
+    blue: parseColorComponent(channels[2], field),
+    alpha: expected === 4 ? parseColorComponent(channels[3], field, { alpha: true }) : 1,
+  };
+}
+
+function compositeColor(foreground, background) {
+  const alpha = foreground.alpha + background.alpha * (1 - foreground.alpha);
+  if (alpha === 0) return { red: 0, green: 0, blue: 0, alpha: 0 };
+  return {
+    red: (foreground.red * foreground.alpha + background.red * background.alpha * (1 - foreground.alpha)) / alpha,
+    green: (foreground.green * foreground.alpha + background.green * background.alpha * (1 - foreground.alpha)) / alpha,
+    blue: (foreground.blue * foreground.alpha + background.blue * background.alpha * (1 - foreground.alpha)) / alpha,
+    alpha,
+  };
+}
+
+function relativeLuminance(color) {
+  const channel = (value) => {
+    const normalized = value / 255;
+    return normalized <= 0.03928 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
+  };
+  return 0.2126 * channel(color.red) + 0.7152 * channel(color.green) + 0.0722 * channel(color.blue);
+}
+
+function contrastRatio(foreground, background) {
+  const first = relativeLuminance(foreground);
+  const second = relativeLuminance(background);
+  return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05);
+}
+
+function validateDeclaredTextContrast(colors, minimum, field) {
+  if (minimum === undefined) return;
+  const surfaceBase = parseCssColor(colors.surfaceBase, `${field}.surfaceBase`);
+  if (surfaceBase.alpha !== 1) {
+    throw new ThemeCompilerError("must be opaque when minimumTextContrast is declared", `${field}.surfaceBase`);
+  }
+  const resolvedSurface = (surface) => compositeColor(parseCssColor(colors[surface], `${field}.${surface}`), surfaceBase);
+  const check = (foregroundName, backgroundName, background) => {
+    const foreground = compositeColor(parseCssColor(colors[foregroundName], `${field}.${foregroundName}`), background);
+    const ratio = contrastRatio(foreground, background);
+    if (ratio < minimum) {
+      throw new ThemeCompilerError(
+        `contrast ${ratio.toFixed(2)}:1 is below declared minimumTextContrast ${minimum}:1`,
+        `${field}.${foregroundName}/${backgroundName}`,
+      );
+    }
+  };
+
+  const actionBackgrounds = ["action", "actionHover", "actionPressed"].filter((name) => colors[name] !== undefined);
+  for (const backgroundName of actionBackgrounds) check("actionForeground", backgroundName, resolvedSurface(backgroundName));
+
+  const textSurfaces = ["surfaceBase", "surfaceRaised", "composerSurface"].filter((name) => colors[name] !== undefined);
+  for (const backgroundName of textSurfaces) {
+    const background = backgroundName === "surfaceBase" ? surfaceBase : resolvedSurface(backgroundName);
+    check("text", backgroundName, background);
+    check("textMuted", backgroundName, background);
+  }
+}
+
 function validateFonts(value, field) {
   const fonts = allowedObject(value, FONT_KEYS, field);
   if (!Object.keys(fonts).length) throw new ThemeCompilerError("must contain at least one font family", field);
@@ -197,7 +293,11 @@ export function stableStringify(value, space = 2) {
 }
 
 const FAMILY_ROOT_KEYS = ["kind", "schemaVersion", "id", "name", "version", "sharedCore", "presentation", "targets", "targetProfiles"];
-const SHARED_CORE_KEYS = ["tokens", "background", "accessibility"];
+const SHARED_CORE_REQUIRED_KEYS = ["tokens", "background", "accessibility"];
+// `appearanceVariants` is deliberately additive.  A family only needs this
+// closed pair when it needs bespoke light/dark scene paint; existing themes
+// continue to use their single semantic palette unchanged.
+const SHARED_CORE_KEYS = [...SHARED_CORE_REQUIRED_KEYS, "appearanceVariants"];
 const PROFILE_FORBIDDEN_KEYS = new Set([
   "css", "javascript", "script", "html", "shader", "selector", "selectors", "command", "commands", "url", "urls", "path", "paths",
 ]);
@@ -231,7 +331,7 @@ function validateThemeFamilyVersion(value, expectedSchemaVersion, registry = DEF
   string(theme.name, "theme.name", { min: 1, max: 80 });
   string(theme.version, "theme.version", { max: 40, pattern: VERSION_PATTERN });
   const core = allowedObject(theme.sharedCore, SHARED_CORE_KEYS, "theme.sharedCore");
-  requireKeys(core, SHARED_CORE_KEYS, "theme.sharedCore");
+  requireKeys(core, SHARED_CORE_REQUIRED_KEYS, "theme.sharedCore");
   const tokens = allowedObject(core.tokens, TOKEN_KEYS, "theme.sharedCore.tokens");
   requireKeys(tokens, ["colors", "fonts"], "theme.sharedCore.tokens");
   validateColors(tokens.colors, "theme.sharedCore.tokens.colors", REQUIRED_COLOR_KEYS);
@@ -245,6 +345,21 @@ function validateThemeFamilyVersion(value, expectedSchemaVersion, registry = DEF
   optionalNumber(accessibility.minimumLargeTextContrast, 3, 7, "theme.sharedCore.accessibility.minimumLargeTextContrast");
   if (accessibility.preserveSystemFocusRing !== undefined && typeof accessibility.preserveSystemFocusRing !== "boolean") throw new ThemeCompilerError("must be a boolean", "theme.sharedCore.accessibility.preserveSystemFocusRing");
   if (accessibility.transparencyFallback !== undefined) choice(accessibility.transparencyFallback, ["opaque", "increased-scrim"], "theme.sharedCore.accessibility.transparencyFallback");
+  validateDeclaredTextContrast(tokens.colors, accessibility.minimumTextContrast, "theme.sharedCore.tokens.colors");
+  if (core.appearanceVariants !== undefined) {
+    const variants = allowedObject(core.appearanceVariants, ["light", "dark"], "theme.sharedCore.appearanceVariants");
+    requireKeys(variants, ["light", "dark"], "theme.sharedCore.appearanceVariants");
+    for (const appearance of ["light", "dark"]) {
+      const variant = allowedObject(variants[appearance], ["colors"], `theme.sharedCore.appearanceVariants.${appearance}`);
+      requireKeys(variant, ["colors"], `theme.sharedCore.appearanceVariants.${appearance}`);
+      validateColors(variant.colors, `theme.sharedCore.appearanceVariants.${appearance}.colors`, COLOR_KEYS);
+      validateDeclaredTextContrast(
+        variant.colors,
+        accessibility.minimumTextContrast,
+        `theme.sharedCore.appearanceVariants.${appearance}.colors`,
+      );
+    }
+  }
   if (!Array.isArray(theme.targets) || !theme.targets.length || new Set(theme.targets).size !== theme.targets.length) throw new ThemeCompilerError("must contain unique Adapter ids", "theme.targets");
   for (const adapterId of theme.targets) capabilityFor(adapterId, registry);
   const profiles = theme.targetProfiles === undefined ? {} : object(theme.targetProfiles, "theme.targetProfiles");
@@ -301,21 +416,66 @@ function assertPresentationCapability(capability, presentation) {
   if (!presentation) return [];
   const declared = presentationCapability(capability.presentationProfiles?.[presentation.profileId]);
   if (presentation.profileId !== IMMERSIVE_SCENE_PROFILE_ID || presentation.profileVersion !== IMMERSIVE_SCENE_PROFILE_VERSION ||
-      declared.profileVersion !== presentation.profileVersion || declared.geometryPolicy !== presentation.geometryPolicy) {
-    throw new ThemeCompilerError("does not support the required immersive-scene-v1 profile revision", `${capability.adapterId}.presentation`);
+      declared.profileVersion !== presentation.profileVersion || declared.geometryPolicy !== presentation.geometryPolicy ||
+      declared.scope !== "presentation-scene") {
+    throw new ThemeCompilerError("presentation-mapping-incomplete: does not support the required immersive-scene-v1 profile revision", `${capability.adapterId}.presentation`);
   }
   for (const surface of IMMERSIVE_SCENE_SURFACES) {
     if (declared.surfaces[surface] !== "exact") {
-      throw new ThemeCompilerError(`does not provide an exact immersive-scene-v1 consumer for ${surface}`, `${capability.adapterId}.presentation.surfaces.${surface}`);
+      throw new ThemeCompilerError(`presentation-mapping-incomplete: does not provide an exact immersive-scene-v1 consumer for ${surface}`, `${capability.adapterId}.presentation.surfaces.${surface}`);
     }
   }
-  return IMMERSIVE_SCENE_SURFACES.map((surface) => ({
+  for (const parameter of IMMERSIVE_SCENE_PARAMETERS) {
+    if (declared.parameters[parameter] !== "exact") {
+      throw new ThemeCompilerError(`presentation-mapping-incomplete: does not provide an exact immersive-scene-v1 parameter consumer for ${parameter}`, `${capability.adapterId}.presentation.parameters.${parameter}`);
+    }
+  }
+  for (const assetSlot of IMMERSIVE_SCENE_ASSET_SLOTS) {
+    if (declared.assetSlots[assetSlot] !== "exact") {
+      throw new ThemeCompilerError(`presentation-mapping-incomplete: does not provide an exact immersive-scene-v1 asset slot consumer for ${assetSlot}`, `${capability.adapterId}.presentation.assetSlots.${assetSlot}`);
+    }
+  }
+  let boundaries;
+  try {
+    boundaries = validatePresentationBoundaries(capability.presentationBoundaries, `${capability.adapterId}.presentationBoundaries`);
+  } catch (error) {
+    throw new ThemeCompilerError(`presentation-mapping-incomplete: ${error.message}`, `${capability.adapterId}.presentationBoundaries`);
+  }
+  for (const boundary of IMMERSIVE_SCENE_BOUNDARIES) {
+    if (boundaries[boundary].decision !== "unsupported") {
+      throw new ThemeCompilerError(`presentation-mapping-incomplete: ${boundary} must be explicitly unsupported or mapped by a later profile revision`, `${capability.adapterId}.presentationBoundaries.${boundary}`);
+    }
+  }
+  return [
+    ...IMMERSIVE_SCENE_SURFACES.map((surface) => ({
     severity: "info",
     field: `presentation.surfaces.${surface}`,
     decision: "exact",
     code: "immersive-scene-consumer-exact",
     message: `${capability.adapterId} provides an exact immersive-scene-v1 consumer for ${surface}.`,
-  }));
+    })),
+    ...IMMERSIVE_SCENE_PARAMETERS.map((parameter) => ({
+      severity: "info",
+      field: `presentation.parameters.${parameter}`,
+      decision: "exact",
+      code: "immersive-scene-parameter-consumer-exact",
+      message: `${capability.adapterId} provides an exact immersive-scene-v1 consumer for ${parameter}.`,
+    })),
+    ...IMMERSIVE_SCENE_ASSET_SLOTS.map((assetSlot) => ({
+      severity: "info",
+      field: `presentation.assetSlots.${assetSlot}`,
+      decision: "exact",
+      code: "immersive-scene-asset-slot-consumer-exact",
+      message: `${capability.adapterId} provides an exact immersive-scene-v1 consumer for ${assetSlot}.`,
+    })),
+    ...IMMERSIVE_SCENE_BOUNDARIES.map((boundary) => ({
+      severity: "info",
+      field: `presentation.boundaries.${boundary}`,
+      decision: "unsupported",
+      code: boundaries[boundary].diagnostic,
+      message: `${capability.adapterId} keeps ${boundary} host-owned outside immersive-scene-v1.`,
+    })),
+  ];
 }
 
 function contextFor(capability, compileContext) {

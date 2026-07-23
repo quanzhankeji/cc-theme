@@ -24,7 +24,7 @@ const APPEARANCE_KEYS = ["shellMode", "backdropBlurPx", "backdropSaturation", "r
 const ACCESSIBILITY_KEYS = ["reducedMotion", "minimumTextContrast", "minimumLargeTextContrast", "preserveSystemFocusRing", "transparencyFallback"];
 const COPY_KEYS = ["brandSubtitle", "tagline", "projectPrefix", "projectLabel", "statusText", "quote"];
 const ROOT_KEYS_V1 = ["kind", "schemaVersion", "id", "name", "version", "tokens", "background", "accessibility", "copy", "targets", "overrides"];
-const ROOT_KEYS_V2 = ["kind", "schemaVersion", "id", "name", "version", "sharedCore", "targets", "targetProfiles"];
+const ROOT_KEYS_V2 = ["kind", "schemaVersion", "id", "name", "version", "sharedCore", "presentation", "targets", "targetProfiles"];
 const SAFE_COLOR = /^(?:#[0-9a-f]{6}|rgba?\([0-9., %]+\))$/i;
 
 const plainObject = (value) => value && typeof value === "object" && !Array.isArray(value) ? value : null;
@@ -93,6 +93,19 @@ function validateColors(value) {
     }
   }
   return colors;
+}
+
+function validateAppearanceVariants(value) {
+  if (value === undefined) return null;
+  const variants = objectWithKeys(value, ["light", "dark"], "theme.sharedCore.appearanceVariants");
+  for (const mode of ["light", "dark"]) {
+    const variant = objectWithKeys(variants[mode], ["colors"], `theme.sharedCore.appearanceVariants.${mode}`);
+    const colors = validateColors(variant.colors);
+    if (Object.keys(colors).length !== COLOR_KEYS.length) {
+      throw new Error(`theme.sharedCore.appearanceVariants.${mode}.colors must declare every semantic color`);
+    }
+  }
+  return variants;
 }
 
 function validateFonts(value) {
@@ -189,6 +202,35 @@ function valueAt(value, dotted) {
   return dotted.split(".").reduce((cursor, part) => cursor?.[part], value);
 }
 
+function projectAppearanceVariant(colors, decisions) {
+  const output = { colors: {}, semanticColors: {} };
+  for (const key of COLOR_KEYS) {
+    const field = decisions.get(`tokens.colors.${key}`);
+    if (!field) throw new Error(`Capability has no WorkBuddy decision for tokens.colors.${key}`);
+    if (field.decision === "exact") {
+      setPath(output, field.target, colors[key]);
+    } else if (field.decision === "approximate" && valueAt(output, field.target) === undefined) {
+      setPath(output, field.target, colors[key]);
+    }
+  }
+  return output;
+}
+
+function immersiveSceneCapabilityState(capability, presentation) {
+  if (presentation === undefined) return { requested: false, exact: true };
+  const declared = capability.presentationProfiles?.[presentation?.profileId];
+  const scene = declared?.sceneSemantics;
+  const scopes = [
+    ["surfaces", ["shell", "navigation", "home", "conversation", "composer", "cards", "overlays"]],
+    ["parameters", ["density", "borderTreatment", "textureIntensity", "surfaceOpacity", "navigationTreatment", "composerTreatment", "cardTreatment"]],
+    ["assetSlots", ["scene.backdrop"]],
+  ];
+  const exact = presentation?.profileId === "immersive-scene-v1" && presentation?.profileVersion === 1 &&
+    declared?.profileVersion === 1 && declared?.geometryPolicy === presentation?.geometryPolicy &&
+    scopes.every(([scope, names]) => names.every((name) => scene?.[scope]?.[name]?.decision === "exact"));
+  return { requested: true, exact };
+}
+
 export async function projectUnifiedThemeForWorkBuddy(value, { targetProfile = null, clientVersion = null, surfaceCatalogVersion = null, compatibilityAttempt = false } = {}) {
   const capability = await loadAdapterCapability();
   const diagnostics = [];
@@ -205,8 +247,10 @@ export async function projectUnifiedThemeForWorkBuddy(value, { targetProfile = n
   let accessibilitySource;
   let copySource = {};
   let embeddedTargetProfile = null;
+  let presentationSource;
   let targetRequested = true;
-  if (rawTheme.schemaVersion === 1) {
+  const legacySchema = rawTheme.schemaVersion === 1 && rawTheme.sharedCore === undefined;
+  if (legacySchema) {
     theme = objectWithKeys(rawTheme, ROOT_KEYS_V1, "theme");
     tokens = objectWithKeys(theme.tokens, ["colors", "fonts", "appearance"], "theme.tokens");
     backgroundSource = theme.background;
@@ -214,7 +258,7 @@ export async function projectUnifiedThemeForWorkBuddy(value, { targetProfile = n
     copySource = theme.copy ?? {};
   } else {
     theme = objectWithKeys(rawTheme, ROOT_KEYS_V2, "theme");
-    const sharedCore = objectWithKeys(theme.sharedCore, ["tokens", "background", "accessibility"], "theme.sharedCore");
+    const sharedCore = objectWithKeys(theme.sharedCore, ["tokens", "background", "accessibility", "appearanceVariants"], "theme.sharedCore");
     tokens = objectWithKeys(sharedCore.tokens, ["colors", "fonts", "appearance"], "theme.sharedCore.tokens");
     backgroundSource = sharedCore.background;
     accessibilitySource = sharedCore.accessibility;
@@ -234,14 +278,16 @@ export async function projectUnifiedThemeForWorkBuddy(value, { targetProfile = n
       }
     }
     embeddedTargetProfile = profiles[ADAPTER_ID] ?? null;
+    presentationSource = theme.presentation;
   }
   if (targetProfile && embeddedTargetProfile && canonicalJson(targetProfile) !== canonicalJson(embeddedTargetProfile)) {
     throw new Error("Explicit WorkBuddy Target Profile conflicts with the unified theme profile");
   }
-  const merged = rawTheme.schemaVersion === 1
+  const merged = legacySchema
     ? mergeLegacy({ ...theme, tokens }, diagnostics)
     : { colors: tokens.colors, fonts: tokens.fonts, appearance: tokens.appearance ?? {}, background: backgroundSource, copy: copySource };
   const colors = validateColors(merged.colors);
+  const appearanceVariants = legacySchema ? null : validateAppearanceVariants(theme.sharedCore.appearanceVariants);
   const fonts = validateFonts(merged.fonts);
   const appearance = validateAppearance(merged.appearance);
   const background = validateBackground(merged.background);
@@ -300,6 +346,12 @@ export async function projectUnifiedThemeForWorkBuddy(value, { targetProfile = n
       diagnostics.push(diagnosticFor(field));
       mappingSummary.unsupported += 1;
     }
+  }
+  if (appearanceVariants) {
+    output.appearanceVariants = {
+      light: projectAppearanceVariant(appearanceVariants.light.colors, decisions),
+      dark: projectAppearanceVariant(appearanceVariants.dark.colors, decisions),
+    };
   }
   for (const key of FONT_KEYS) {
     if (fonts[key] !== undefined) {
@@ -388,6 +440,40 @@ export async function projectUnifiedThemeForWorkBuddy(value, { targetProfile = n
 
   const profileValues = profile.values;
   output.appearance.paletteStrategy = profileValues.paletteStrategy ?? "system";
+  const presentationState = immersiveSceneCapabilityState(capability, presentationSource);
+  let presentationApplyBlocked = false;
+  if (presentationState.requested) {
+    output.presentation = clone(presentationSource);
+    if (!presentationState.exact) {
+      presentationApplyBlocked = true;
+      diagnostics.push({
+        severity: "error",
+        field: "presentation",
+        decision: "unsupported",
+        code: "immersive-scene-consumer-incomplete",
+        message: "WorkBuddy does not provide an exact consumer for every required immersive scene scope.",
+      });
+    } else if (output.appearance.paletteStrategy === "system") {
+      presentationApplyBlocked = true;
+      diagnostics.push({
+        severity: "error",
+        field: "presentation",
+        decision: "unsupported",
+        code: "immersive-scene-system-palette-inexact",
+        message: "The immersive scene requires adaptive or custom palette output; WorkBuddy system palette leaves scene paint dormant.",
+      });
+    } else {
+      for (const [scope, boundary] of Object.entries(capability.presentationBoundaries)) {
+        diagnostics.push({
+          severity: "info",
+          field: `presentation.boundaries.${scope}`,
+          decision: boundary.decision,
+          code: boundary.diagnostic,
+          message: `${scope} remains host-owned and is outside immersive-scene-v1 exact scope.`,
+        });
+      }
+    }
+  }
   if (output.backgroundVideo) {
     output.appearance.backgroundVideoPosterMode = profileValues.backgroundVideoPosterMode ?? background.posterMode ?? "image";
     if (profileValues.backgroundVideoPosterMode === undefined && background.posterMode !== undefined) recordExact("background.posterMode");
@@ -401,7 +487,7 @@ export async function projectUnifiedThemeForWorkBuddy(value, { targetProfile = n
   }
 
   let legacyCompatibility = null;
-  if (rawTheme.schemaVersion === 1) {
+  if (legacySchema) {
     const targetRoot = theme.targets === undefined ? {} : objectWithKeys(theme.targets, ["codex", "claude", "workbuddy"], "theme.targets");
     const legacyTarget = targetRoot.workbuddy;
     targetRequested = Boolean(legacyTarget);
@@ -438,7 +524,7 @@ export async function projectUnifiedThemeForWorkBuddy(value, { targetProfile = n
   );
   const clientAllowed = exactClientAllowed || compatibilityClientAllowed;
   const surfaceAllowed = effectiveSurfaceVersion === capability.catalogs.uiSurfaceCatalogVersion;
-  const applyAllowed = targetRequested && clientAllowed && surfaceAllowed;
+  const applyAllowed = targetRequested && clientAllowed && surfaceAllowed && !presentationApplyBlocked;
   if (!targetRequested) diagnostics.push({ severity: "error", field: "targets", decision: "unsupported", code: "target-not-requested", message: "The unified theme does not include the WorkBuddy adapter target." });
   if (!applyAllowed) diagnostics.push({ severity: "error", field: "compatibility", decision: "unsupported", code: "client-version-unsupported", message: "Compilation is deterministic, but apply is unavailable until the verified WorkBuddy client and UI Surface Catalog versions match." });
   if (applyAllowed && compatibilityClientAllowed) diagnostics.push({
@@ -482,7 +568,7 @@ function neutralInvocation(value) {
   if (typeof identity.version !== "string" || !/^[0-9]+\.[0-9]+\.[0-9]+(?:-[A-Za-z0-9.-]+)?$/.test(identity.version)) {
     throw new Error("Adapter projector identity.version is invalid");
   }
-  const core = objectWithKeys(invocation.sharedCore, ["tokens", "background", "accessibility"], "Adapter projector Shared Core");
+  const core = objectWithKeys(invocation.sharedCore, ["tokens", "background", "accessibility", "appearanceVariants"], "Adapter projector Shared Core");
   const profiles = objectWithKeys(invocation.targetProfiles, [ADAPTER_ID], "Adapter projector Target Profiles");
   const context = objectWithKeys(invocation.compileContext, MANAGER_COMPILE_CONTEXT_KEYS,
     "Adapter projector compile context");
@@ -529,7 +615,7 @@ export async function projectThemeFamilyAdapter(value) {
     },
   } : {
     kind: UNIFIED_KIND,
-    schemaVersion: 2,
+    schemaVersion: 1,
     id: identity.id,
     name: identity.name,
     version: identity.version,

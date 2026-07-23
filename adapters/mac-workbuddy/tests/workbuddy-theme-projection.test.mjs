@@ -71,6 +71,55 @@ for (const code of [
   "focus-ring-strategy-approximate", "transparency-preference-unavailable",
 ]) assert.ok(projected.diagnostics.some((diagnostic) => diagnostic.code === code), `missing visible diagnostic ${code}`);
 
+const immersiveScene = structuredClone(unifiedV2);
+immersiveScene.presentation = {
+  profileId: "immersive-scene-v1",
+  profileVersion: 1,
+  strictness: "exact-required",
+  geometryPolicy: "scene-bounded",
+  surfaces: ["shell", "navigation", "home", "conversation", "composer", "cards", "overlays"],
+  parameters: {
+    density: "comfortable",
+    borderTreatment: "etched",
+    textureIntensity: 0.28,
+    surfaceOpacity: 0.66,
+    navigationTreatment: "framed",
+    composerTreatment: "anchored",
+    cardTreatment: "elevated",
+  },
+  assetSlots: { "scene.backdrop": "background.webp" },
+  fallbackPolicy: { unsupportedSurface: "block", reducedMotion: "static" },
+};
+immersiveScene.targetProfiles["mac-workbuddy"] = profile({ paletteStrategy: "adaptive" });
+const immersiveProjection = await projectUnifiedThemeForWorkBuddy(immersiveScene, context);
+assert.equal(immersiveProjection.applyAllowed, true,
+  "all exact immersive scopes with an adaptive palette must remain application-eligible");
+assert.deepEqual(immersiveProjection.theme.presentation, immersiveScene.presentation,
+  "the WorkBuddy projector must forward only the closed immersive scene envelope");
+for (const code of [
+  "native-controls-host-owned",
+  "native-layout-preserved",
+  "uncatalogued-portal-unsupported",
+  "presentation-font-override-unsupported",
+]) assert.ok(immersiveProjection.diagnostics.some((item) => item.code === code && item.decision === "unsupported"),
+  `immersive boundary ${code} must be a visible structured diagnostic`);
+
+const canonicalImmersiveSchema = structuredClone(immersiveScene);
+canonicalImmersiveSchema.schemaVersion = 1;
+const canonicalImmersiveProjection = await projectUnifiedThemeForWorkBuddy(canonicalImmersiveSchema, context);
+assert.equal(canonicalImmersiveProjection.applyAllowed, true,
+  "the current Unified Theme v1 Shared Core contract must preserve immersive presentation through WorkBuddy projection");
+assert.equal(canonicalImmersiveProjection.theme.presentation?.profileId, "immersive-scene-v1",
+  "the current Unified Theme v1 presentation must not be mistaken for the retired legacy theme shape");
+
+const immersiveSystem = structuredClone(immersiveScene);
+immersiveSystem.targetProfiles["mac-workbuddy"] = profile({ paletteStrategy: "system" });
+const immersiveSystemProjection = await projectUnifiedThemeForWorkBuddy(immersiveSystem, context);
+assert.equal(immersiveSystemProjection.applyAllowed, false,
+  "exact-required immersive output must fail closed when system palette would leave scene paint dormant");
+assert.ok(immersiveSystemProjection.diagnostics.some((item) => item.code === "immersive-scene-system-palette-inexact"),
+  "system-palette presentation rejection must be user-visible");
+
 const reordered = structuredClone(unifiedV2);
 reordered.sharedCore.tokens.colors = Object.fromEntries(Object.entries(reordered.sharedCore.tokens.colors).reverse());
 reordered.sharedCore.tokens.fonts = Object.fromEntries(Object.entries(reordered.sharedCore.tokens.fonts).reverse());

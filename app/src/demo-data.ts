@@ -100,6 +100,11 @@ export const DEMO_DASHBOARD: DashboardState = {
       author: "CC Theme Studio",
       description: "温柔的暖白画布、墨色文字与低饱和靛蓝，适合长时间阅读。",
       colors: ["#f0eadb", "#6366a8", "#25263a"],
+      appearanceVariants: {
+        light: ["#F4F7FA", "#266446", "#203041"],
+        dark: ["#10151F", "#2F7D57", "#E9EEF7"],
+      },
+      presentationSurfaceOpacity: 0.72,
       installed: true,
       updatedAt: "2026-07-18T09:30:00.000Z",
       compatibility: {

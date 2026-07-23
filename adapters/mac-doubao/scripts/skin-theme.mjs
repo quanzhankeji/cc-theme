@@ -4,7 +4,7 @@ export const ADAPTER_ID = "mac-doubao";
 export const SKIN_THEME_KIND = "skin.theme";
 
 const ROOT_KEYS = new Set([
-  "kind", "id", "name", "sourceVersion", "image", "backgroundVideo", "colors", "semanticColors", "fonts", "appearance", "presentation",
+  "kind", "id", "name", "sourceVersion", "image", "backgroundVideo", "colors", "semanticColors", "appearanceVariants", "fonts", "appearance", "presentation",
 ]);
 const COLOR_PATTERN = /^(?:#[0-9a-f]{6}|rgba?\([0-9., %]+\))$/i;
 const COLOR_KEYS = new Set(["text", "muted"]);
@@ -21,6 +21,14 @@ const APPEARANCE_KEYS = new Set([
   "backgroundVideoPosterMode", "backgroundVideoScrimOpacity", "backgroundVideoPosition",
 ]);
 const IMMERSIVE_SCENE_SURFACES = new Set(["shell", "navigation", "home", "conversation", "composer", "cards", "overlays"]);
+const IMMERSIVE_SCENE_PRESENTATION_KEYS = new Set([
+  "profileId", "profileVersion", "strictness", "geometryPolicy", "surfaces", "parameters", "assetSlots", "fallbackPolicy",
+]);
+const IMMERSIVE_SCENE_PARAMETER_KEYS = new Set([
+  "density", "borderTreatment", "textureIntensity", "surfaceOpacity", "navigationTreatment", "composerTreatment", "cardTreatment",
+]);
+const IMMERSIVE_SCENE_ASSET_SLOT_KEYS = new Set(["scene.backdrop"]);
+const IMMERSIVE_SCENE_FALLBACK_KEYS = new Set(["unsupportedSurface", "reducedMotion"]);
 
 const plainObject = (value) => value && typeof value === "object" && !Array.isArray(value) ? value : null;
 
@@ -28,8 +36,7 @@ const plainObject = (value) => value && typeof value === "object" && !Array.isAr
 // projection; this release-local gate admits only the fixed inert envelope.
 function normalizePresentation(value, label) {
   const presentation = plainObject(value);
-  const allowed = new Set(["profileId", "profileVersion", "strictness", "geometryPolicy", "surfaces", "parameters", "assetSlots", "fallbackPolicy"]);
-  if (!presentation || Object.keys(presentation).some((key) => !allowed.has(key)) ||
+  if (!presentation || Object.keys(presentation).some((key) => !IMMERSIVE_SCENE_PRESENTATION_KEYS.has(key)) ||
       presentation.profileId !== "immersive-scene-v1" || presentation.profileVersion !== 1 ||
       presentation.strictness !== "exact-required" || presentation.geometryPolicy !== "scene-bounded" ||
       !Array.isArray(presentation.surfaces) || presentation.surfaces.length !== IMMERSIVE_SCENE_SURFACES.size ||
@@ -37,6 +44,22 @@ function normalizePresentation(value, label) {
       presentation.surfaces.some((surface) => !IMMERSIVE_SCENE_SURFACES.has(surface)) ||
       !plainObject(presentation.parameters) || !plainObject(presentation.assetSlots) || !plainObject(presentation.fallbackPolicy)) {
     throw new Error(`${label} must use the validated immersive-scene-v1 envelope`);
+  }
+  const parameters = objectWithKeys(presentation.parameters, IMMERSIVE_SCENE_PARAMETER_KEYS, `${label} parameters`);
+  const assetSlots = objectWithKeys(presentation.assetSlots, IMMERSIVE_SCENE_ASSET_SLOT_KEYS, `${label} assetSlots`);
+  const fallbackPolicy = objectWithKeys(presentation.fallbackPolicy, IMMERSIVE_SCENE_FALLBACK_KEYS, `${label} fallbackPolicy`);
+  for (const key of IMMERSIVE_SCENE_PARAMETER_KEYS) {
+    if (!Object.hasOwn(parameters, key)) throw new Error(`${label} parameters requires ${key}`);
+  }
+  if (parameters.density !== "comfortable" || parameters.borderTreatment !== "etched" ||
+      parameters.navigationTreatment !== "framed" || parameters.composerTreatment !== "anchored" ||
+      parameters.cardTreatment !== "elevated" || !Number.isFinite(parameters.textureIntensity) ||
+      parameters.textureIntensity < 0 || parameters.textureIntensity > 1 ||
+      !Number.isFinite(parameters.surfaceOpacity) || parameters.surfaceOpacity < 0 || parameters.surfaceOpacity > 1 ||
+      !Object.hasOwn(assetSlots, "scene.backdrop") ||
+      localFile(assetSlots["scene.backdrop"], [".png", ".jpg", ".jpeg", ".webp"], `${label} assetSlots.scene.backdrop`) !== assetSlots["scene.backdrop"] ||
+      fallbackPolicy.unsupportedSurface !== "block" || fallbackPolicy.reducedMotion !== "static") {
+    throw new Error(`${label} must use the validated immersive-scene-v1 values`);
   }
   return structuredClone(presentation);
 }
@@ -67,6 +90,25 @@ function colors(value, keys, label) {
     }
   }
   return result;
+}
+
+function appearanceVariants(value) {
+  if (value === undefined) return null;
+  const variants = objectWithKeys(value, new Set(["light", "dark"]), "Theme appearanceVariants");
+  const normalized = {};
+  for (const mode of ["light", "dark"]) {
+    const variant = objectWithKeys(variants[mode], new Set(["colors", "semanticColors"]), `Theme appearanceVariants.${mode}`);
+    const variantColors = colors(variant.colors, COLOR_KEYS, `Theme appearanceVariants.${mode}.colors`);
+    const variantSemantic = colors(variant.semanticColors, SEMANTIC_COLOR_KEYS, `Theme appearanceVariants.${mode}.semanticColors`);
+    for (const key of COLOR_KEYS) {
+      if (!Object.hasOwn(variantColors, key)) throw new Error(`Theme appearanceVariants.${mode}.colors requires ${key}`);
+    }
+    for (const key of ["surfaceBase", "surfaceRaised", "action", "actionForeground", "focusRing", "sidebarSurface", "headerSurface", "mainScrimStart", "mainScrimMid", "mainScrimEnd"]) {
+      if (!Object.hasOwn(variantSemantic, key)) throw new Error(`Theme appearanceVariants.${mode}.semanticColors requires ${key}`);
+    }
+    normalized[mode] = { colors: variantColors, semanticColors: variantSemantic };
+  }
+  return normalized;
 }
 
 function fonts(value) {
@@ -133,6 +175,7 @@ export function normalizeSkinTheme(value, label = "Doubao theme") {
     if (!Object.hasOwn(semanticColors, key)) throw new Error(`${label} semanticColors requires ${key}`);
   }
   fonts(theme.fonts);
+  const normalizedAppearanceVariants = appearanceVariants(theme.appearanceVariants);
   const themeAppearance = appearance(theme.appearance);
   const presentation = theme.presentation === undefined ? null : normalizePresentation(theme.presentation, `${label} presentation`);
   if (!theme.backgroundVideo && [
@@ -142,6 +185,7 @@ export function normalizeSkinTheme(value, label = "Doubao theme") {
   }
   const normalized = structuredClone(theme);
   if (presentation) normalized.presentation = presentation;
+  if (normalizedAppearanceVariants) normalized.appearanceVariants = normalizedAppearanceVariants;
   normalized.appearance = {
     ...themeAppearance,
     paletteStrategy: themeAppearance.paletteStrategy ?? "system",

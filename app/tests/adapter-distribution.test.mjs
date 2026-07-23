@@ -12,27 +12,32 @@ import { verifyAdapterPackage } from "../scripts/adapter-package.mjs";
 
 const execute = promisify(execFile);
 const expectedIdentities = new Map([
-  ["mac-codex", "mac-codex-26.715.71837-r2-macos-arm64"],
-  ["mac-doubao", "mac-doubao-2.19.9-r2-macos-arm64"],
-  ["mac-workbuddy", "mac-workbuddy-5.2.6-r2-macos-arm64"],
+  ["mac-codex", "mac-codex-26.715.71837-r3-macos-arm64"],
+  ["mac-doubao", "mac-doubao-2.19.9-r4-macos-arm64"],
+  ["mac-workbuddy", "mac-workbuddy-5.2.6-r4-macos-arm64"],
+]);
+const expectedRevisions = new Map([
+  ["mac-codex", 3],
+  ["mac-doubao", 4],
+  ["mac-workbuddy", 4],
 ]);
 const expectedPublishedPackages = new Map([
   ["mac-codex", {
-    bytes: 1_083_380,
-    sha256: "d30ab16038a11ae5a55d40772953e0198cf15ec9b2c9bc1816026d965a7d54b4",
-    manifestSha256: "13dcf5e6dd13104881a1e30fd94cebd69e7bbc7fc07634c1d3837797003fc925",
+    bytes: 1_098_823,
+    sha256: "e9e473059cf15847d59101d2e20b633f20406523180e90d42282e6a3f95b34d0",
+    manifestSha256: "b78a6bc7c0db07eb3b060e0dd508441c799a203bfe9ed84c025ad1f02f9692c1",
     minimumManagerVersion: "0.2.1",
   }],
   ["mac-doubao", {
-    bytes: 161_537,
-    sha256: "9fd79e213e2627333bb111c5e087d1cab259a953424af27729be88a112b9d277",
-    manifestSha256: "76aa7d37fae88a243ec44762b9140d11c457dc9d9ee2d62bed997b0166df4895",
+    bytes: 187_920,
+    sha256: "28a6cb24db0b3ec60583973b62163dca90a27cb37c87ec43d77b5c6ed486cda0",
+    manifestSha256: "fbb052ef3cfb99625a6586a09d715f87488d8acd027c23da631961bb127cd394",
     minimumManagerVersion: "0.2.1",
   }],
   ["mac-workbuddy", {
-    bytes: 736_560,
-    sha256: "abe6bdbca0a0a2714c289b012db1f2df6cc7cd943e7ee2a65d48de003010c4b9",
-    manifestSha256: "55903b3136157e0d136cfe3dd3368e5c3886257ba500f0c8ecf10bab7d58fa05",
+    bytes: 763_027,
+    sha256: "90961b9a921e0af4b88cbcbc8e904ab807869ef649c6fd44d9b51cdb4819396c",
+    manifestSha256: "e0a26b7a95ec0460d8f8aa241cc404689630118528d29111707899a9658ef586",
     minimumManagerVersion: "0.2.1",
   }],
 ]);
@@ -68,7 +73,7 @@ test("one distribution build produces three verified qualified Mac packages and 
     assert.equal(verified.ok, true);
     assert.equal(verified.manifest.adapterId, packageRecord.adapterId);
     assert.equal(verified.manifest.assetIdentity, expectedIdentities.get(packageRecord.adapterId));
-    assert.equal(verified.manifest.adapterReleaseRevision, 2);
+    assert.equal(verified.manifest.adapterReleaseRevision, expectedRevisions.get(packageRecord.adapterId));
     assert.equal(verified.manifest.contracts.minimumManagerVersion, published.minimumManagerVersion);
     const extracted = path.join(outputDirectory, `extracted-${packageRecord.adapterId}`);
     await fs.mkdir(extracted);

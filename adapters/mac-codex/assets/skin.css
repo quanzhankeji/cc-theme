@@ -1694,40 +1694,74 @@ html.cc-theme[data-skin-theme-bridge] .skin-home > div:first-child > div:first-c
 /* Adapter-owned immersive scene recipe. It consumes stable Skin Surface Roles
    only; native controls remain live nodes with their host interaction geometry. */
 html.cc-theme[data-skin-presentation="immersive-scene-v1"] {
-  --scene-gold: #c8a55a;
+  --scene-gold: var(--skin-action, #c8a55a);
   --scene-line: color-mix(in srgb, var(--scene-gold) 34%, transparent);
-  --scene-panel: color-mix(in srgb, var(--skin-panel, #171513) 78%, transparent);
-  --scene-raised: color-mix(in srgb, var(--skin-panel-2, #211d18) 84%, transparent);
+  --scene-panel: color-mix(in srgb, var(--skin-panel, #171513) var(--scene-surface-opacity, 78%), transparent);
+  --scene-raised: color-mix(in srgb, var(--skin-panel-2, #211d18) var(--scene-surface-opacity, 84%), transparent);
+  --scene-texture-tint: color-mix(in srgb, var(--scene-gold) 11%, transparent);
+  --scene-density-inset: 12px;
+  --scene-border-width: 1px;
+  --scene-navigation-frame-width: 1px;
+  --scene-composer-frame-width: 1px;
+  --scene-card-frame-width: 1px;
 }
 
 html.cc-theme[data-skin-presentation="immersive-scene-v1"] body {
-  background: linear-gradient(90deg, rgba(8, 8, 10, .94) 0%, rgba(11, 10, 11, .74) 49%, rgba(14, 11, 9, .26) 100%) !important;
+  background:
+    linear-gradient(90deg,
+      color-mix(in srgb, var(--skin-main-scrim-start) var(--scene-surface-opacity), transparent) 0%,
+      color-mix(in srgb, var(--skin-main-scrim-mid) var(--scene-surface-opacity), transparent) 49%,
+      color-mix(in srgb, var(--skin-main-scrim-end) var(--scene-surface-opacity), transparent) 100%),
+    repeating-linear-gradient(135deg, var(--scene-texture-tint) 0 1px, transparent 1px 12px) !important;
 }
 
 html.cc-theme[data-skin-presentation="immersive-scene-v1"] .app-shell-left-panel {
   background: linear-gradient(180deg, color-mix(in srgb, var(--scene-panel) 94%, #070606), color-mix(in srgb, var(--scene-panel) 78%, #0d0907)) !important;
-  border-right: 1px solid var(--scene-line) !important;
+  border-right: var(--scene-navigation-frame-width) solid var(--scene-line) !important;
   box-shadow: inset -1px 0 rgba(255, 240, 202, .05), 12px 0 32px rgba(0, 0, 0, .34) !important;
 }
 
 html.cc-theme[data-skin-presentation="immersive-scene-v1"] :is(main.main-surface, [data-app-shell-main-content-layout]) {
-  background: linear-gradient(90deg, rgba(9, 8, 9, .80), rgba(14, 11, 10, .44) 56%, rgba(12, 10, 9, .16)) !important;
-  box-shadow: inset 1px 0 var(--scene-line) !important;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--skin-main-scrim-start) var(--scene-surface-opacity), transparent),
+    color-mix(in srgb, var(--skin-main-scrim-mid) var(--scene-surface-opacity), transparent) 56%,
+    color-mix(in srgb, var(--skin-main-scrim-end) var(--scene-surface-opacity), transparent)) !important;
+  box-shadow: inset var(--scene-border-width) 0 var(--scene-line) !important;
+}
+
+/* These two route-specific rules normally choose a reading-strength scrim.
+   The immersive profile must take precedence so its single bounded opacity
+   control cannot leave a second dark veil behind at 0%. */
+html.cc-theme[data-skin-theme-bridge][data-skin-presentation="immersive-scene-v1"][data-skin-surface-context="home"] main.main-surface,
+html.cc-theme[data-skin-theme-bridge][data-skin-presentation="immersive-scene-v1"][data-skin-surface-context="home"] main.main-surface:not(.skin-home-shell),
+html.cc-theme[data-skin-theme-bridge][data-skin-presentation="immersive-scene-v1"]:is([data-skin-surface-context="task"], [data-skin-surface-context="library"]) main.main-surface,
+html.cc-theme[data-skin-theme-bridge][data-skin-presentation="immersive-scene-v1"]:is([data-skin-surface-context="task"], [data-skin-surface-context="library"]) main.main-surface:not(.skin-home-shell) {
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--skin-main-scrim-start) var(--scene-surface-opacity), transparent) 0%,
+    color-mix(in srgb, var(--skin-main-scrim-mid) var(--scene-surface-opacity), transparent) 58%,
+    color-mix(in srgb, var(--skin-main-scrim-end) var(--scene-surface-opacity), transparent) 100%) !important;
 }
 
 html.cc-theme[data-skin-presentation="immersive-scene-v1"] [data-skin-role="home-hero"] {
-  border: 1px solid var(--scene-line) !important;
+  border: var(--scene-border-width) solid var(--scene-line) !important;
   border-radius: 18px !important;
   box-shadow: 0 22px 54px rgba(0, 0, 0, .42), inset 0 1px rgba(255, 243, 212, .08) !important;
 }
 
-html.cc-theme[data-skin-presentation="immersive-scene-v1"] :is([data-skin-role="home-suggestion-card"], [data-skin-role="composer-root"], .composer-surface-chrome, article) {
+html.cc-theme[data-skin-presentation="immersive-scene-v1"] [data-skin-role="home-suggestion-card"] {
   background: var(--scene-raised) !important;
-  border: 1px solid var(--scene-line) !important;
+  border: var(--scene-card-frame-width) solid var(--scene-line) !important;
+  padding: var(--scene-density-inset) !important;
   box-shadow: 0 12px 30px rgba(0, 0, 0, .28), inset 0 1px rgba(255, 243, 212, .05) !important;
 }
 
-html.cc-theme[data-skin-presentation="immersive-scene-v1"] :is([role="dialog"], [role="menu"], [role="listbox"], [role="tooltip"]) {
+html.cc-theme[data-skin-presentation="immersive-scene-v1"] :is([data-skin-role="composer-root"], .composer-surface-chrome) {
+  background: var(--scene-raised) !important;
+  border: var(--scene-composer-frame-width) solid var(--scene-line) !important;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, .28), inset 0 1px rgba(255, 243, 212, .05) !important;
+}
+
+html.cc-theme[data-skin-presentation="immersive-scene-v1"] [data-skin-role="overlay-surface"] {
   background: color-mix(in srgb, var(--skin-panel-2, #211d18) 96%, #080707) !important;
   border-color: var(--scene-line) !important;
 }

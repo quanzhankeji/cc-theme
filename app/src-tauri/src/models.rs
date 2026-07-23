@@ -104,6 +104,26 @@ pub struct ThemeCompatibility {
     pub note: String,
 }
 
+/// A compact, display-only projection of a Theme Family's complete Light/Dark
+/// semantic palettes. The editor uses this to render an honest preview while
+/// the full palette remains inside the imported Theme Package.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ThemeAppearancePreview {
+    pub light: [String; 3],
+    pub dark: [String; 3],
+}
+
+/// The three semantic stops used for the main-content veil in a presentation
+/// profile. This is display metadata only: the authoritative values remain in
+/// the imported Theme Package and are still resolved by each Adapter.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ThemePresentationScrimPreview {
+    pub light: [String; 3],
+    pub dark: [String; 3],
+}
+
 #[derive(Debug, Clone, Copy, Serialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum CompatibilityState {
@@ -121,7 +141,18 @@ pub struct ThemeFamily {
     pub default_locale: String,
     pub localizations: std::collections::BTreeMap<String, LocalizedThemeDisplay>,
     pub colors: [String; 3],
+    pub appearance_variants: Option<ThemeAppearancePreview>,
+    /// The current local value of immersive-scene-v1's main content surface
+    /// opacity. It is optional because ordinary Theme Families do not expose
+    /// that presentation control.
+    pub presentation_surface_opacity: Option<f64>,
+    /// Semantic main-content veil stops for an honest static workbench
+    /// preview. It is present only for the bounded immersive-scene profile.
+    pub presentation_scrim: Option<ThemePresentationScrimPreview>,
     pub preview_url: Option<String>,
+    /// A Manager-owned editable copy exists locally. The imported Theme
+    /// Package remains the resettable baseline.
+    pub has_local_draft: bool,
     pub installed: bool,
     pub updated_at: String,
     pub compatibility: std::collections::BTreeMap<String, ThemeCompatibility>,

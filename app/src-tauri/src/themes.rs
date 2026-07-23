@@ -16,7 +16,8 @@ use zip::ZipArchive;
 use crate::{
     capabilities, compiler,
     models::{
-        ClientId, CompatibilityState, LocalizedThemeDisplay, ThemeCompatibility, ThemeFamily,
+        ClientId, CompatibilityState, LocalizedThemeDisplay, ThemeAppearancePreview,
+        ThemeCompatibility, ThemeFamily, ThemePresentationScrimPreview,
     },
     registry,
 };
@@ -28,6 +29,19 @@ const MAX_THEME_DEPTH: usize = 8;
 const MAX_THEME_ARCHIVE_BYTES: u64 = 256 * 1024 * 1024;
 const MAX_THEME_PREVIEW_BYTES: u64 = 16 * 1024 * 1024;
 const COMPILED_THEME_CACHE_FILE: &str = ".cc-theme-compiled.json";
+const LOCAL_THEME_OVERRIDE_KIND: &str = "cc-theme.local-theme-override";
+/// Schema 3 stores a materialized, closed local Theme Family source next to
+/// the small edit record.  The original imported package remains the
+/// immutable baseline; the materialized source is the exact document that is
+/// later passed into the compiler.
+const LOCAL_THEME_OVERRIDE_SCHEMA_VERSION: u64 = 3;
+const LOCAL_THEME_OVERRIDE_LEGACY_SCHEMA_VERSION: u64 = 2;
+const LOCAL_THEME_OVERRIDE_FILE: &str = "override.json";
+const LOCAL_THEME_EFFECTIVE_SOURCE_FILE: &str = "local-unified-theme.json";
+const LOCAL_THEME_BACKGROUND_FILE_STEM: &str = "cc-theme-local-background";
+const MAX_LOCAL_THEME_BACKGROUND_BYTES: usize = 16 * 1024 * 1024;
+const IMMERSIVE_SCENE_PROFILE_ID: &str = "immersive-scene-v1";
+const IMMERSIVE_SCENE_PROFILE_VERSION: u64 = 1;
 static SEED_SEQUENCE: AtomicU64 = AtomicU64::new(1);
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -56,8 +70,123 @@ pub struct ThemeMetadata {
     pub default_locale: String,
     pub localizations: BTreeMap<String, LocalizedThemeDisplay>,
     pub colors: [String; 3],
+    pub appearance_variants: Option<ThemeAppearancePreview>,
+    pub presentation_surface_opacity: Option<f64>,
+    pub presentation_scrim: Option<ThemePresentationScrimPreview>,
     pub preview_url: Option<String>,
     pub modified: SystemTime,
+}
+
+/// A closed, Manager-owned local adjustment. It never changes the imported
+/// package bytes and cannot carry CSS, selectors, host paths, or scripts.
+///
+/// Version 1 stored only `presentation.surfaceOpacity`; version 2 additionally
+/// stores the two semantic text colours and an optional verified media copy.
+/// Version 3 additionally binds the edit to its imported baseline and stores a
+/// materialized, schema-validated local Theme Family source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct LocalThemeOverride {
+    kind: String,
+    schema_version: u64,
+    theme_id: String,
+    presentation: LocalThemeSurfaceOpacityPresentation,
+    #[serde(default)]
+    colors: Option<LocalThemeTextColors>,
+    #[serde(default)]
+    background: Option<LocalThemeBackgroundOverride>,
+    #[serde(default)]
+    baseline: Option<LocalThemeDraftBaseline>,
+    #[serde(default)]
+    local_source: Option<LocalThemeDraftSource>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct LocalThemeDraftBaseline {
+    unified_theme_sha256: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct LocalThemeDraftSource {
+    file_name: String,
+    bytes: u64,
+    sha256: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct LocalThemeSurfaceOpacityPresentation {
+    profile_id: String,
+    profile_version: u64,
+    surface_opacity: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct LocalThemeTextColors {
+    light_text: String,
+    dark_text: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct LocalThemeBackgroundOverride {
+    file_name: String,
+    media_type: String,
+    content_type: String,
+    bytes: u64,
+    sha256: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct ThemeWorkbenchDraftInput {
+    kind: String,
+    revision: u64,
+    pub base: ThemeWorkbenchDraftBase,
+    preview_adapter_id: String,
+    patch: ThemeWorkbenchDraftPatch,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct ThemeWorkbenchDraftBase {
+    pub theme_id: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ThemeWorkbenchDraftPatch {
+    text_colors: LocalThemeTextColors,
+    surface_opacity: f64,
+    background_asset: ThemeWorkbenchDraftBackground,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ThemeWorkbenchDraftBackground {
+    source: String,
+    media_type: Option<String>,
+    file_name: Option<String>,
+    mime_type: Option<String>,
+    requires_static_fallback: Option<bool>,
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct LocalThemeOverrideMedia {
+    pub file_name: String,
+    pub content_type: String,
+    pub bytes: u64,
+    pub sha256: String,
+    pub path: PathBuf,
+}
+
+#[derive(Debug, Clone)]
+struct LoadedThemeOverride {
+    record: LocalThemeOverride,
+    directory: Option<PathBuf>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -173,6 +302,24 @@ struct SharedCoreSource {
     tokens: ThemeTokensSource,
     background: ThemeBackgroundSource,
     accessibility: ThemeAccessibilitySource,
+    #[serde(default)]
+    appearance_variants: Option<ThemeAppearanceVariantsSource>,
+}
+
+/// A high-fidelity family may define one complete semantic palette for each
+/// host appearance.  This stays declarative: it deliberately has no CSS,
+/// selector, script, geometry or asset-path fields.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ThemeAppearanceVariantsSource {
+    light: ThemeAppearanceVariantSource,
+    dark: ThemeAppearanceVariantSource,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ThemeAppearanceVariantSource {
+    colors: BTreeMap<String, String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -284,6 +431,980 @@ pub fn import_theme_package(package: &Path) -> Result<String, String> {
     import_theme_package_to(package, &registry::manager_theme_library_root())
 }
 
+/// Backward-compatible entry point for callers that only expose the opacity
+/// control. The Workbench itself saves the complete closed draft below.
+pub fn save_theme_surface_opacity(theme_id: &str, surface_opacity: f64) -> Result<f64, String> {
+    save_theme_surface_opacity_to(
+        &registry::manager_theme_library_root(),
+        &registry::manager_theme_overrides_root(),
+        theme_id,
+        surface_opacity,
+    )
+}
+
+fn save_theme_surface_opacity_to(
+    theme_root: &Path,
+    overrides_root: &Path,
+    theme_id: &str,
+    surface_opacity: f64,
+) -> Result<f64, String> {
+    if !valid_theme_id(theme_id)
+        || !surface_opacity.is_finite()
+        || !(0.0..=1.0).contains(&surface_opacity)
+    {
+        return Err("theme-local-override-invalid".to_string());
+    }
+    let theme_root = trusted_theme_root(theme_root)?;
+    let family = trusted_theme_child(&theme_root, theme_id)?;
+    compiler::verify_family_manifest(&family, theme_id)
+        .map_err(|_| "theme-local-override-source-invalid".to_string())?;
+    let (source, source_bytes) = read_unified_theme_source_with_bytes(&family)?;
+    let _ = immersive_scene_surface_opacity(&source, theme_id)?;
+    let existing = load_theme_override_from(overrides_root, theme_id)?;
+    ensure_local_draft_matches_baseline(existing.as_ref(), &source_bytes)?;
+    let existing_media = existing
+        .as_ref()
+        .and_then(
+            |loaded| match (&loaded.record.background, &loaded.directory) {
+                (Some(background), Some(directory)) => {
+                    load_override_media_from(directory, background).ok()
+                }
+                _ => None,
+            },
+        )
+        .map(|media| fs::read(media.path))
+        .transpose()
+        .map_err(|_| "theme-local-override-background-invalid".to_string())?;
+    let mut record = existing
+        .map(|loaded| loaded.record)
+        .unwrap_or(LocalThemeOverride {
+            kind: LOCAL_THEME_OVERRIDE_KIND.to_string(),
+            schema_version: LOCAL_THEME_OVERRIDE_LEGACY_SCHEMA_VERSION,
+            theme_id: theme_id.to_string(),
+            presentation: LocalThemeSurfaceOpacityPresentation {
+                profile_id: IMMERSIVE_SCENE_PROFILE_ID.to_string(),
+                profile_version: IMMERSIVE_SCENE_PROFILE_VERSION,
+                surface_opacity,
+            },
+            colors: None,
+            background: None,
+            baseline: None,
+            local_source: None,
+        });
+    // Build from the trusted baseline, then atomically persist the exact local
+    // source that the compiler will use.  Any older record is upgraded on its
+    // next successful save without changing the imported package.
+    record.schema_version = LOCAL_THEME_OVERRIDE_LEGACY_SCHEMA_VERSION;
+    record.baseline = None;
+    record.local_source = None;
+    record.presentation.surface_opacity = surface_opacity;
+    let (record, materialized_source) =
+        materialize_local_theme_draft(&source, &source_bytes, record)?;
+    write_theme_override_atomically(
+        overrides_root,
+        &record,
+        existing_media.as_deref(),
+        &materialized_source,
+    )?;
+    Ok(surface_opacity)
+}
+
+/// Saves every editable Workbench value as Manager-owned local data. The
+/// original package and its signed/hash-verified manifest remain untouched.
+pub fn save_theme_workbench_draft(
+    draft: ThemeWorkbenchDraftInput,
+    media_bytes: Option<Vec<u8>>,
+) -> Result<(), String> {
+    save_theme_workbench_draft_to(
+        &registry::manager_theme_library_root(),
+        &registry::manager_theme_overrides_root(),
+        draft,
+        media_bytes,
+    )
+}
+
+/// Removes only the Manager-owned editable copy. The verified imported Theme
+/// Package, its assets, and every Adapter runtime state are left untouched.
+/// The next compile therefore returns to the original package baseline.
+pub fn reset_theme_workbench_draft(theme_id: &str) -> Result<bool, String> {
+    reset_theme_workbench_draft_from(&registry::manager_theme_overrides_root(), theme_id)
+}
+
+fn reset_theme_workbench_draft_from(overrides_root: &Path, theme_id: &str) -> Result<bool, String> {
+    if !valid_theme_id(theme_id) {
+        return Err("theme-workbench-draft-invalid".to_string());
+    }
+    let metadata = match fs::symlink_metadata(overrides_root) {
+        Ok(metadata) => metadata,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(false),
+        Err(_) => return Err("theme-local-override-storage-invalid".to_string()),
+    };
+    if !metadata.file_type().is_dir() || metadata.file_type().is_symlink() {
+        return Err("theme-local-override-storage-invalid".to_string());
+    }
+    let root = overrides_root
+        .canonicalize()
+        .map_err(|_| "theme-local-override-storage-invalid".to_string())?;
+    let draft = root.join(theme_id);
+    let legacy = root.join(format!("{theme_id}.json"));
+    let mut removed = false;
+
+    if draft.symlink_metadata().is_ok() {
+        let trusted = trusted_theme_child(&root, theme_id)
+            .map_err(|_| "theme-local-override-storage-invalid".to_string())?;
+        let tombstone = root.join(format!(
+            ".{}-reset-{}-{}",
+            theme_id,
+            std::process::id(),
+            SEED_SEQUENCE.fetch_add(1, Ordering::Relaxed)
+        ));
+        fs::rename(&trusted, &tombstone)
+            .map_err(|_| "theme-local-override-commit-failed".to_string())?;
+        if fs::remove_dir_all(&tombstone).is_err() {
+            let _ = fs::rename(&tombstone, &trusted);
+            return Err("theme-local-override-cleanup-failed".to_string());
+        }
+        removed = true;
+    }
+    if legacy.symlink_metadata().is_ok() {
+        let legacy_metadata = fs::symlink_metadata(&legacy)
+            .map_err(|_| "theme-local-override-storage-invalid".to_string())?;
+        if !legacy_metadata.file_type().is_file() || legacy_metadata.file_type().is_symlink() {
+            return Err("theme-local-override-storage-invalid".to_string());
+        }
+        fs::remove_file(legacy).map_err(|_| "theme-local-override-cleanup-failed".to_string())?;
+        removed = true;
+    }
+    Ok(removed)
+}
+
+fn save_theme_workbench_draft_to(
+    theme_root: &Path,
+    overrides_root: &Path,
+    draft: ThemeWorkbenchDraftInput,
+    media_bytes: Option<Vec<u8>>,
+) -> Result<(), String> {
+    if draft.kind != "cc-theme.theme-workbench-draft"
+        || draft.revision != 1
+        || !valid_theme_id(&draft.base.theme_id)
+        || !matches!(
+            draft.preview_adapter_id.as_str(),
+            "mac-codex" | "mac-workbuddy"
+        )
+    {
+        return Err("theme-workbench-draft-invalid".to_string());
+    }
+    let theme_root = trusted_theme_root(theme_root)?;
+    let family = trusted_theme_child(&theme_root, &draft.base.theme_id)?;
+    compiler::verify_family_manifest(&family, &draft.base.theme_id)
+        .map_err(|_| "theme-local-override-source-invalid".to_string())?;
+    let (source, source_bytes) = read_unified_theme_source_with_bytes(&family)?;
+    let existing = load_theme_override_from(overrides_root, &draft.base.theme_id)?;
+    ensure_local_draft_matches_baseline(existing.as_ref(), &source_bytes)?;
+    let existing_media = existing
+        .as_ref()
+        .and_then(
+            |loaded| match (&loaded.record.background, &loaded.directory) {
+                (Some(background), Some(directory)) => {
+                    load_override_media_from(directory, background).ok()
+                }
+                _ => None,
+            },
+        )
+        .map(|media| fs::read(media.path))
+        .transpose()
+        .map_err(|_| "theme-local-override-background-invalid".to_string())?;
+    let (record, preserve_existing_media) = workbench_override_record(
+        &source,
+        &draft,
+        existing.as_ref().map(|loaded| &loaded.record),
+        media_bytes.as_deref(),
+    )?;
+    let bytes = if preserve_existing_media {
+        existing_media.as_deref()
+    } else {
+        media_bytes.as_deref()
+    };
+    let (record, materialized_source) =
+        materialize_local_theme_draft(&source, &source_bytes, record)?;
+    write_theme_override_atomically(overrides_root, &record, bytes, &materialized_source)
+}
+
+fn workbench_override_record(
+    source: &Value,
+    draft: &ThemeWorkbenchDraftInput,
+    existing: Option<&LocalThemeOverride>,
+    media_bytes: Option<&[u8]>,
+) -> Result<(LocalThemeOverride, bool), String> {
+    let theme_id = &draft.base.theme_id;
+    let _ = immersive_scene_surface_opacity(source, theme_id)
+        .map_err(|_| "theme-local-override-presentation-unsupported".to_string())?;
+    let colors = &draft.patch.text_colors;
+    if !valid_hex_color(&colors.light_text) || !valid_hex_color(&colors.dark_text) {
+        return Err("theme-workbench-text-colour-invalid".to_string());
+    }
+    let source_model: UnifiedThemeSource = serde_json::from_value(source.clone())
+        .map_err(|_| "theme-local-override-source-invalid".to_string())?;
+    if source_model.shared_core.appearance_variants.is_none()
+        && colors.light_text != colors.dark_text
+    {
+        return Err("theme-workbench-text-colour-appearance-unsupported".to_string());
+    }
+    if !draft.patch.surface_opacity.is_finite()
+        || !(0.0..=1.0).contains(&draft.patch.surface_opacity)
+    {
+        return Err("theme-local-override-invalid".to_string());
+    }
+    let (background, preserve_existing_media) = workbench_background_override(
+        &source_model,
+        &draft.patch.background_asset,
+        existing.and_then(|record| record.background.clone()),
+        media_bytes,
+    )?;
+    let record = LocalThemeOverride {
+        kind: LOCAL_THEME_OVERRIDE_KIND.to_string(),
+        schema_version: LOCAL_THEME_OVERRIDE_LEGACY_SCHEMA_VERSION,
+        theme_id: theme_id.to_string(),
+        presentation: LocalThemeSurfaceOpacityPresentation {
+            profile_id: IMMERSIVE_SCENE_PROFILE_ID.to_string(),
+            profile_version: IMMERSIVE_SCENE_PROFILE_VERSION,
+            surface_opacity: draft.patch.surface_opacity,
+        },
+        colors: Some(LocalThemeTextColors {
+            light_text: colors.light_text.to_uppercase(),
+            dark_text: colors.dark_text.to_uppercase(),
+        }),
+        background,
+        baseline: None,
+        local_source: None,
+    };
+    validate_local_theme_override(&record, theme_id)?;
+    Ok((record, preserve_existing_media))
+}
+
+fn ensure_local_draft_matches_baseline(
+    existing: Option<&LoadedThemeOverride>,
+    baseline_bytes: &[u8],
+) -> Result<(), String> {
+    let Some(existing) = existing else {
+        return Ok(());
+    };
+    if existing.record.schema_version != LOCAL_THEME_OVERRIDE_SCHEMA_VERSION {
+        return Ok(());
+    }
+    let baseline = existing
+        .record
+        .baseline
+        .as_ref()
+        .ok_or_else(|| "theme-local-override-invalid".to_string())?;
+    if format!("{:x}", Sha256::digest(baseline_bytes)) != baseline.unified_theme_sha256 {
+        return Err("theme-local-override-baseline-changed".to_string());
+    }
+    Ok(())
+}
+
+fn workbench_background_override(
+    source: &UnifiedThemeSource,
+    request: &ThemeWorkbenchDraftBackground,
+    existing: Option<LocalThemeBackgroundOverride>,
+    media_bytes: Option<&[u8]>,
+) -> Result<(Option<LocalThemeBackgroundOverride>, bool), String> {
+    match request.source.as_str() {
+        "inherit" => {
+            if request.media_type.is_some()
+                || request.file_name.is_some()
+                || request.mime_type.is_some()
+                || request.requires_static_fallback.is_some()
+                || media_bytes.is_some()
+            {
+                return Err("theme-workbench-background-invalid".to_string());
+            }
+            Ok((existing, true))
+        }
+        "theme" => {
+            if request.media_type.is_some()
+                || request.file_name.is_some()
+                || request.mime_type.is_some()
+                || request.requires_static_fallback.is_some()
+                || media_bytes.is_some()
+            {
+                return Err("theme-workbench-background-invalid".to_string());
+            }
+            Ok((None, false))
+        }
+        "uploaded" => {
+            let media_type = request
+                .media_type
+                .as_deref()
+                .filter(|value| matches!(*value, "image" | "video"))
+                .ok_or_else(|| "theme-workbench-background-invalid".to_string())?;
+            let content_type = request
+                .mime_type
+                .as_deref()
+                .filter(|value| {
+                    matches!(
+                        *value,
+                        "image/png" | "image/jpeg" | "image/webp" | "video/mp4"
+                    )
+                })
+                .ok_or_else(|| "theme-workbench-background-invalid".to_string())?;
+            let _requested_file_name = request
+                .file_name
+                .as_deref()
+                .filter(|value| {
+                    !value.is_empty() && value.len() <= 160 && !value.contains(['/', '\\', '\0'])
+                })
+                .ok_or_else(|| "theme-workbench-background-invalid".to_string())?;
+            if (media_type == "image") != content_type.starts_with("image/")
+                || (media_type == "video") != (content_type == "video/mp4")
+                || (media_type == "video" && request.requires_static_fallback != Some(true))
+                || !matches!(
+                    source.shared_core.background,
+                    ThemeBackgroundSource::Media { .. }
+                )
+            {
+                return Err("theme-workbench-background-unsupported".to_string());
+            }
+            let bytes =
+                media_bytes.ok_or_else(|| "theme-workbench-background-missing".to_string())?;
+            if bytes.is_empty() || bytes.len() > MAX_LOCAL_THEME_BACKGROUND_BYTES {
+                return Err("theme-workbench-background-size-invalid".to_string());
+            }
+            if !asset_magic_matches(&bytes[..bytes.len().min(12)], content_type) {
+                return Err("theme-workbench-background-magic-invalid".to_string());
+            }
+            let extension = local_background_extension(content_type)
+                .ok_or_else(|| "theme-workbench-background-invalid".to_string())?;
+            Ok((
+                Some(LocalThemeBackgroundOverride {
+                    file_name: format!("{LOCAL_THEME_BACKGROUND_FILE_STEM}.{extension}"),
+                    media_type: media_type.to_string(),
+                    content_type: content_type.to_string(),
+                    bytes: bytes.len() as u64,
+                    sha256: format!("{:x}", Sha256::digest(bytes)),
+                }),
+                false,
+            ))
+        }
+        _ => Err("theme-workbench-background-invalid".to_string()),
+    }
+}
+
+fn local_background_extension(content_type: &str) -> Option<&'static str> {
+    match content_type {
+        "image/png" => Some("png"),
+        "image/jpeg" => Some("jpg"),
+        "image/webp" => Some("webp"),
+        "video/mp4" => Some("mp4"),
+        _ => None,
+    }
+}
+
+fn valid_hex_color(value: &str) -> bool {
+    value.len() == 7
+        && value.starts_with('#')
+        && value.as_bytes()[1..]
+            .iter()
+            .all(|byte| byte.is_ascii_hexdigit())
+}
+
+/// Converts a closed edit record into a self-contained local Theme Family
+/// source.  This is intentionally derived from the verified imported source
+/// instead of accepting arbitrary JSON from the UI: the UI can only alter the
+/// bounded draft fields above, while the compiler later consumes the exact
+/// persisted document.
+fn materialize_local_theme_draft(
+    baseline_source: &Value,
+    baseline_bytes: &[u8],
+    mut record: LocalThemeOverride,
+) -> Result<(LocalThemeOverride, Vec<u8>), String> {
+    record.schema_version = LOCAL_THEME_OVERRIDE_LEGACY_SCHEMA_VERSION;
+    record.baseline = None;
+    record.local_source = None;
+
+    let mut effective_source = baseline_source.clone();
+    apply_local_theme_override(&mut effective_source, &record, &record.theme_id)?;
+    let effective_bytes = serde_json::to_vec(&effective_source)
+        .map_err(|_| "theme-local-override-encode-failed".to_string())?;
+    if effective_bytes.len() > 2 * 1024 * 1024 {
+        return Err("theme-local-override-source-invalid".to_string());
+    }
+
+    record.schema_version = LOCAL_THEME_OVERRIDE_SCHEMA_VERSION;
+    record.baseline = Some(LocalThemeDraftBaseline {
+        unified_theme_sha256: format!("{:x}", Sha256::digest(baseline_bytes)),
+    });
+    record.local_source = Some(LocalThemeDraftSource {
+        file_name: LOCAL_THEME_EFFECTIVE_SOURCE_FILE.to_string(),
+        bytes: effective_bytes.len() as u64,
+        sha256: format!("{:x}", Sha256::digest(&effective_bytes)),
+    });
+    validate_local_theme_override(&record, &record.theme_id)?;
+    Ok((record, effective_bytes))
+}
+
+fn write_theme_override_atomically(
+    overrides_root: &Path,
+    record: &LocalThemeOverride,
+    media_bytes: Option<&[u8]>,
+    materialized_source: &[u8],
+) -> Result<(), String> {
+    validate_local_theme_override(record, &record.theme_id)?;
+    let local_source = record
+        .local_source
+        .as_ref()
+        .ok_or_else(|| "theme-local-override-source-invalid".to_string())?;
+    if materialized_source.len() as u64 != local_source.bytes
+        || format!("{:x}", Sha256::digest(materialized_source)) != local_source.sha256
+    {
+        return Err("theme-local-override-source-invalid".to_string());
+    }
+    let expects_media = record.background.is_some();
+    if expects_media != media_bytes.is_some() {
+        return Err("theme-workbench-background-missing".to_string());
+    }
+    prepare_saved_root(overrides_root)
+        .map_err(|_| "theme-local-override-storage-unavailable".to_string())?;
+    let root = trusted_theme_root(overrides_root)?;
+    let destination = root.join(&record.theme_id);
+    if destination.symlink_metadata().is_ok() {
+        let _ = trusted_theme_child(&root, &record.theme_id)
+            .map_err(|_| "theme-local-override-storage-invalid".to_string())?;
+    }
+    let container = root.join(format!(
+        ".{}-{}-{}",
+        record.theme_id,
+        std::process::id(),
+        SEED_SEQUENCE.fetch_add(1, Ordering::Relaxed)
+    ));
+    let stage = container.join(&record.theme_id);
+    let result = (|| {
+        fs::create_dir(&container).map_err(|_| "theme-local-override-write-failed".to_string())?;
+        set_directory_permissions(&container)?;
+        fs::create_dir(&stage).map_err(|_| "theme-local-override-write-failed".to_string())?;
+        set_directory_permissions(&stage)?;
+        let record_path = stage.join(LOCAL_THEME_OVERRIDE_FILE);
+        let record_bytes = serde_json::to_vec(record)
+            .map_err(|_| "theme-local-override-encode-failed".to_string())?;
+        write_private_file(&record_path, &record_bytes)?;
+        write_private_file(&stage.join(&local_source.file_name), materialized_source)?;
+        if let (Some(background), Some(bytes)) = (&record.background, media_bytes) {
+            let path = stage.join(&background.file_name);
+            write_private_file(&path, bytes)?;
+        }
+        let previous = container.join("previous");
+        let had_previous = destination.symlink_metadata().is_ok();
+        if had_previous {
+            fs::rename(&destination, &previous)
+                .map_err(|_| "theme-local-override-commit-failed".to_string())?;
+        }
+        if fs::rename(&stage, &destination).is_err() {
+            if had_previous {
+                let _ = fs::rename(&previous, &destination);
+            }
+            return Err("theme-local-override-commit-failed".to_string());
+        }
+        if had_previous {
+            fs::remove_dir_all(&previous)
+                .map_err(|_| "theme-local-override-cleanup-failed".to_string())?;
+        }
+        let legacy = root.join(format!("{}.json", record.theme_id));
+        if legacy.symlink_metadata().is_ok() {
+            let metadata = fs::symlink_metadata(&legacy)
+                .map_err(|_| "theme-local-override-storage-invalid".to_string())?;
+            if !metadata.file_type().is_file() || metadata.file_type().is_symlink() {
+                return Err("theme-local-override-storage-invalid".to_string());
+            }
+            fs::remove_file(legacy)
+                .map_err(|_| "theme-local-override-cleanup-failed".to_string())?;
+        }
+        fs::remove_dir(&container)
+            .map_err(|_| "theme-local-override-cleanup-failed".to_string())?;
+        Ok(())
+    })();
+    if result.is_err() {
+        let _ = fs::remove_dir_all(&container);
+    }
+    result
+}
+
+fn write_private_file(path: &Path, bytes: &[u8]) -> Result<(), String> {
+    let mut file = fs::OpenOptions::new()
+        .create_new(true)
+        .write(true)
+        .open(path)
+        .map_err(|_| "theme-local-override-write-failed".to_string())?;
+    set_file_permissions(path)?;
+    file.write_all(bytes)
+        .and_then(|_| file.sync_all())
+        .map_err(|_| "theme-local-override-write-failed".to_string())
+}
+
+/// Resolves the verified source plus closed Manager-owned local adjustments
+/// for compiler input. The imported package stays read-only and hash-verified.
+pub(crate) fn effective_theme_source(
+    family: &Path,
+    theme_id: &str,
+) -> Result<(Value, Vec<u8>), String> {
+    effective_theme_source_from(family, &registry::manager_theme_overrides_root(), theme_id)
+}
+
+fn effective_theme_source_from(
+    family: &Path,
+    overrides_root: &Path,
+    theme_id: &str,
+) -> Result<(Value, Vec<u8>), String> {
+    let (mut source, source_bytes) = read_unified_theme_source_with_bytes(family)?;
+    if let Some(loaded) = load_theme_override_from(overrides_root, theme_id)? {
+        if loaded.record.schema_version == LOCAL_THEME_OVERRIDE_SCHEMA_VERSION {
+            let baseline = loaded
+                .record
+                .baseline
+                .as_ref()
+                .ok_or_else(|| "theme-local-override-invalid".to_string())?;
+            if format!("{:x}", Sha256::digest(&source_bytes)) != baseline.unified_theme_sha256 {
+                return Err("theme-local-override-baseline-changed".to_string());
+            }
+            let local_source = loaded
+                .record
+                .local_source
+                .as_ref()
+                .ok_or_else(|| "theme-local-override-invalid".to_string())?;
+            let directory = loaded
+                .directory
+                .as_ref()
+                .ok_or_else(|| "theme-local-override-storage-invalid".to_string())?;
+            let (materialized, materialized_bytes) =
+                read_materialized_local_theme_source(directory, local_source, theme_id)?;
+            return Ok((materialized, materialized_bytes));
+        }
+        apply_local_theme_override(&mut source, &loaded.record, theme_id)?;
+    }
+    let bytes = serde_json::to_vec(&source)
+        .map_err(|_| "theme-local-override-encode-failed".to_string())?;
+    Ok((source, bytes))
+}
+
+fn apply_local_theme_override(
+    source: &mut Value,
+    record: &LocalThemeOverride,
+    theme_id: &str,
+) -> Result<(), String> {
+    validate_local_theme_override(record, theme_id)?;
+    let _ = immersive_scene_surface_opacity(source, theme_id)?;
+    source
+        .pointer_mut("/presentation/parameters")
+        .and_then(Value::as_object_mut)
+        .ok_or_else(|| "theme-local-override-source-invalid".to_string())?
+        .insert(
+            "surfaceOpacity".to_string(),
+            Value::from(record.presentation.surface_opacity),
+        );
+    if let Some(colors) = &record.colors {
+        let tokens = source
+            .pointer_mut("/sharedCore/tokens/colors")
+            .and_then(Value::as_object_mut)
+            .ok_or_else(|| "theme-local-override-source-invalid".to_string())?;
+        tokens.insert("text".to_string(), Value::String(colors.dark_text.clone()));
+        if let Some(variants) = source
+            .pointer_mut("/sharedCore/appearanceVariants")
+            .and_then(Value::as_object_mut)
+        {
+            for (appearance, value) in [("light", &colors.light_text), ("dark", &colors.dark_text)]
+            {
+                variants
+                    .get_mut(appearance)
+                    .and_then(|variant| variant.get_mut("colors"))
+                    .and_then(Value::as_object_mut)
+                    .ok_or_else(|| "theme-local-override-source-invalid".to_string())?
+                    .insert("text".to_string(), Value::String(value.clone()));
+            }
+        } else if colors.light_text != colors.dark_text {
+            return Err("theme-workbench-text-colour-appearance-unsupported".to_string());
+        }
+    }
+    if let Some(background) = &record.background {
+        let source_background = source
+            .pointer_mut("/sharedCore/background")
+            .and_then(Value::as_object_mut)
+            .ok_or_else(|| "theme-local-override-source-invalid".to_string())?;
+        if source_background.get("mode").and_then(Value::as_str) != Some("media") {
+            return Err("theme-workbench-background-unsupported".to_string());
+        }
+        match background.media_type.as_str() {
+            "image" => {
+                source_background.insert(
+                    "image".to_string(),
+                    Value::String(background.file_name.clone()),
+                );
+                source
+                    .pointer_mut("/presentation/assetSlots")
+                    .and_then(Value::as_object_mut)
+                    .ok_or_else(|| "theme-local-override-source-invalid".to_string())?
+                    .insert(
+                        "scene.backdrop".to_string(),
+                        Value::String(background.file_name.clone()),
+                    );
+            }
+            "video" => {
+                source_background.insert(
+                    "video".to_string(),
+                    Value::String(background.file_name.clone()),
+                );
+            }
+            _ => return Err("theme-local-override-invalid".to_string()),
+        }
+    }
+    validate_effective_local_source(source)
+}
+
+fn validate_effective_local_source(source: &Value) -> Result<(), String> {
+    let parsed: UnifiedThemeSource = serde_json::from_value(source.clone())
+        .map_err(|_| "theme-local-override-source-invalid".to_string())?;
+    validate_theme_tokens(&parsed.shared_core.tokens)
+        .map_err(|_| "theme-local-override-source-invalid".to_string())?;
+    validate_theme_accessibility(&parsed.shared_core.accessibility)
+        .map_err(|_| "theme-local-override-source-invalid".to_string())?;
+    if let Some(variants) = &parsed.shared_core.appearance_variants {
+        validate_theme_appearance_variants(variants)
+            .map_err(|_| "theme-local-override-source-invalid".to_string())?;
+    }
+    validate_theme_background(&parsed.shared_core.background)
+        .map_err(|_| "theme-local-override-source-invalid".to_string())?;
+    if let Some(presentation) = &parsed.presentation {
+        validate_theme_presentation(presentation, &parsed.shared_core.background)
+            .map_err(|_| "theme-local-override-source-invalid".to_string())?;
+    }
+    Ok(())
+}
+
+fn read_unified_theme_source_with_bytes(family: &Path) -> Result<(Value, Vec<u8>), String> {
+    let source = family.join("unified-theme.json");
+    let metadata = fs::symlink_metadata(&source)
+        .map_err(|_| "theme-local-override-source-invalid".to_string())?;
+    if !metadata.file_type().is_file()
+        || metadata.file_type().is_symlink()
+        || metadata.len() < 2
+        || metadata.len() > 2 * 1024 * 1024
+    {
+        return Err("theme-local-override-source-invalid".to_string());
+    }
+    let bytes = fs::read(source).map_err(|_| "theme-local-override-source-invalid".to_string())?;
+    let value = serde_json::from_slice(&bytes)
+        .map_err(|_| "theme-local-override-source-invalid".to_string())?;
+    Ok((value, bytes))
+}
+
+fn read_materialized_local_theme_source(
+    directory: &Path,
+    source: &LocalThemeDraftSource,
+    theme_id: &str,
+) -> Result<(Value, Vec<u8>), String> {
+    if source.file_name != LOCAL_THEME_EFFECTIVE_SOURCE_FILE
+        || source.bytes < 2
+        || source.bytes > 2 * 1024 * 1024
+        || !valid_sha256(&source.sha256)
+    {
+        return Err("theme-local-override-invalid".to_string());
+    }
+    let candidate = directory.join(&source.file_name);
+    let metadata = fs::symlink_metadata(&candidate)
+        .map_err(|_| "theme-local-override-source-missing".to_string())?;
+    if !metadata.file_type().is_file()
+        || metadata.file_type().is_symlink()
+        || metadata.len() != source.bytes
+    {
+        return Err("theme-local-override-source-invalid".to_string());
+    }
+    let canonical = candidate
+        .canonicalize()
+        .map_err(|_| "theme-local-override-source-invalid".to_string())?;
+    if canonical.parent() != Some(directory) {
+        return Err("theme-local-override-source-invalid".to_string());
+    }
+    let bytes =
+        fs::read(canonical).map_err(|_| "theme-local-override-source-invalid".to_string())?;
+    if format!("{:x}", Sha256::digest(&bytes)) != source.sha256 {
+        return Err("theme-local-override-source-invalid".to_string());
+    }
+    let value: Value = serde_json::from_slice(&bytes)
+        .map_err(|_| "theme-local-override-source-invalid".to_string())?;
+    if value.get("id").and_then(Value::as_str) != Some(theme_id) {
+        return Err("theme-local-override-source-invalid".to_string());
+    }
+    validate_effective_local_source(&value)?;
+    Ok((value, bytes))
+}
+
+fn trusted_theme_root(root: &Path) -> Result<PathBuf, String> {
+    let metadata = fs::symlink_metadata(root)
+        .map_err(|_| "theme-local-override-storage-unavailable".to_string())?;
+    if !metadata.file_type().is_dir() || metadata.file_type().is_symlink() {
+        return Err("theme-local-override-storage-invalid".to_string());
+    }
+    root.canonicalize()
+        .map_err(|_| "theme-local-override-storage-invalid".to_string())
+}
+
+fn trusted_theme_child(root: &Path, theme_id: &str) -> Result<PathBuf, String> {
+    let family = root.join(theme_id);
+    let metadata = fs::symlink_metadata(&family)
+        .map_err(|_| "theme-local-override-source-missing".to_string())?;
+    if !metadata.file_type().is_dir() || metadata.file_type().is_symlink() {
+        return Err("theme-local-override-source-invalid".to_string());
+    }
+    let family = family
+        .canonicalize()
+        .map_err(|_| "theme-local-override-source-invalid".to_string())?;
+    if family.parent() != Some(root) {
+        return Err("theme-local-override-source-invalid".to_string());
+    }
+    Ok(family)
+}
+
+fn load_theme_override_from(
+    overrides_root: &Path,
+    theme_id: &str,
+) -> Result<Option<LoadedThemeOverride>, String> {
+    if !valid_theme_id(theme_id) {
+        return Err("theme-local-override-invalid".to_string());
+    }
+    let root_metadata = match fs::symlink_metadata(overrides_root) {
+        Ok(metadata) => metadata,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+        Err(_) => return Err("theme-local-override-storage-invalid".to_string()),
+    };
+    if !root_metadata.file_type().is_dir() || root_metadata.file_type().is_symlink() {
+        return Err("theme-local-override-storage-invalid".to_string());
+    }
+    let root = overrides_root
+        .canonicalize()
+        .map_err(|_| "theme-local-override-storage-invalid".to_string())?;
+    let directory = root.join(theme_id);
+    if directory.symlink_metadata().is_ok() {
+        let metadata = fs::symlink_metadata(&directory)
+            .map_err(|_| "theme-local-override-storage-invalid".to_string())?;
+        if !metadata.file_type().is_dir() || metadata.file_type().is_symlink() {
+            return Err("theme-local-override-storage-invalid".to_string());
+        }
+        let directory = directory
+            .canonicalize()
+            .map_err(|_| "theme-local-override-storage-invalid".to_string())?;
+        if directory.parent() != Some(root.as_path()) {
+            return Err("theme-local-override-storage-invalid".to_string());
+        }
+        let record = read_local_theme_override_file(
+            &directory.join(LOCAL_THEME_OVERRIDE_FILE),
+            &directory,
+            theme_id,
+        )?;
+        validate_local_theme_override(&record, theme_id)?;
+        if let Some(local_source) = &record.local_source {
+            let _ = read_materialized_local_theme_source(&directory, local_source, theme_id)?;
+        }
+        if let Some(background) = &record.background {
+            let _ = load_override_media_from(&directory, background)?;
+        }
+        return Ok(Some(LoadedThemeOverride {
+            record,
+            directory: Some(directory),
+        }));
+    }
+
+    // Legacy schema v1 lived directly below the overrides root. It stays
+    // readable so existing opacity preferences survive this local upgrade.
+    let legacy = root.join(format!("{theme_id}.json"));
+    if legacy.symlink_metadata().is_ok() {
+        let record = read_local_theme_override_file(&legacy, &root, theme_id)?;
+        validate_local_theme_override(&record, theme_id)?;
+        return Ok(Some(LoadedThemeOverride {
+            record,
+            directory: None,
+        }));
+    }
+    Ok(None)
+}
+
+fn read_local_theme_override_file(
+    file: &Path,
+    expected_parent: &Path,
+    theme_id: &str,
+) -> Result<LocalThemeOverride, String> {
+    let metadata = fs::symlink_metadata(file)
+        .map_err(|_| "theme-local-override-storage-invalid".to_string())?;
+    if !metadata.file_type().is_file()
+        || metadata.file_type().is_symlink()
+        || metadata.len() > 16 * 1024
+    {
+        return Err("theme-local-override-storage-invalid".to_string());
+    }
+    let canonical = file
+        .canonicalize()
+        .map_err(|_| "theme-local-override-storage-invalid".to_string())?;
+    if canonical.parent() != Some(expected_parent) {
+        return Err("theme-local-override-storage-invalid".to_string());
+    }
+    let record: LocalThemeOverride = serde_json::from_slice(
+        &fs::read(canonical).map_err(|_| "theme-local-override-storage-invalid".to_string())?,
+    )
+    .map_err(|_| "theme-local-override-invalid".to_string())?;
+    if record.theme_id != theme_id {
+        return Err("theme-local-override-invalid".to_string());
+    }
+    Ok(record)
+}
+
+fn validate_local_theme_override(
+    record: &LocalThemeOverride,
+    theme_id: &str,
+) -> Result<(), String> {
+    if record.kind != LOCAL_THEME_OVERRIDE_KIND
+        || !matches!(
+            record.schema_version,
+            1 | LOCAL_THEME_OVERRIDE_LEGACY_SCHEMA_VERSION | LOCAL_THEME_OVERRIDE_SCHEMA_VERSION
+        )
+        || record.theme_id != theme_id
+        || record.presentation.profile_id != IMMERSIVE_SCENE_PROFILE_ID
+        || record.presentation.profile_version != IMMERSIVE_SCENE_PROFILE_VERSION
+        || !record.presentation.surface_opacity.is_finite()
+        || !(0.0..=1.0).contains(&record.presentation.surface_opacity)
+        || (record.schema_version == 1
+            && (record.colors.is_some()
+                || record.background.is_some()
+                || record.baseline.is_some()
+                || record.local_source.is_some()))
+    {
+        return Err("theme-local-override-invalid".to_string());
+    }
+    match record.schema_version {
+        LOCAL_THEME_OVERRIDE_SCHEMA_VERSION => {
+            let baseline = record
+                .baseline
+                .as_ref()
+                .ok_or_else(|| "theme-local-override-invalid".to_string())?;
+            let local_source = record
+                .local_source
+                .as_ref()
+                .ok_or_else(|| "theme-local-override-invalid".to_string())?;
+            if !valid_sha256(&baseline.unified_theme_sha256)
+                || local_source.file_name != LOCAL_THEME_EFFECTIVE_SOURCE_FILE
+                || local_source.bytes < 2
+                || local_source.bytes > 2 * 1024 * 1024
+                || !valid_sha256(&local_source.sha256)
+            {
+                return Err("theme-local-override-invalid".to_string());
+            }
+        }
+        _ if record.baseline.is_some() || record.local_source.is_some() => {
+            return Err("theme-local-override-invalid".to_string());
+        }
+        _ => {}
+    }
+    if let Some(colors) = &record.colors {
+        if !valid_hex_color(&colors.light_text) || !valid_hex_color(&colors.dark_text) {
+            return Err("theme-local-override-invalid".to_string());
+        }
+    }
+    if let Some(background) = &record.background {
+        if !safe_asset_basename(&background.file_name)
+            || background.file_name
+                != format!(
+                    "{LOCAL_THEME_BACKGROUND_FILE_STEM}.{}",
+                    local_background_extension(&background.content_type).unwrap_or_default()
+                )
+            || !matches!(background.media_type.as_str(), "image" | "video")
+            || (background.media_type == "image") != background.content_type.starts_with("image/")
+            || (background.media_type == "video") != (background.content_type == "video/mp4")
+            || background.bytes == 0
+            || background.bytes > MAX_LOCAL_THEME_BACKGROUND_BYTES as u64
+            || !valid_sha256(&background.sha256)
+        {
+            return Err("theme-local-override-invalid".to_string());
+        }
+    }
+    Ok(())
+}
+
+fn load_override_media_from(
+    directory: &Path,
+    background: &LocalThemeBackgroundOverride,
+) -> Result<LocalThemeOverrideMedia, String> {
+    let candidate = directory.join(&background.file_name);
+    let metadata = fs::symlink_metadata(&candidate)
+        .map_err(|_| "theme-local-override-background-missing".to_string())?;
+    if !metadata.file_type().is_file()
+        || metadata.file_type().is_symlink()
+        || metadata.len() != background.bytes
+        || metadata.len() > MAX_LOCAL_THEME_BACKGROUND_BYTES as u64
+    {
+        return Err("theme-local-override-background-invalid".to_string());
+    }
+    let canonical = candidate
+        .canonicalize()
+        .map_err(|_| "theme-local-override-background-invalid".to_string())?;
+    if canonical.parent() != Some(directory) {
+        return Err("theme-local-override-background-invalid".to_string());
+    }
+    let bytes =
+        fs::read(&canonical).map_err(|_| "theme-local-override-background-invalid".to_string())?;
+    if !asset_magic_matches(&bytes[..bytes.len().min(12)], &background.content_type)
+        || format!("{:x}", Sha256::digest(&bytes)) != background.sha256
+    {
+        return Err("theme-local-override-background-invalid".to_string());
+    }
+    Ok(LocalThemeOverrideMedia {
+        file_name: background.file_name.clone(),
+        content_type: background.content_type.clone(),
+        bytes: background.bytes,
+        sha256: background.sha256.clone(),
+        path: canonical,
+    })
+}
+
+pub(crate) fn local_theme_override_media(
+    theme_id: &str,
+) -> Result<Option<LocalThemeOverrideMedia>, String> {
+    let Some(loaded) =
+        load_theme_override_from(&registry::manager_theme_overrides_root(), theme_id)?
+    else {
+        return Ok(None);
+    };
+    match (&loaded.record.background, loaded.directory) {
+        (Some(background), Some(directory)) => {
+            load_override_media_from(&directory, background).map(Some)
+        }
+        (Some(_), None) => Err("theme-local-override-background-invalid".to_string()),
+        (None, _) => Ok(None),
+    }
+}
+
+pub(crate) fn stage_effective_theme_assets(
+    package_assets: &Path,
+    destination: &Path,
+    local_media: Option<&LocalThemeOverrideMedia>,
+) -> Result<(), String> {
+    fs::create_dir(destination).map_err(|_| "theme-local-override-stage-failed".to_string())?;
+    set_directory_permissions(destination)?;
+    let mut limits = CopyLimits::default();
+    copy_theme_tree(package_assets, destination, 0, &mut limits)?;
+    if let Some(media) = local_media {
+        let destination_file = destination.join(&media.file_name);
+        if destination_file.symlink_metadata().is_ok() {
+            return Err("theme-local-override-background-conflict".to_string());
+        }
+        let bytes = fs::read(&media.path)
+            .map_err(|_| "theme-local-override-background-invalid".to_string())?;
+        if bytes.len() as u64 != media.bytes
+            || format!("{:x}", Sha256::digest(&bytes)) != media.sha256
+            || !asset_magic_matches(&bytes[..bytes.len().min(12)], &media.content_type)
+        {
+            return Err("theme-local-override-background-invalid".to_string());
+        }
+        write_private_file(&destination_file, &bytes)?;
+    }
+    Ok(())
+}
+
 pub fn delete_theme_family(theme_id: &str) -> Result<usize, String> {
     if !valid_theme_id(theme_id) {
         return Err("theme-delete-id-invalid".to_string());
@@ -299,6 +1420,7 @@ pub fn delete_theme_family(theme_id: &str) -> Result<usize, String> {
     let codex_root = home.join("Library/Application Support/CCTheme");
     let workbuddy_root = home.join("Library/Application Support/mac-workbuddy");
     let residual_files = vec![
+        registry::manager_theme_overrides_root().join(format!("{theme_id}.json")),
         codex_root
             .join("style-overrides")
             .join(format!("{theme_id}.json")),
@@ -309,7 +1431,7 @@ pub fn delete_theme_family(theme_id: &str) -> Result<usize, String> {
             .join("transactions")
             .join(format!("{theme_id}.base.json")),
     ];
-    let residual_directories = Vec::new();
+    let residual_directories = vec![registry::manager_theme_overrides_root().join(theme_id)];
     let transaction_locks = vec![
         codex_root
             .join("style-overrides")
@@ -577,6 +1699,13 @@ fn validate_package_source_and_media(
         serde_json::from_value::<ThemePresentationSource>(presentation.clone())
             .map_err(|_| "theme-package-presentation-invalid".to_string())?;
     }
+    if let Some(appearance_variants) = source_value
+        .get("sharedCore")
+        .and_then(|shared_core| shared_core.get("appearanceVariants"))
+    {
+        serde_json::from_value::<ThemeAppearanceVariantsSource>(appearance_variants.clone())
+            .map_err(|_| "theme-package-appearance-variants-invalid".to_string())?;
+    }
     let source: UnifiedThemeSource = serde_json::from_value(source_value)
         .map_err(|_| "theme-package-source-invalid".to_string())?;
     let required_assets = validate_unified_theme_source(&source, manifest)?;
@@ -630,6 +1759,9 @@ fn validate_unified_theme_source<'a>(
 
     validate_theme_tokens(&source.shared_core.tokens)?;
     validate_theme_accessibility(&source.shared_core.accessibility)?;
+    if let Some(variants) = &source.shared_core.appearance_variants {
+        validate_theme_appearance_variants(variants)?;
+    }
     let assets = validate_theme_background(&source.shared_core.background)?;
     if let Some(presentation) = &source.presentation {
         validate_theme_presentation(presentation, &source.shared_core.background)?;
@@ -673,7 +1805,7 @@ fn validate_theme_presentation(
         || !parameters.texture_intensity.is_finite()
         || !(0.0..=1.0).contains(&parameters.texture_intensity)
         || !parameters.surface_opacity.is_finite()
-        || !(0.4..=0.88).contains(&parameters.surface_opacity)
+        || !(0.0..=1.0).contains(&parameters.surface_opacity)
         || parameters.navigation_treatment != "framed"
         || parameters.composer_treatment != "anchored"
         || parameters.card_treatment != "elevated"
@@ -771,6 +1903,56 @@ fn validate_theme_tokens(tokens: &ThemeTokensSource) -> Result<(), String> {
             || !optional_position(&appearance.home_hero_position)
         {
             return Err("theme-package-source-contract-invalid".to_string());
+        }
+    }
+    Ok(())
+}
+
+fn validate_theme_appearance_variants(
+    variants: &ThemeAppearanceVariantsSource,
+) -> Result<(), String> {
+    const COMPLETE_COLORS: [&str; 30] = [
+        "surfaceBase",
+        "surfaceRaised",
+        "surfaceElevated",
+        "surfaceCode",
+        "text",
+        "textStrong",
+        "textMuted",
+        "placeholder",
+        "borderSubtle",
+        "borderDefault",
+        "borderStrong",
+        "action",
+        "actionHover",
+        "actionPressed",
+        "actionForeground",
+        "hoverSurface",
+        "pressedSurface",
+        "selectedSurface",
+        "selectedHoverSurface",
+        "focusRing",
+        "link",
+        "danger",
+        "success",
+        "warning",
+        "sidebarSurface",
+        "headerSurface",
+        "mainScrimStart",
+        "mainScrimMid",
+        "mainScrimEnd",
+        "composerSurface",
+    ];
+    for colors in [&variants.light.colors, &variants.dark.colors] {
+        if colors.len() != COMPLETE_COLORS.len()
+            || COMPLETE_COLORS
+                .iter()
+                .any(|name| !colors.contains_key(*name))
+            || colors.iter().any(|(name, value)| {
+                !COMPLETE_COLORS.contains(&name.as_str()) || !valid_color(value)
+            })
+        {
+            return Err("theme-package-appearance-variants-invalid".to_string());
         }
     }
     Ok(())
@@ -1006,6 +2188,9 @@ fn read_theme_metadata_file(file: &Path, expected_id: &str) -> Option<ThemeMetad
             LocalizedThemeDisplay { name, description },
         )]),
         colors,
+        appearance_variants: theme_appearance_preview(&value),
+        presentation_surface_opacity: theme_presentation_surface_opacity(&value),
+        presentation_scrim: theme_presentation_scrim(&value),
         preview_url: None,
         modified: metadata.modified().unwrap_or(SystemTime::UNIX_EPOCH),
     })
@@ -1071,6 +2256,9 @@ fn read_unified_family_metadata(
             default_locale: "en-US".to_string(),
             localizations: BTreeMap::new(),
             colors: theme_colors(&value),
+            appearance_variants: theme_appearance_preview(&value),
+            presentation_surface_opacity: theme_presentation_surface_opacity(&value),
+            presentation_scrim: theme_presentation_scrim(&value),
             preview_url: None,
             modified: metadata.modified().unwrap_or(SystemTime::UNIX_EPOCH),
         });
@@ -1124,6 +2312,9 @@ fn read_package_metadata(
         default_locale: manifest.metadata.default_locale,
         localizations: manifest.metadata.locales,
         colors: theme_colors(&source),
+        appearance_variants: theme_appearance_preview(&source),
+        presentation_surface_opacity: theme_presentation_surface_opacity(&source),
+        presentation_scrim: theme_presentation_scrim(&source),
         preview_url,
         modified: file_metadata.modified().unwrap_or(SystemTime::UNIX_EPOCH),
     })
@@ -1165,6 +2356,12 @@ fn preview_asset_path<'a>(
 }
 
 pub fn load_theme_preview(theme_id: &str) -> Option<(String, Vec<u8>)> {
+    if let Ok(Some(media)) = local_theme_override_media(theme_id) {
+        if media.content_type.starts_with("image/") {
+            let bytes = fs::read(media.path).ok()?;
+            return Some((media.content_type, bytes));
+        }
+    }
     load_theme_preview_from(&registry::manager_theme_library_root(), theme_id)
 }
 
@@ -1933,6 +3130,14 @@ fn set_file_permissions(_path: &Path) -> Result<(), String> {
     Ok(())
 }
 
+fn theme_color_triplet(get: impl Fn(&[&str]) -> Option<String>) -> [String; 3] {
+    [
+        get(&["background", "surfaceBase"]).unwrap_or_else(|| "#10151F".to_string()),
+        get(&["accent", "action"]).unwrap_or_else(|| "#6699FF".to_string()),
+        get(&["text"]).unwrap_or_else(|| "#E9EEF7".to_string()),
+    ]
+}
+
 fn theme_colors(value: &Value) -> [String; 3] {
     let colors = value.get("colors").or_else(|| {
         value
@@ -1940,19 +3145,86 @@ fn theme_colors(value: &Value) -> [String; 3] {
             .and_then(|core| core.get("tokens"))
             .and_then(|tokens| tokens.get("colors"))
     });
-    let get = |keys: &[&str]| {
+    theme_color_triplet(|keys| {
         keys.iter().find_map(|key| {
             colors
                 .and_then(|colors| colors.get(*key))
                 .and_then(Value::as_str)
                 .map(str::to_owned)
         })
+    })
+}
+
+fn theme_appearance_preview(value: &Value) -> Option<ThemeAppearancePreview> {
+    let variants = value
+        .get("sharedCore")
+        .and_then(|core| core.get("appearanceVariants"))?;
+    let variants: ThemeAppearanceVariantsSource = serde_json::from_value(variants.clone()).ok()?;
+    let preview = |colors: &BTreeMap<String, String>| {
+        theme_color_triplet(|keys| keys.iter().find_map(|key| colors.get(*key).cloned()))
     };
-    [
-        get(&["background", "surfaceBase"]).unwrap_or_else(|| "#10151F".to_string()),
-        get(&["accent", "action"]).unwrap_or_else(|| "#6699FF".to_string()),
-        get(&["text"]).unwrap_or_else(|| "#E9EEF7".to_string()),
-    ]
+    Some(ThemeAppearancePreview {
+        light: preview(&variants.light.colors),
+        dark: preview(&variants.dark.colors),
+    })
+}
+
+/// Returns the one presentation value the Manager is allowed to override
+/// locally. Keeping this tied to the closed immersive-scene profile prevents a
+/// generic editor control from becoming a way to inject arbitrary target data.
+fn immersive_scene_surface_opacity(value: &Value, expected_id: &str) -> Result<f64, String> {
+    let source: UnifiedThemeSource = serde_json::from_value(value.clone())
+        .map_err(|_| "theme-local-override-source-invalid".to_string())?;
+    if source.id != expected_id {
+        return Err("theme-local-override-source-invalid".to_string());
+    }
+    let presentation = source
+        .presentation
+        .as_ref()
+        .ok_or_else(|| "theme-local-override-presentation-unsupported".to_string())?;
+    validate_theme_presentation(presentation, &source.shared_core.background)
+        .map_err(|_| "theme-local-override-presentation-unsupported".to_string())?;
+    Ok(presentation.parameters.surface_opacity)
+}
+
+fn theme_presentation_surface_opacity(value: &Value) -> Option<f64> {
+    let id = value.get("id")?.as_str()?;
+    immersive_scene_surface_opacity(value, id).ok()
+}
+
+fn scrim_triplet(colors: &serde_json::Map<String, Value>) -> Option<[String; 3]> {
+    Some([
+        colors.get("mainScrimStart")?.as_str()?.to_string(),
+        colors.get("mainScrimMid")?.as_str()?.to_string(),
+        colors.get("mainScrimEnd")?.as_str()?.to_string(),
+    ])
+}
+
+/// Keep the preview's veil compositing tied to the same three Shared Core
+/// semantics that an immersive Adapter receives. This intentionally does not
+/// expose any host selector, geometry, or runtime stylesheet to the Manager.
+fn theme_presentation_scrim(value: &Value) -> Option<ThemePresentationScrimPreview> {
+    theme_presentation_surface_opacity(value)?;
+    let base = value
+        .get("sharedCore")?
+        .get("tokens")?
+        .get("colors")?
+        .as_object()?;
+    let fallback = scrim_triplet(base)?;
+    let variant = |appearance: &str| {
+        value
+            .get("sharedCore")
+            .and_then(|core| core.get("appearanceVariants"))
+            .and_then(|variants| variants.get(appearance))
+            .and_then(|variant| variant.get("colors"))
+            .and_then(Value::as_object)
+            .and_then(scrim_triplet)
+            .unwrap_or_else(|| fallback.clone())
+    };
+    Some(ThemePresentationScrimPreview {
+        light: variant("light"),
+        dark: variant("dark"),
+    })
 }
 
 pub fn list_theme_families() -> Vec<ThemeFamily> {
@@ -2023,6 +3295,36 @@ fn list_theme_families_from_roots<'a>(
                 })
                 .collect();
             let updated_at: DateTime<Utc> = builder.metadata.modified.into();
+            let local_override = load_theme_override_from(
+                &registry::manager_theme_overrides_root(),
+                &builder.metadata.id,
+            )
+            .ok()
+            .flatten();
+            let mut colors = builder.metadata.colors;
+            let mut appearance_variants = builder.metadata.appearance_variants;
+            let mut presentation_surface_opacity = builder.metadata.presentation_surface_opacity;
+            let mut preview_url = builder.metadata.preview_url;
+            let has_local_draft = local_override.is_some();
+            if let Some(local_override) = local_override {
+                presentation_surface_opacity =
+                    Some(local_override.record.presentation.surface_opacity);
+                if let Some(local_colors) = local_override.record.colors {
+                    colors[2] = local_colors.dark_text.clone();
+                    if let Some(variants) = appearance_variants.as_mut() {
+                        variants.light[2] = local_colors.light_text;
+                        variants.dark[2] = local_colors.dark_text;
+                    }
+                }
+                if let Some(background) = local_override.record.background {
+                    if background.content_type.starts_with("image/") {
+                        if let Some(url) = preview_url.as_mut() {
+                            url.push_str("&localOverride=");
+                            url.push_str(&background.sha256);
+                        }
+                    }
+                }
+            }
             ThemeFamily {
                 id: builder.metadata.id,
                 name: builder.metadata.name,
@@ -2030,8 +3332,12 @@ fn list_theme_families_from_roots<'a>(
                 description: builder.metadata.description,
                 default_locale: builder.metadata.default_locale,
                 localizations: builder.metadata.localizations,
-                colors: builder.metadata.colors,
-                preview_url: builder.metadata.preview_url,
+                colors,
+                appearance_variants,
+                presentation_surface_opacity,
+                presentation_scrim: builder.metadata.presentation_scrim,
+                preview_url,
+                has_local_draft,
                 installed: builder.installed || !builder.clients.is_empty(),
                 updated_at: updated_at.to_rfc3339(),
                 compatibility,
@@ -2273,6 +3579,52 @@ mod tests {
         })
     }
 
+    fn complete_appearance_variants() -> Value {
+        const COLOR_KEYS: [&str; 30] = [
+            "surfaceBase",
+            "surfaceRaised",
+            "surfaceElevated",
+            "surfaceCode",
+            "text",
+            "textStrong",
+            "textMuted",
+            "placeholder",
+            "borderSubtle",
+            "borderDefault",
+            "borderStrong",
+            "action",
+            "actionHover",
+            "actionPressed",
+            "actionForeground",
+            "hoverSurface",
+            "pressedSurface",
+            "selectedSurface",
+            "selectedHoverSurface",
+            "focusRing",
+            "link",
+            "danger",
+            "success",
+            "warning",
+            "sidebarSurface",
+            "headerSurface",
+            "mainScrimStart",
+            "mainScrimMid",
+            "mainScrimEnd",
+            "composerSurface",
+        ];
+        let palette = |value: &str| {
+            let colors = COLOR_KEYS
+                .iter()
+                .map(|key| ((*key).to_string(), Value::String(value.to_string())))
+                .collect::<serde_json::Map<String, Value>>();
+            serde_json::json!({ "colors": colors })
+        };
+        serde_json::json!({
+            "light": palette("#241C15"),
+            "dark": palette("#F3EAD7")
+        })
+    }
+
     #[test]
     fn theme_ids_reject_traversal_and_shell_metacharacters() {
         assert!(valid_theme_id("fixture-v2_1"));
@@ -2357,6 +3709,13 @@ mod tests {
         let mut entries = package_entries("gothic-void-crusade");
         mutate_package_source(&mut entries, |source| {
             source["presentation"] = immersive_scene_presentation("background.webp");
+            source["sharedCore"]["tokens"]["colors"]["mainScrimStart"] =
+                Value::String("#10151F".into());
+            source["sharedCore"]["tokens"]["colors"]["mainScrimMid"] =
+                Value::String("#10151F".into());
+            source["sharedCore"]["tokens"]["colors"]["mainScrimEnd"] =
+                Value::String("#10151F".into());
+            source["sharedCore"]["appearanceVariants"] = complete_appearance_variants();
         });
         write_package(&package, entries);
 
@@ -2367,6 +3726,377 @@ mod tests {
         assert!(library
             .join("gothic-void-crusade/unified-theme.json")
             .is_file());
+        let family = list_theme_families_from(Some(&library))
+            .into_iter()
+            .find(|theme| theme.id == "gothic-void-crusade")
+            .expect("the imported family is listed");
+        assert_eq!(
+            family
+                .presentation_scrim
+                .expect("scene presentation exposes its semantic scrim"),
+            ThemePresentationScrimPreview {
+                light: ["#241C15".into(), "#241C15".into(), "#241C15".into()],
+                dark: ["#F3EAD7".into(), "#F3EAD7".into(), "#F3EAD7".into()],
+            }
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn local_surface_opacity_override_preserves_the_package_and_changes_compiler_input() {
+        let root = scratch("local-surface-opacity");
+        fs::create_dir_all(&root).unwrap();
+        let package = root.join("gothic-void-crusade.cctheme");
+        let library = root.join("library");
+        let overrides = root.join("overrides");
+        let mut entries = package_entries("gothic-void-crusade");
+        mutate_package_source(&mut entries, |source| {
+            source["presentation"] = immersive_scene_presentation("background.webp");
+        });
+        write_package(&package, entries);
+        import_theme_package_to(&package, &library).unwrap();
+
+        let family = library.join("gothic-void-crusade");
+        let original = fs::read(family.join("unified-theme.json")).unwrap();
+        assert_eq!(
+            save_theme_surface_opacity_to(&library, &overrides, "gothic-void-crusade", 1.0)
+                .unwrap(),
+            1.0
+        );
+        assert_eq!(
+            fs::read(family.join("unified-theme.json")).unwrap(),
+            original
+        );
+
+        let (effective, _) =
+            effective_theme_source_from(&family, &overrides, "gothic-void-crusade").unwrap();
+        assert_eq!(
+            effective.pointer("/presentation/parameters/surfaceOpacity"),
+            Some(&Value::from(1.0))
+        );
+
+        assert_eq!(
+            save_theme_surface_opacity_to(&library, &overrides, "gothic-void-crusade", 0.0)
+                .unwrap(),
+            0.0
+        );
+        let (effective, _) =
+            effective_theme_source_from(&family, &overrides, "gothic-void-crusade").unwrap();
+        assert_eq!(
+            effective.pointer("/presentation/parameters/surfaceOpacity"),
+            Some(&Value::from(0.0))
+        );
+
+        let override_file = overrides
+            .join("gothic-void-crusade")
+            .join(LOCAL_THEME_OVERRIDE_FILE);
+        let mut invalid: Value =
+            serde_json::from_slice(&fs::read(&override_file).unwrap()).unwrap();
+        invalid["presentation"]["selector"] = Value::String(".host-ui".into());
+        fs::write(&override_file, serde_json::to_vec(&invalid).unwrap()).unwrap();
+        assert_eq!(
+            effective_theme_source_from(&family, &overrides, "gothic-void-crusade").unwrap_err(),
+            "theme-local-override-invalid"
+        );
+
+        let legacy_package = root.join("legacy.cctheme");
+        write_package(&legacy_package, package_entries("legacy-theme"));
+        import_theme_package_to(&legacy_package, &library).unwrap();
+        assert_eq!(
+            save_theme_surface_opacity_to(&library, &overrides, "legacy-theme", 0.72).unwrap_err(),
+            "theme-local-override-presentation-unsupported"
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn local_workbench_draft_persists_closed_colours_opacity_and_verified_media() {
+        let root = scratch("local-workbench-draft");
+        fs::create_dir_all(&root).unwrap();
+        let package = root.join("gothic-void-crusade.cctheme");
+        let library = root.join("library");
+        let overrides = root.join("overrides");
+        let mut entries = package_entries("gothic-void-crusade");
+        mutate_package_source(&mut entries, |source| {
+            source["presentation"] = immersive_scene_presentation("background.webp");
+            source["sharedCore"]["appearanceVariants"] = complete_appearance_variants();
+        });
+        write_package(&package, entries);
+        import_theme_package_to(&package, &library).unwrap();
+        let family = library.join("gothic-void-crusade");
+        let original = fs::read(family.join("unified-theme.json")).unwrap();
+        let media = fs::read(family.join("assets/background.webp")).unwrap();
+        let draft = ThemeWorkbenchDraftInput {
+            kind: "cc-theme.theme-workbench-draft".to_string(),
+            revision: 1,
+            base: ThemeWorkbenchDraftBase {
+                theme_id: "gothic-void-crusade".to_string(),
+            },
+            preview_adapter_id: "mac-codex".to_string(),
+            patch: ThemeWorkbenchDraftPatch {
+                text_colors: LocalThemeTextColors {
+                    light_text: "#203041".to_string(),
+                    dark_text: "#F3EAD7".to_string(),
+                },
+                surface_opacity: 0.31,
+                background_asset: ThemeWorkbenchDraftBackground {
+                    source: "uploaded".to_string(),
+                    media_type: Some("image".to_string()),
+                    file_name: Some("chosen-background.webp".to_string()),
+                    mime_type: Some("image/webp".to_string()),
+                    requires_static_fallback: None,
+                },
+            },
+        };
+        save_theme_workbench_draft_to(&library, &overrides, draft, Some(media.clone())).unwrap();
+
+        assert_eq!(
+            fs::read(family.join("unified-theme.json")).unwrap(),
+            original
+        );
+        let override_directory = overrides.join("gothic-void-crusade");
+        let local_source = override_directory.join(LOCAL_THEME_EFFECTIVE_SOURCE_FILE);
+        assert!(local_source.is_file());
+        let saved_record: LocalThemeOverride = serde_json::from_slice(
+            &fs::read(override_directory.join(LOCAL_THEME_OVERRIDE_FILE)).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(
+            saved_record.schema_version,
+            LOCAL_THEME_OVERRIDE_SCHEMA_VERSION
+        );
+        assert!(saved_record.baseline.is_some());
+        assert_eq!(
+            saved_record
+                .local_source
+                .as_ref()
+                .map(|source| source.file_name.as_str()),
+            Some(LOCAL_THEME_EFFECTIVE_SOURCE_FILE)
+        );
+        assert_eq!(
+            fs::read(override_directory.join("cc-theme-local-background.webp")).unwrap(),
+            media
+        );
+        let (effective, _) =
+            effective_theme_source_from(&family, &overrides, "gothic-void-crusade").unwrap();
+        assert_eq!(
+            effective.pointer("/presentation/parameters/surfaceOpacity"),
+            Some(&Value::from(0.31))
+        );
+        assert_eq!(
+            effective.pointer("/sharedCore/appearanceVariants/light/colors/text"),
+            Some(&Value::String("#203041".to_string()))
+        );
+        assert_eq!(
+            effective.pointer("/sharedCore/appearanceVariants/dark/colors/text"),
+            Some(&Value::String("#F3EAD7".to_string()))
+        );
+        assert_eq!(
+            effective.pointer("/sharedCore/background/image"),
+            Some(&Value::String("cc-theme-local-background.webp".to_string()))
+        );
+
+        let preserve_existing_background = ThemeWorkbenchDraftInput {
+            kind: "cc-theme.theme-workbench-draft".to_string(),
+            revision: 1,
+            base: ThemeWorkbenchDraftBase {
+                theme_id: "gothic-void-crusade".to_string(),
+            },
+            preview_adapter_id: "mac-workbuddy".to_string(),
+            patch: ThemeWorkbenchDraftPatch {
+                text_colors: LocalThemeTextColors {
+                    light_text: "#203041".to_string(),
+                    dark_text: "#F3EAD7".to_string(),
+                },
+                surface_opacity: 0.42,
+                background_asset: ThemeWorkbenchDraftBackground {
+                    source: "inherit".to_string(),
+                    media_type: None,
+                    file_name: None,
+                    mime_type: None,
+                    requires_static_fallback: None,
+                },
+            },
+        };
+        save_theme_workbench_draft_to(&library, &overrides, preserve_existing_background, None)
+            .unwrap();
+        assert_eq!(
+            fs::read(override_directory.join("cc-theme-local-background.webp")).unwrap(),
+            media
+        );
+
+        let malformed: Result<ThemeWorkbenchDraftInput, _> =
+            serde_json::from_value(serde_json::json!({
+                "kind": "cc-theme.theme-workbench-draft",
+                "revision": 1,
+                "base": { "themeId": "gothic-void-crusade" },
+                "previewAdapterId": "mac-codex",
+                "patch": {
+                    "textColors": { "lightText": "#203041", "darkText": "#F3EAD7" },
+                    "surfaceOpacity": 0.31,
+                    "backgroundAsset": { "source": "inherit", "mediaType": null },
+                    "selector": ".host-ui"
+                }
+            }));
+        assert!(malformed.is_err(), "unknown draft fields must stay closed");
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn local_workbench_draft_without_appearance_variants_uses_one_shared_text_token() {
+        let root = scratch("local-workbench-single-palette");
+        fs::create_dir_all(&root).unwrap();
+        let package = root.join("gothic-void-crusade.cctheme");
+        let library = root.join("library");
+        let overrides = root.join("overrides");
+        let mut entries = package_entries("gothic-void-crusade");
+        mutate_package_source(&mut entries, |source| {
+            source["presentation"] = immersive_scene_presentation("background.webp");
+            source["sharedCore"]
+                .as_object_mut()
+                .unwrap()
+                .remove("appearanceVariants");
+        });
+        write_package(&package, entries);
+        import_theme_package_to(&package, &library).unwrap();
+        let draft = ThemeWorkbenchDraftInput {
+            kind: "cc-theme.theme-workbench-draft".to_string(),
+            revision: 1,
+            base: ThemeWorkbenchDraftBase {
+                theme_id: "gothic-void-crusade".to_string(),
+            },
+            preview_adapter_id: "mac-codex".to_string(),
+            patch: ThemeWorkbenchDraftPatch {
+                text_colors: LocalThemeTextColors {
+                    light_text: "#E9EEF7".to_string(),
+                    dark_text: "#E9EEF7".to_string(),
+                },
+                surface_opacity: 0.0,
+                background_asset: ThemeWorkbenchDraftBackground {
+                    source: "inherit".to_string(),
+                    media_type: None,
+                    file_name: None,
+                    mime_type: None,
+                    requires_static_fallback: None,
+                },
+            },
+        };
+        save_theme_workbench_draft_to(&library, &overrides, draft, None).unwrap();
+        let family = library.join("gothic-void-crusade");
+        let (effective, _) =
+            effective_theme_source_from(&family, &overrides, "gothic-void-crusade").unwrap();
+        assert_eq!(
+            effective.pointer("/sharedCore/tokens/colors/text"),
+            Some(&Value::String("#E9EEF7".to_string()))
+        );
+        assert_eq!(
+            effective.pointer("/presentation/parameters/surfaceOpacity"),
+            Some(&Value::from(0.0))
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn resetting_a_local_workbench_draft_restores_the_immutable_imported_baseline() {
+        let root = scratch("reset-local-workbench-draft");
+        fs::create_dir_all(&root).unwrap();
+        let package = root.join("gothic-void-crusade.cctheme");
+        let library = root.join("library");
+        let overrides = root.join("overrides");
+        let mut entries = package_entries("gothic-void-crusade");
+        mutate_package_source(&mut entries, |source| {
+            source["presentation"] = immersive_scene_presentation("background.webp");
+        });
+        write_package(&package, entries);
+        import_theme_package_to(&package, &library).unwrap();
+        let family = library.join("gothic-void-crusade");
+        let imported = fs::read(family.join("unified-theme.json")).unwrap();
+        save_theme_surface_opacity_to(&library, &overrides, "gothic-void-crusade", 0.0).unwrap();
+        assert!(overrides
+            .join("gothic-void-crusade")
+            .join(LOCAL_THEME_EFFECTIVE_SOURCE_FILE)
+            .is_file());
+        assert!(reset_theme_workbench_draft_from(&overrides, "gothic-void-crusade").unwrap());
+        assert!(!overrides.join("gothic-void-crusade").exists());
+        assert_eq!(
+            fs::read(family.join("unified-theme.json")).unwrap(),
+            imported
+        );
+        let (effective, _) =
+            effective_theme_source_from(&family, &overrides, "gothic-void-crusade").unwrap();
+        assert_eq!(
+            effective.pointer("/presentation/parameters/surfaceOpacity"),
+            Some(&Value::from(0.72))
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn cctheme_import_accepts_closed_light_and_dark_appearance_variants() {
+        let root = scratch("appearance-variants");
+        fs::create_dir_all(&root).unwrap();
+        let theme_id = "appearance-variants-fixture";
+        let package = root.join(format!("{theme_id}.cctheme"));
+        let library = root.join("library");
+        let mut entries = package_entries(theme_id);
+        mutate_package_source(&mut entries, |source| {
+            source["sharedCore"]["appearanceVariants"] = complete_appearance_variants();
+        });
+        write_package(&package, entries);
+
+        assert_eq!(
+            import_theme_package_to(&package, &library).unwrap(),
+            theme_id
+        );
+        let listed = list_theme_families_from(Some(&library));
+        let preview = listed
+            .iter()
+            .find(|theme| theme.id == theme_id)
+            .and_then(|theme| theme.appearance_variants.as_ref())
+            .expect("the imported family exposes its display-only appearance summary");
+        assert_eq!(preview.light, ["#241C15", "#241C15", "#241C15"]);
+        assert_eq!(preview.dark, ["#F3EAD7", "#F3EAD7", "#F3EAD7"]);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn cctheme_import_rejects_unknown_or_partial_appearance_variants() {
+        let root = scratch("appearance-variants-invalid");
+        fs::create_dir_all(&root).unwrap();
+        let mutations: Vec<(&str, Box<dyn FnOnce(&mut Value)>)> = vec![
+            (
+                "unknown-variant-field",
+                Box::new(|source| {
+                    source["sharedCore"]["appearanceVariants"] = complete_appearance_variants();
+                    source["sharedCore"]["appearanceVariants"]["light"]["css"] =
+                        Value::String("body { display: none; }".into());
+                }),
+            ),
+            (
+                "partial-palette",
+                Box::new(|source| {
+                    source["sharedCore"]["appearanceVariants"] = complete_appearance_variants();
+                    source["sharedCore"]["appearanceVariants"]["dark"]["colors"]
+                        .as_object_mut()
+                        .unwrap()
+                        .remove("link");
+                }),
+            ),
+        ];
+        for (index, (name, mutate)) in mutations.into_iter().enumerate() {
+            let package = root.join(format!("{index}-{name}.cctheme"));
+            let library = root.join(format!("library-{index}"));
+            let mut entries = package_entries("gothic-void-crusade");
+            mutate_package_source(&mut entries, mutate);
+            write_package(&package, entries);
+
+            assert_eq!(
+                import_theme_package_to(&package, &library).unwrap_err(),
+                "theme-package-appearance-variants-invalid",
+                "{name} must fail closed"
+            );
+            assert!(!library.join("gothic-void-crusade").exists());
+        }
         fs::remove_dir_all(root).unwrap();
     }
 

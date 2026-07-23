@@ -17,6 +17,44 @@
     "sidebarSurface": "#121925",
     "headerSurface": "#141C28"
   },
+  "appearanceVariants": {
+    "light": {
+      "colors": {
+        "text": "#203041",
+        "muted": "#5D7285"
+      },
+      "semanticColors": {
+        "surfaceBase": "#F4F7FA",
+        "surfaceRaised": "#FAFCFE",
+        "action": "#266446",
+        "actionForeground": "#FFFFFF",
+        "focusRing": "#266446",
+        "sidebarSurface": "#E8EEF4",
+        "headerSurface": "#FBFDFF",
+        "mainScrimStart": "rgba(244, 247, 250, .95)",
+        "mainScrimMid": "rgba(244, 247, 250, .62)",
+        "mainScrimEnd": "rgba(244, 247, 250, .26)"
+      }
+    },
+    "dark": {
+      "colors": {
+        "text": "#E9EEF7",
+        "muted": "#AAB5C5"
+      },
+      "semanticColors": {
+        "surfaceBase": "#10151F",
+        "surfaceRaised": "#18202D",
+        "action": "#2F7D57",
+        "actionForeground": "#FFFFFF",
+        "focusRing": "#7BCFA8",
+        "sidebarSurface": "#121925",
+        "headerSurface": "#141C28",
+        "mainScrimStart": "rgba(16, 21, 31, .86)",
+        "mainScrimMid": "rgba(16, 21, 31, .54)",
+        "mainScrimEnd": "rgba(16, 21, 31, .22)"
+      }
+    }
+  },
   "appearance": {
     "paletteStrategy": "system",
     "backdropBlurPx": 16,

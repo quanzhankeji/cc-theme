@@ -137,12 +137,73 @@ html[data-cc-theme-doubao-version] [data-cc-theme-doubao-role="sidebar-inner"] {
 /* Adapter-owned immersive scene recipe using only cataloged Doubao roles. */
 html[data-cc-theme-doubao-presentation="immersive-scene-v1"] {
   --cc-doubao-scene-gold: #c8a55a;
-  --cc-doubao-scene-line: color-mix(in srgb, var(--cc-doubao-scene-gold) 32%, transparent);
-  --cc-doubao-scene-panel: color-mix(in srgb, var(--cc-doubao-surface-raised) 82%, transparent);
+  --cc-doubao-scene-surface-base: var(--cc-doubao-theme-surface-base, #0D0D0E);
+  --cc-doubao-scene-surface-raised: var(--cc-doubao-theme-surface-raised, #171513);
+  --cc-doubao-scene-sidebar-surface: var(--cc-doubao-theme-sidebar-surface, #171513);
+  --cc-doubao-scene-header-surface: var(--cc-doubao-theme-header-surface, #171513);
+  --cc-doubao-scene-scrim-start: var(--cc-doubao-theme-main-scrim-start, rgba(8, 8, 10, .84));
+  --cc-doubao-scene-scrim-mid: var(--cc-doubao-theme-main-scrim-mid, rgba(12, 10, 10, .50));
+  --cc-doubao-scene-scrim-end: var(--cc-doubao-theme-main-scrim-end, rgba(13, 10, 9, .18));
+  --cc-doubao-scene-line: color-mix(in srgb, var(--cc-doubao-scene-gold) var(--cc-doubao-scene-texture-opacity), transparent);
+  --cc-doubao-scene-panel: color-mix(in srgb, var(--cc-doubao-scene-surface-raised) var(--cc-doubao-scene-panel-opacity), transparent);
+  --cc-doubao-scene-text: var(--cc-doubao-theme-text, #F3EAD7);
+  --cc-doubao-scene-muted: var(--cc-doubao-theme-muted, #B5A386);
+  /* Native controls keep their own dark glyphs. Put only their bounded
+     interaction surfaces on a light parchment instead of recoloring SVGs. */
+  --cc-doubao-scene-interactive-surface: #F7F0E1;
+  --cc-doubao-scene-interactive-text: #241C15;
+  --cc-doubao-scene-interactive-muted: #6F5F4B;
+  /* The fixed profile values are deliberately represented as bounded paint
+     inputs, never as host geometry or arbitrary CSS supplied by a package. */
+  --cc-doubao-scene-etched-highlight: color-mix(in srgb, #ffefc5 var(--cc-doubao-scene-etched-highlight-opacity), transparent);
+  --cc-doubao-scene-navigation-frame: inset 0 0 0 var(--cc-doubao-scene-density-inset) var(--cc-doubao-scene-line), inset 0 1px var(--cc-doubao-scene-etched-highlight), inset -1px 0 rgba(255, 239, 197, .05);
+  --cc-doubao-scene-composer-frame: 0 12px 28px rgba(0, 0, 0, .28), inset 0 0 0 var(--cc-doubao-scene-density-inset) var(--cc-doubao-scene-line), inset 0 1px var(--cc-doubao-scene-etched-highlight);
+  --cc-doubao-scene-card-frame: 0 14px 32px rgba(0, 0, 0, .28), inset 0 0 0 var(--cc-doubao-scene-density-inset) var(--cc-doubao-scene-line), inset 0 1px var(--cc-doubao-scene-etched-highlight);
+}
+
+html[data-cc-theme-doubao-presentation="immersive-scene-v1"][data-cc-theme-doubao-appearance="light"] {
+  --cc-doubao-scene-surface-base: var(--cc-doubao-light-theme-surface-base, var(--cc-doubao-theme-surface-base, #F7F0E1));
+  --cc-doubao-scene-surface-raised: var(--cc-doubao-light-theme-surface-raised, var(--cc-doubao-theme-surface-raised, #FFF9ED));
+  --cc-doubao-scene-sidebar-surface: var(--cc-doubao-light-theme-sidebar-surface, var(--cc-doubao-theme-sidebar-surface, #EFE4CE));
+  --cc-doubao-scene-header-surface: var(--cc-doubao-light-theme-header-surface, var(--cc-doubao-theme-header-surface, #FFF9ED));
+  --cc-doubao-scene-scrim-start: var(--cc-doubao-light-theme-main-scrim-start, var(--cc-doubao-theme-main-scrim-start, rgba(247, 240, 225, .94)));
+  --cc-doubao-scene-scrim-mid: var(--cc-doubao-light-theme-main-scrim-mid, var(--cc-doubao-theme-main-scrim-mid, rgba(247, 240, 225, .62)));
+  --cc-doubao-scene-scrim-end: var(--cc-doubao-light-theme-main-scrim-end, var(--cc-doubao-theme-main-scrim-end, rgba(247, 240, 225, .28)));
+  --cc-doubao-scene-text: var(--cc-doubao-light-theme-text, var(--cc-doubao-theme-text, #241C15));
+  --cc-doubao-scene-muted: var(--cc-doubao-light-theme-muted, var(--cc-doubao-theme-muted, #6F5F4B));
+  --cc-doubao-scene-interactive-surface: #FFFFFF;
+  --cc-doubao-scene-interactive-text: #241C15;
+  --cc-doubao-scene-interactive-muted: #6F5F4B;
+}
+
+html[data-cc-theme-doubao-presentation="immersive-scene-v1"][data-cc-theme-doubao-appearance="dark"] {
+  --cc-doubao-scene-surface-base: var(--cc-doubao-dark-theme-surface-base, var(--cc-doubao-theme-surface-base, #0D0D0E));
+  --cc-doubao-scene-surface-raised: var(--cc-doubao-dark-theme-surface-raised, var(--cc-doubao-theme-surface-raised, #171513));
+  --cc-doubao-scene-sidebar-surface: var(--cc-doubao-dark-theme-sidebar-surface, var(--cc-doubao-theme-sidebar-surface, #171513));
+  --cc-doubao-scene-header-surface: var(--cc-doubao-dark-theme-header-surface, var(--cc-doubao-theme-header-surface, #171513));
+  --cc-doubao-scene-scrim-start: var(--cc-doubao-dark-theme-main-scrim-start, var(--cc-doubao-theme-main-scrim-start, rgba(8, 8, 10, .84)));
+  --cc-doubao-scene-scrim-mid: var(--cc-doubao-dark-theme-main-scrim-mid, var(--cc-doubao-theme-main-scrim-mid, rgba(12, 10, 10, .50)));
+  --cc-doubao-scene-scrim-end: var(--cc-doubao-dark-theme-main-scrim-end, var(--cc-doubao-theme-main-scrim-end, rgba(13, 10, 9, .18)));
+  --cc-doubao-scene-text: var(--cc-doubao-dark-theme-text, var(--cc-doubao-theme-text, #F3EAD7));
+  --cc-doubao-scene-muted: var(--cc-doubao-dark-theme-muted, var(--cc-doubao-theme-muted, #B5A386));
+  --cc-doubao-scene-interactive-surface: #F7F0E1;
+  --cc-doubao-scene-interactive-text: #241C15;
+  --cc-doubao-scene-interactive-muted: #6F5F4B;
 }
 
 html[data-cc-theme-doubao-presentation="immersive-scene-v1"] [data-cc-theme-doubao-role="shell"] {
-  background: linear-gradient(90deg, rgba(9, 8, 9, .84), rgba(14, 11, 10, .45) 58%, rgba(13, 10, 9, .15)) !important;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--cc-doubao-scene-scrim-start) var(--cc-doubao-scene-panel-opacity), transparent),
+    color-mix(in srgb, var(--cc-doubao-scene-scrim-mid) var(--cc-doubao-scene-panel-opacity), transparent) 58%,
+    color-mix(in srgb, var(--cc-doubao-scene-scrim-end) var(--cc-doubao-scene-panel-opacity), transparent)) !important;
+}
+
+html[data-cc-theme-doubao-version][data-cc-theme-doubao-presentation="immersive-scene-v1"][data-cc-theme-doubao-surface-context="home"]
+[data-cc-theme-doubao-role="shell"] {
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--cc-doubao-scene-scrim-start) var(--cc-doubao-scene-panel-opacity), transparent),
+    color-mix(in srgb, var(--cc-doubao-scene-scrim-mid) var(--cc-doubao-scene-panel-opacity), transparent) 58%,
+    color-mix(in srgb, var(--cc-doubao-scene-scrim-end) var(--cc-doubao-scene-panel-opacity), transparent)) !important;
 }
 
 html[data-cc-theme-doubao-presentation="immersive-scene-v1"] :is(
@@ -150,8 +211,17 @@ html[data-cc-theme-doubao-presentation="immersive-scene-v1"] :is(
   [data-cc-theme-doubao-role="header-surface"],
   [data-cc-theme-doubao-role="right-side"]
 ) {
+  background: var(--cc-doubao-scene-panel) !important;
   border-color: var(--cc-doubao-scene-line) !important;
-  box-shadow: inset -1px 0 rgba(255, 239, 197, .05) !important;
+  box-shadow: var(--cc-doubao-scene-navigation-frame) !important;
+}
+
+html[data-cc-theme-doubao-presentation="immersive-scene-v1"] [data-cc-theme-doubao-role="sidebar"] {
+  background: color-mix(in srgb, var(--cc-doubao-scene-sidebar-surface) var(--cc-doubao-scene-panel-opacity), var(--cc-doubao-scene-surface-base)) !important;
+}
+
+html[data-cc-theme-doubao-presentation="immersive-scene-v1"] [data-cc-theme-doubao-role="header-surface"] {
+  background: color-mix(in srgb, var(--cc-doubao-scene-header-surface) var(--cc-doubao-scene-panel-opacity), var(--cc-doubao-scene-surface-base)) !important;
 }
 
 html[data-cc-theme-doubao-presentation="immersive-scene-v1"] :is(
@@ -159,7 +229,10 @@ html[data-cc-theme-doubao-presentation="immersive-scene-v1"] :is(
   [data-cc-theme-doubao-role="message-list"],
   [data-cc-theme-doubao-role="chat-list"]
 ) {
-  background: linear-gradient(90deg, rgba(10, 9, 10, .46), rgba(16, 13, 11, .14)) !important;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--cc-doubao-scene-scrim-start) var(--cc-doubao-scene-panel-opacity), transparent),
+    color-mix(in srgb, var(--cc-doubao-scene-scrim-mid) var(--cc-doubao-scene-panel-opacity), transparent) 58%,
+    color-mix(in srgb, var(--cc-doubao-scene-scrim-end) var(--cc-doubao-scene-panel-opacity), transparent)) !important;
 }
 
 html[data-cc-theme-doubao-presentation="immersive-scene-v1"] :is(
@@ -169,7 +242,132 @@ html[data-cc-theme-doubao-presentation="immersive-scene-v1"] :is(
 ) {
   background: var(--cc-doubao-scene-panel) !important;
   border: 1px solid var(--cc-doubao-scene-line) !important;
-  box-shadow: 0 14px 32px rgba(0, 0, 0, .28), inset 0 1px rgba(255, 239, 197, .05) !important;
+  box-shadow: var(--cc-doubao-scene-card-frame) !important;
+}
+
+/* The immersive recipe owns only documented semantic roles. It gives the
+   dark scene a readable text bridge without reaching into host classes,
+   geometry, focus treatment, or font metrics. */
+html[data-cc-theme-doubao-presentation="immersive-scene-v1"] :is(
+  [data-cc-theme-doubao-role="sidebar"],
+  [data-cc-theme-doubao-role="sidebar-item"],
+  [data-cc-theme-doubao-role="sidebar-action"],
+  [data-cc-theme-doubao-role="sidebar-footer"],
+  [data-cc-theme-doubao-role="header-surface"],
+  [data-cc-theme-doubao-role="header-title"],
+  [data-cc-theme-doubao-role="home-title"],
+  [data-cc-theme-doubao-role="suggestion"],
+  [data-cc-theme-doubao-role="message"],
+  [data-cc-theme-doubao-role="assistant-content"],
+  [data-cc-theme-doubao-role="user-content"],
+  [data-cc-theme-doubao-role="composer-toolbar"],
+  [data-cc-theme-doubao-role="composer-action"],
+  [data-cc-theme-doubao-role="overlay-surface"],
+  [data-cc-theme-doubao-role="reference-card"],
+  [data-cc-theme-doubao-role="document-card"],
+  [data-cc-theme-doubao-role="followup-suggestion"]
+) {
+  color: var(--cc-doubao-scene-text) !important;
+}
+
+/* Scene text content bridge: cataloged content wrappers can contain native
+   descendants with a direct light-mode color. Preserve native typography and
+   interaction, but inherit the verified scene text color inside those bounded
+   semantic surfaces so a dark backdrop never leaves black home or composer
+   content behind. */
+html[data-cc-theme-doubao-presentation="immersive-scene-v1"] :is(
+  [data-cc-theme-doubao-role="sidebar"],
+  [data-cc-theme-doubao-role="header-surface"],
+  [data-cc-theme-doubao-role="home-title"],
+  [data-cc-theme-doubao-role="suggestion"],
+  [data-cc-theme-doubao-role="followup-suggestion"],
+  [data-cc-theme-doubao-role="message"],
+  [data-cc-theme-doubao-role="assistant-content"],
+  [data-cc-theme-doubao-role="user-content"],
+  [data-cc-theme-doubao-role="reference-card"],
+  [data-cc-theme-doubao-role="document-card"],
+  [data-cc-theme-doubao-role="overlay-surface"],
+  [data-cc-theme-doubao-role="composer"],
+  [data-cc-theme-doubao-role="composer-toolbar"],
+  [data-cc-theme-doubao-role="create-action"]
+) :is(div, span, a, p, button, strong, em, li, h1, h2, h3, h4, h5, h6, blockquote, code) {
+  color: inherit !important;
+}
+
+/* The documented create action and composer contain host-owned black icons.
+   Keep those controls native, but give them a contrast-safe surface rather
+   than placing their glyphs and text on the dark scene panel. */
+html[data-cc-theme-doubao-presentation="immersive-scene-v1"] [data-cc-theme-doubao-role="create-action"] {
+  background: var(--cc-doubao-scene-interactive-surface) !important;
+  color: var(--cc-doubao-scene-interactive-text) !important;
+  border-color: var(--cc-doubao-scene-line) !important;
+  box-shadow: var(--cc-doubao-scene-navigation-frame) !important;
+}
+
+/* The create action lives inside the sidebar text bridge. Repeat the bounded
+   semantic override for its native descendants so the sidebar's cream text
+   cannot win the cascade over this light interaction surface. */
+html[data-cc-theme-doubao-presentation="immersive-scene-v1"][data-cc-theme-doubao-version] [data-cc-theme-doubao-role="create-action"],
+html[data-cc-theme-doubao-presentation="immersive-scene-v1"][data-cc-theme-doubao-version] [data-cc-theme-doubao-role="create-action"] :is(div, span, a, p, button, strong, em, li, h1, h2, h3, h4, h5, h6, blockquote, code) {
+  color: var(--cc-doubao-scene-interactive-text) !important;
+}
+
+html[data-cc-theme-doubao-presentation="immersive-scene-v1"] [data-cc-theme-doubao-role="sidebar-item"][data-cc-theme-doubao-state="selected"] {
+  background: color-mix(in srgb, var(--cc-doubao-scene-gold) 18%, var(--cc-doubao-scene-panel)) !important;
+  border-color: var(--cc-doubao-scene-line) !important;
+}
+
+/* A host-selected conversation can be painted by an internal class that has
+   no stable accessibility state. Give every owned list item a dark, bounded
+   resting frame so an unmarked host selection cannot regress to white behind
+   the scene's cream text. The explicit selected marker above remains the
+   stronger affordance whenever the renderer can establish it. */
+html[data-cc-theme-doubao-presentation="immersive-scene-v1"] [data-cc-theme-doubao-role="sidebar-item"] {
+  background: color-mix(in srgb, var(--cc-doubao-scene-panel) 94%, var(--cc-doubao-scene-gold)) !important;
+  border-color: transparent !important;
+}
+
+html[data-cc-theme-doubao-presentation="immersive-scene-v1"] :is(
+  [data-cc-theme-doubao-role="assistant-content"],
+  [data-cc-theme-doubao-role="user-content"],
+  [data-cc-theme-doubao-role="reference-card"],
+  [data-cc-theme-doubao-role="document-card"],
+  [data-cc-theme-doubao-role="overlay-surface"]
+) :is(p, span, strong, em, li, h1, h2, h3, h4, h5, h6, blockquote, code, a) {
+  color: inherit !important;
+}
+
+html[data-cc-theme-doubao-presentation="immersive-scene-v1"] [data-cc-theme-doubao-role="muted-text"] {
+  color: var(--cc-doubao-scene-muted) !important;
+}
+
+html[data-cc-theme-doubao-presentation="immersive-scene-v1"] [data-cc-theme-doubao-role="composer"] {
+  background: var(--cc-doubao-scene-interactive-surface) !important;
+  color: var(--cc-doubao-scene-interactive-text) !important;
+  border: 1px solid var(--cc-doubao-scene-line) !important;
+  box-shadow: var(--cc-doubao-scene-composer-frame) !important;
+}
+
+html[data-cc-theme-doubao-presentation="immersive-scene-v1"] [data-cc-theme-doubao-role="composer"] > :is(div, textarea) {
+  background: transparent !important;
+}
+
+html[data-cc-theme-doubao-presentation="immersive-scene-v1"] [data-cc-theme-doubao-role="composer-input"] {
+  color: var(--cc-doubao-scene-interactive-text) !important;
+  caret-color: var(--cc-doubao-scene-interactive-text) !important;
+  background: transparent !important;
+}
+
+html[data-cc-theme-doubao-presentation="immersive-scene-v1"] [data-cc-theme-doubao-role="composer-input"]::placeholder {
+  color: var(--cc-doubao-scene-interactive-muted) !important;
+  opacity: 1 !important;
+}
+
+html[data-cc-theme-doubao-presentation="immersive-scene-v1"] :is(
+  [data-cc-theme-doubao-role="composer-toolbar"],
+  [data-cc-theme-doubao-role="composer-action"]
+) {
+  color: var(--cc-doubao-scene-interactive-text) !important;
 }
 
 /* Native controls, content, typography, icons, focus rings, overlays, and motion

@@ -4,9 +4,9 @@
 
 Adapter 源码的唯一位置是 `adapters/mac-workbuddy`。公开 canonical 机器身份是 `mac-workbuddy`。
 目录迁移不改变 WorkBuddy target、`.cctheme` 内的 `targets/macos-workbuddy/theme.json`，也不改变
-公开制品命名规则。当前资产身份是 `mac-workbuddy-5.2.6-r2-macos-arm64`，源码与客户端 ZIP 分别为
-`mac-workbuddy-5.2.6-r2-macos-arm64.zip` 与
-`cc-theme-mac-workbuddy-5.2.6-r2-macos-arm64.zip`。
+公开制品命名规则。当前资产身份是 `mac-workbuddy-5.2.6-r4-macos-arm64`，源码与客户端 ZIP 分别为
+`mac-workbuddy-5.2.6-r4-macos-arm64.zip` 与
+`cc-theme-mac-workbuddy-5.2.6-r4-macos-arm64.zip`。
 
 源码内路径从 Adapter 自身位置解析；跨 Module 依赖必须使用当前 monorepo 布局并由合同测试约束。
 客户端 ZIP 中的 `.mac-workbuddy` 是发布 Implementation 的私有运行目录，与源码路径相互独立且刻意稳定。
@@ -122,7 +122,7 @@ renderer session nonce 的职责是隔离不同 injector 进程并使旧 generat
 `PROJECT_MANIFEST.json` 是发布身份的机器源。公开 `adapterVersion` 严格等于受支持宿主的
 `CFBundleShortVersionString`，当前为 `5.2.6`；精确 build 只保存在 `host.compatibilityEvidence` 与
 Manager compile context，不能拼入版本号。同一 ShortVersion 下的修复使用正整数
-`adapterReleaseRevision`，当前为 `2`。Capability、三个 Catalog、package contract 和 release manifest
+`adapterReleaseRevision`，当前为 `4`。Capability、三个 Catalog、package contract 和 release manifest
 必须与该身份一致，否则构建在组装前失败。构建以原子 lock 协调。当前 r2 被机器清单明确标记为
 `unpublished-development`，因此 Manager prepare 可以原位原子重建且旧摘要立即失效；首次正式发布时
 切换为不可覆盖策略，此后同 revision 的 ZIP 或 SHA-256 sidecar 已存在即 fail closed。

@@ -17,7 +17,7 @@
         "borderSubtle": "#263244",
         "borderDefault": "#34445B",
         "action": "#2F7D57",
-        "actionHover": "#398F66",
+        "actionHover": "#2B7551",
         "actionPressed": "#286A4A",
         "actionForeground": "#FFFFFF",
         "hoverSurface": "#202B3B",
@@ -33,12 +33,21 @@
         "composerSurface": "#1A2432"
       },
       "fonts": {
-        "ui": ["SF Pro Text", "system-ui"],
-        "display": ["SF Pro Display", "system-ui"],
-        "code": ["SFMono-Regular", "monospace"]
+        "ui": [
+          "SF Pro Text",
+          "system-ui"
+        ],
+        "display": [
+          "SF Pro Display",
+          "system-ui"
+        ],
+        "code": [
+          "SFMono-Regular",
+          "monospace"
+        ]
       },
       "appearance": {
-        "shellMode": "dark",
+        "shellMode": "auto",
         "backdropBlurPx": 16,
         "backdropSaturation": 1,
         "radiusScale": 1
@@ -58,7 +67,81 @@
       "minimumLargeTextContrast": 3,
       "preserveSystemFocusRing": true,
       "transparencyFallback": "increased-scrim"
+    },
+    "appearanceVariants": {
+      "light": {
+        "colors": {
+          "surfaceBase": "#F4F7FA",
+          "surfaceRaised": "#FAFCFE",
+          "surfaceElevated": "#FFFFFF",
+          "surfaceCode": "#EAF0F5",
+          "text": "#203041",
+          "textStrong": "#15110F",
+          "textMuted": "#5D7285",
+          "placeholder": "#7E91A1",
+          "borderSubtle": "rgba(38, 100, 70, .18)",
+          "borderDefault": "rgba(38, 100, 70, .32)",
+          "borderStrong": "#266446",
+          "action": "#266446",
+          "actionHover": "#20543B",
+          "actionPressed": "#193F2D",
+          "actionForeground": "#FFFFFF",
+          "hoverSurface": "rgba(38, 100, 70, .11)",
+          "pressedSurface": "rgba(38, 100, 70, .19)",
+          "selectedSurface": "rgba(38, 100, 70, .17)",
+          "selectedHoverSurface": "rgba(38, 100, 70, .27)",
+          "focusRing": "#266446",
+          "link": "#1E5B96",
+          "danger": "#B33F43",
+          "success": "#2E704E",
+          "warning": "#8B5C0A",
+          "sidebarSurface": "#E8EEF4",
+          "headerSurface": "#FBFDFF",
+          "mainScrimStart": "rgba(244, 247, 250, .95)",
+          "mainScrimMid": "rgba(244, 247, 250, .62)",
+          "mainScrimEnd": "rgba(244, 247, 250, .26)",
+          "composerSurface": "#FFFFFF"
+        }
+      },
+      "dark": {
+        "colors": {
+          "surfaceBase": "#10151F",
+          "surfaceRaised": "#18202D",
+          "surfaceElevated": "#202B3B",
+          "text": "#E9EEF7",
+          "textStrong": "#FFFFFF",
+          "textMuted": "#AAB5C5",
+          "placeholder": "#8390A3",
+          "borderSubtle": "#263244",
+          "borderDefault": "#34445B",
+          "action": "#2F7D57",
+          "actionHover": "#2B7551",
+          "actionPressed": "#286A4A",
+          "actionForeground": "#FFFFFF",
+          "hoverSurface": "#202B3B",
+          "pressedSurface": "#273548",
+          "selectedSurface": "#294C40",
+          "focusRing": "#7BCFA8",
+          "link": "#8EB1FF",
+          "danger": "#EF7D7D",
+          "success": "#72C79B",
+          "warning": "#F0B96B",
+          "sidebarSurface": "#121925",
+          "headerSurface": "#141C28",
+          "composerSurface": "#1A2432",
+          "surfaceCode": "#18202D",
+          "borderStrong": "#34445B",
+          "selectedHoverSurface": "#294C40",
+          "mainScrimStart": "rgba(16, 21, 31, .86)",
+          "mainScrimMid": "rgba(16, 21, 31, .54)",
+          "mainScrimEnd": "rgba(16, 21, 31, .22)"
+        }
+      }
     }
   },
-  "targets": ["mac-codex", "mac-doubao", "mac-workbuddy"]
+  "targets": [
+    "mac-codex",
+    "mac-doubao",
+    "mac-workbuddy"
+  ]
 }

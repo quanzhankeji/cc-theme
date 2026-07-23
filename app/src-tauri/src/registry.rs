@@ -141,9 +141,23 @@ pub fn adapter_root(definition: &ClientDefinition) -> PathBuf {
     if std::env::var_os("CC_THEME_ENABLE_LOCAL_ADAPTERS").as_deref()
         == Some(std::ffi::OsStr::new("1"))
     {
+        let bundled = std::env::var_os("CC_THEME_BUNDLED_ADAPTERS_ROOT")
+            .filter(|p| !p.is_empty())
+            .map(PathBuf::from)
+            .map(|root| root.join(definition.adapter_dirname));
         if let Some(active) = crate::adapter_installer::active_adapter_root(definition.id.as_str())
         {
-            return active;
+            if bundled.as_ref().is_none_or(|bundled| {
+                crate::adapter_installer::active_adapter_is_not_older_than(
+                    definition.id.as_str(),
+                    bundled,
+                )
+            }) {
+                return active;
+            }
+        }
+        if let Some(bundled) = bundled.filter(|path| path.is_dir()) {
+            return bundled;
         }
     }
     if let Some(resources) =
@@ -182,6 +196,15 @@ pub fn manager_theme_library_root() -> PathBuf {
                 .join("Library/Application Support/CC Theme")
                 .join("themes")
         })
+}
+
+/// Local, Manager-owned adjustments live beside the imported Theme Family
+/// rather than inside it.  This preserves the package's signed/hash-verified
+/// source and lets a user remove either the theme or its local data atomically.
+pub fn manager_theme_overrides_root() -> PathBuf {
+    home_dir()
+        .join("Library/Application Support/CC Theme")
+        .join("theme-overrides")
 }
 
 pub fn manager_adapter_library_root() -> PathBuf {

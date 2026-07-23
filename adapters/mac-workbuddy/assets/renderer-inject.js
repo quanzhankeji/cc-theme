@@ -30,6 +30,7 @@
   const GENERATION_COUNT_KEY = "__WORKBUDDY_SKIN_GENERATION_COUNT__";
   const THEME_SETTINGS_RESULT_KEY = "__WORKBUDDY_CC_THEME_SETTINGS_RESULT__";
   const DEFERRED_INTERACTIVE_ATLAS_SOURCE = "workbuddy-skin:deferred-interactive-atlas";
+  const sceneStaticMotionPolicy = THEME.presentation?.fallbackPolicy?.reducedMotion === "static";
   const root = document.documentElement;
   const ROLE_ATTRIBUTE = CATALOG.interpreter?.roleAttribute || "data-workbuddy-skin-role";
   const uiInterpreter = createUiInterpreter({
@@ -57,6 +58,7 @@
 
   const previous = window[STATE_KEY];
   if (previous?.revision === REVISION && previous?.videoUrl === VIDEO_URL) {
+    previous.enforceSceneReducedMotion?.();
     previous.reconcile?.();
     return previous.inspect?.() ?? { installed: true, version: VERSION, revision: REVISION };
   }
@@ -121,53 +123,55 @@
     getComputedStyle(root).getPropertyValue(name).trim() || fallbackValue;
   const nativeMix = (name, fallbackValue, opacity) =>
     `color-mix(in srgb, ${nativeColor(name, fallbackValue)} ${opacity}%, transparent)`;
-  const customPalette = {
-    background: THEME.colors.background,
-    panel: THEME.colors.panel,
-    panelAlt: THEME.colors.panelAlt,
-    accent: THEME.colors.accent,
-    accentAlt: THEME.colors.accentAlt,
-    secondary: THEME.colors.secondary,
-    highlight: THEME.colors.highlight,
-    text: THEME.colors.text,
-    textStrong: THEME.semanticColors.textStrong,
-    textSecondary: THEME.semanticColors.textSecondary,
-    textMuted: THEME.colors.muted,
-    textDisabled: THEME.semanticColors.textDisabled,
-    icon: THEME.semanticColors.iconPrimary,
-    iconMuted: THEME.semanticColors.iconMuted,
-    placeholder: THEME.semanticColors.placeholder,
-    line: THEME.colors.line,
-    borderSubtle: THEME.semanticColors.borderSubtle,
-    border: THEME.semanticColors.borderDefault,
-    surface: THEME.semanticColors.surfaceBase,
-    surfaceRaised: THEME.semanticColors.surfaceRaised,
-    surfaceElevated: THEME.semanticColors.surfaceElevated,
-    surfaceMuted: THEME.semanticColors.surfaceMuted,
-    action: THEME.semanticColors.action,
-    actionHover: THEME.semanticColors.actionHover,
-    actionPressed: THEME.semanticColors.actionPressed,
-    actionForeground: THEME.semanticColors.actionForeground,
-    hover: THEME.semanticColors.hoverSurface,
-    pressed: THEME.semanticColors.pressedSurface,
-    selected: THEME.semanticColors.selectedSurface,
-    focus: THEME.semanticColors.focusRing,
-    link: THEME.semanticColors.link,
-    sidebar: THEME.semanticColors.sidebarSurface,
-    header: THEME.semanticColors.headerSurface,
-    mainScrimStart: THEME.semanticColors.mainScrimStart,
-    mainScrimMid: THEME.semanticColors.mainScrimMid,
-    mainScrimEnd: THEME.semanticColors.mainScrimEnd,
-    composer: THEME.semanticColors.composerSurface,
-    overlayScrim: THEME.semanticColors.overlayScrim,
-    detailScrim: THEME.semanticColors.detailScrim,
-    shadowColor: THEME.semanticColors.shadowColor,
-    danger: THEME.semanticColors.danger,
-    divider: THEME.semanticColors.divider,
-    controlTrack: THEME.semanticColors.controlTrack,
-    controlTrackActive: THEME.semanticColors.controlTrackActive,
-    controlThumb: THEME.semanticColors.controlThumb,
-  };
+  const paletteFromTheme = (theme) => ({
+    background: theme.colors.background,
+    panel: theme.colors.panel,
+    panelAlt: theme.colors.panelAlt,
+    accent: theme.colors.accent,
+    accentAlt: theme.colors.accentAlt,
+    secondary: theme.colors.secondary,
+    highlight: theme.colors.highlight,
+    text: theme.colors.text,
+    textStrong: theme.semanticColors.textStrong,
+    textSecondary: theme.semanticColors.textSecondary,
+    textMuted: theme.colors.muted,
+    textDisabled: theme.semanticColors.textDisabled,
+    icon: theme.semanticColors.iconPrimary,
+    iconMuted: theme.semanticColors.iconMuted,
+    placeholder: theme.semanticColors.placeholder,
+    line: theme.colors.line,
+    borderSubtle: theme.semanticColors.borderSubtle,
+    border: theme.semanticColors.borderDefault,
+    surface: theme.semanticColors.surfaceBase,
+    surfaceRaised: theme.semanticColors.surfaceRaised,
+    surfaceElevated: theme.semanticColors.surfaceElevated,
+    surfaceMuted: theme.semanticColors.surfaceMuted,
+    action: theme.semanticColors.action,
+    actionHover: theme.semanticColors.actionHover,
+    actionPressed: theme.semanticColors.actionPressed,
+    actionForeground: theme.semanticColors.actionForeground,
+    hover: theme.semanticColors.hoverSurface,
+    pressed: theme.semanticColors.pressedSurface,
+    selected: theme.semanticColors.selectedSurface,
+    focus: theme.semanticColors.focusRing,
+    link: theme.semanticColors.link,
+    sidebar: theme.semanticColors.sidebarSurface,
+    header: theme.semanticColors.headerSurface,
+    mainScrimStart: theme.semanticColors.mainScrimStart,
+    mainScrimMid: theme.semanticColors.mainScrimMid,
+    mainScrimEnd: theme.semanticColors.mainScrimEnd,
+    composer: theme.semanticColors.composerSurface,
+    overlayScrim: theme.semanticColors.overlayScrim,
+    detailScrim: theme.semanticColors.detailScrim,
+    shadowColor: theme.semanticColors.shadowColor,
+    danger: theme.semanticColors.danger,
+    divider: theme.semanticColors.divider,
+    controlTrack: theme.semanticColors.controlTrack,
+    controlTrackActive: theme.semanticColors.controlTrackActive,
+    controlThumb: theme.semanticColors.controlThumb,
+  });
+  const customPaletteFor = (mode) => paletteFromTheme(THEME.appearanceVariants?.[mode] ?? THEME);
+  const customPalette = customPaletteFor(nativeMode);
   const systemPaletteFor = (mode) => {
     const fallback = fallbackForMode(mode);
     return {
@@ -328,7 +332,7 @@
   const styleSourcesForSettings = (settings, mode = nativeShellMode()) => {
     const system = settings.paletteStrategy === "system";
     const sources = {
-      palette: { ...(system ? systemPaletteFor(mode) : customPalette) },
+      palette: { ...(system ? systemPaletteFor(mode) : customPaletteFor(mode)) },
       layout: { ...baseLayout },
       host: system ? {} : { ...customHostBridge },
     };
@@ -364,8 +368,51 @@
   root.classList.add("workbuddy-skin");
   root.dataset.workbuddySkinVersion = VERSION;
   root.dataset.workbuddySkinTheme = THEME.id;
-  if (THEME.presentation?.profileId === "immersive-scene-v1") root.dataset.workbuddySkinPresentation = "immersive-scene-v1";
-  else delete root.dataset.workbuddySkinPresentation;
+  const sceneBackdrop = THEME.presentation?.profileId === "immersive-scene-v1"
+    ? THEME.presentation.assetSlots["scene.backdrop"] : null;
+  let scenePresentationCss = "";
+  if (THEME.presentation?.profileId === "immersive-scene-v1") {
+    const scene = THEME.presentation.parameters;
+    if (sceneBackdrop !== THEME.image) throw new Error("Immersive scene backdrop must bind the theme image");
+    const sceneNumber = (value, minimum, maximum, name) => {
+      if (typeof value !== "number" || !Number.isFinite(value) || value < minimum || value > maximum) {
+        throw new Error(`Invalid immersive scene ${name}`);
+      }
+      return Number(value.toFixed(3)).toString();
+    };
+    const textureIntensity = sceneNumber(scene.textureIntensity, 0, 1, "textureIntensity");
+    const surfaceOpacity = sceneNumber(scene.surfaceOpacity, 0, 1, "surfaceOpacity");
+    const surfacePercent = Number(scene.surfaceOpacity * 100).toFixed(1).replace(/\.0$/, "");
+    root.dataset.workbuddySkinPresentation = "immersive-scene-v1";
+    root.dataset.workbuddySkinSceneDensity = scene.density;
+    root.dataset.workbuddySkinSceneBorderTreatment = scene.borderTreatment;
+    root.dataset.workbuddySkinSceneBackdrop = sceneBackdrop;
+    root.dataset.workbuddySkinSceneTextureIntensity = textureIntensity;
+    root.dataset.workbuddySkinSceneSurfaceOpacity = surfaceOpacity;
+    root.dataset.workbuddySkinSceneNavigationTreatment = scene.navigationTreatment;
+    root.dataset.workbuddySkinSceneComposerTreatment = scene.composerTreatment;
+    root.dataset.workbuddySkinSceneCardTreatment = scene.cardTreatment;
+    scenePresentationCss = `html.workbuddy-skin[data-workbuddy-skin-presentation="immersive-scene-v1"] {\n` +
+      `  --cc-theme-scene-density-tracking: .01em;\n` +
+      `  --cc-theme-scene-etched-line: color-mix(in srgb, #c8a55a 36%, transparent);\n` +
+      `  --cc-theme-scene-texture-alpha: ${textureIntensity};\n` +
+      `  --cc-theme-scene-content-opacity: ${surfacePercent}%;\n` +
+      `  --cc-theme-scene-surface-layer: color-mix(in srgb, var(--wbs-surface-raised) ${surfacePercent}%, transparent);\n` +
+      `  --cc-theme-scene-navigation-frame: color-mix(in srgb, #c8a55a 44%, transparent);\n` +
+      `  --cc-theme-scene-composer-anchor: linear-gradient(90deg, color-mix(in srgb, #c8a55a 18%, transparent), transparent 42%);\n` +
+      `  --cc-theme-scene-card-elevation: linear-gradient(140deg, rgba(200, 165, 90, var(--cc-theme-scene-texture-alpha)), transparent 38%);\n` +
+      `}`;
+  } else {
+    delete root.dataset.workbuddySkinPresentation;
+    delete root.dataset.workbuddySkinSceneDensity;
+    delete root.dataset.workbuddySkinSceneBorderTreatment;
+    delete root.dataset.workbuddySkinSceneBackdrop;
+    delete root.dataset.workbuddySkinSceneTextureIntensity;
+    delete root.dataset.workbuddySkinSceneSurfaceOpacity;
+    delete root.dataset.workbuddySkinSceneNavigationTreatment;
+    delete root.dataset.workbuddySkinSceneComposerTreatment;
+    delete root.dataset.workbuddySkinSceneCardTreatment;
+  }
   root.dataset.workbuddySkinMode = THEME.shellMode;
   root.dataset.workbuddySkinPalette = activePaletteStrategy;
   root.dataset.workbuddySkinNativeMode = nativeMode;
@@ -381,6 +428,13 @@
   style.dataset.workbuddySkinOwned = "true";
   style.textContent = CSS_TEXT;
   (document.head || root).append(style);
+  if (scenePresentationCss) {
+    const presentationStyle = document.createElement("style");
+    presentationStyle.dataset.workbuddySkinOwned = "true";
+    presentationStyle.dataset.workbuddySkinPresentation = "immersive-scene-v1";
+    presentationStyle.textContent = scenePresentationCss;
+    (document.head || root).append(presentationStyle);
+  }
 
   const background = document.createElement("div");
   background.id = BACKGROUND_ID;
@@ -397,7 +451,7 @@
   let videoPlayingMs = null;
   let videoToggle = null;
   let videoUserPaused = previousVideoUserPaused;
-  let videoMotionOverride = previousVideoMotionOverride;
+  let videoMotionOverride = sceneStaticMotionPolicy ? false : previousVideoMotionOverride;
   let videoDisabled = previousVideoDisabled;
   let videoPlaybackEpoch = 0;
   let videoTransport = VIDEO_URL ? "rejected" : "none";
@@ -419,6 +473,7 @@
   let tryThemeSettingsUpdate = () => false;
   let lastNativeSettingsNav = null;
   let updateThemeSettingsBackgroundControl = () => {};
+  const reducedMotionActive = () => motionPreference.matches && (sceneStaticMotionPolicy || !videoMotionOverride);
   const trustedVideoResource = (() => {
     if (!VIDEO_URL) return null;
     try {
@@ -555,7 +610,7 @@
       return;
     }
     backgroundVideo.hidden = false;
-    const reduced = motionPreference.matches && !videoMotionOverride;
+    const reduced = reducedMotionActive();
     const shouldPlay = !document.hidden && !videoUserPaused && !reduced;
     if (!shouldPlay) {
       backgroundVideo.pause();
@@ -648,7 +703,7 @@
     backgroundVideo.setAttribute("playsinline", "");
     backgroundVideo.setAttribute("disablepictureinpicture", "");
     backgroundVideo.dataset.playbackState = videoDisabled ? "disabled" :
-      motionPreference.matches && !videoMotionOverride
+      reducedMotionActive()
         ? "reduced-motion" : videoUserPaused ? "paused" : "loading";
     backgroundVideo.hidden = videoDisabled;
     backgroundVideo.addEventListener("loadeddata", () => {
@@ -1509,8 +1564,12 @@
   const syncNativeMode = () => {
     const mode = nativeShellMode();
     root.dataset.workbuddySkinNativeMode = mode;
-    if (activePaletteStrategy !== "system") return;
-    uiInterpreter.applyStyleSources(styleSourcesForSettings(currentThemeSettings, mode), { resetMissing: true });
+    // A variant-aware presentation has an explicit palette for each host
+    // appearance. Reapply its bounded variables when WorkBuddy switches
+    // Light/Dark, even when the selected strategy is adaptive or custom.
+    if (activePaletteStrategy === "system" || THEME.appearanceVariants) {
+      uiInterpreter.applyStyleSources(styleSourcesForSettings(currentThemeSettings, mode), { resetMissing: true });
+    }
   };
   const nativeThemeObserver = new MutationObserver(syncNativeMode);
   nativeThemeObserver.observe(document.body, { attributes: true, attributeFilter: ["class"] });
@@ -1562,7 +1621,7 @@
       videoUserPaused,
       videoDisabled,
       documentHidden: document.hidden,
-      reducedMotion: motionPreference.matches && !videoMotionOverride,
+      reducedMotion: reducedMotionActive(),
       generationInstallCount,
       generationTimingsMs: {
         installed: 0,
@@ -1625,6 +1684,14 @@
     delete root.dataset.workbuddySkinVersion;
     delete root.dataset.workbuddySkinTheme;
     delete root.dataset.workbuddySkinPresentation;
+    delete root.dataset.workbuddySkinSceneDensity;
+    delete root.dataset.workbuddySkinSceneBorderTreatment;
+    delete root.dataset.workbuddySkinSceneBackdrop;
+    delete root.dataset.workbuddySkinSceneTextureIntensity;
+    delete root.dataset.workbuddySkinSceneSurfaceOpacity;
+    delete root.dataset.workbuddySkinSceneNavigationTreatment;
+    delete root.dataset.workbuddySkinSceneComposerTreatment;
+    delete root.dataset.workbuddySkinSceneCardTreatment;
     delete root.dataset.workbuddySkinMode;
     delete root.dataset.workbuddySkinPalette;
     delete root.dataset.workbuddySkinNativeMode;
@@ -1652,6 +1719,13 @@
     interactiveRuntimeState,
     interactiveController,
     interactiveAtlasUrl,
+    enforceSceneReducedMotion: () => {
+      if (!sceneStaticMotionPolicy) return false;
+      videoMotionOverride = false;
+      updateVideoStateObject();
+      syncVideoPlayback();
+      return true;
+    },
     themeSettingsActive,
     themeSettingsSession,
     setDeferredInteractiveAtlasSource,

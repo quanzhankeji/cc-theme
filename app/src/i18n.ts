@@ -363,6 +363,7 @@ const englishRuntimeText = new Map<string, string>([
   ["主题包导入异常结束", "Theme package import ended unexpectedly"],
   ["无法连接本地注入端口", "Could not connect to the local theme service"],
   ["Adapter 编译上下文不兼容，请更新对应解释器后重试", "The Adapter compile context is incompatible. Update the corresponding adapter and try again."],
+  ["Adapter 的主题映射尚不完整，请更新对应解释器后重试", "The Adapter’s theme mapping is incomplete. Update the Adapter and try again."],
   ["内置主题编译运行时不可用，请更新 CC Theme 后重试", "The bundled theme compiler runtime is unavailable. Update CC Theme and try again."],
   ["客户端界面未在限定时间内完成主题初始化，Adapter 已安全回滚", "The client UI did not finish theme initialization in time. The Adapter rolled back safely."],
   ["本地管理器已就绪", "Local manager ready"],

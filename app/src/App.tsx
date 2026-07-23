@@ -17,6 +17,7 @@ import {
 import { managerWindowApi, type ManagerWindowApi } from "./window-api";
 import { themePackagePicker, type ThemePackagePicker } from "./theme-package-picker";
 import { themePackageDropTarget, type ThemePackageDropTarget } from "./theme-package-drop";
+import { ThemeWorkbench, type ThemeWorkbenchDraft, type ThemeWorkbenchMedia } from "./theme-workbench";
 import type {
   AdapterCapability,
   AdapterCatalogStatus,
@@ -378,7 +379,7 @@ function ClientCard({
   );
 }
 
-function ThemeCard({ theme, selected, locale, disabled, t, onSelect, onDelete }: { theme: ThemeFamily; selected: boolean; locale: ManagerLocale; disabled: boolean; t: Translate; onSelect: () => void; onDelete: () => void }) {
+function ThemeCard({ theme, selected, locale, disabled, t, onSelect, onPreview, onDelete }: { theme: ThemeFamily; selected: boolean; locale: ManagerLocale; disabled: boolean; t: Translate; onSelect: () => void; onPreview: () => void; onDelete: () => void }) {
   const display = themeDisplay(theme, locale);
   const [previewAttempt, setPreviewAttempt] = useState(0);
   const [previewFailed, setPreviewFailed] = useState(false);
@@ -419,6 +420,9 @@ function ThemeCard({ theme, selected, locale, disabled, t, onSelect, onDelete }:
           <button type="button" className="theme-delete" disabled={disabled} onClick={onDelete} aria-label={t("themes.delete")} title={t("themes.delete")}>
             <Icon name="trash" />
           </button>
+          <button type="button" className="theme-preview" disabled={disabled} onClick={onPreview} aria-label={locale === "zh-CN" ? "预览和编辑主题" : "Preview and edit theme"} title={locale === "zh-CN" ? "预览和编辑主题" : "Preview and edit theme"}>
+            <Icon name="preview" />
+          </button>
           <span className={`selected-indicator${selected ? " selected-indicator--selected" : ""}`} aria-hidden="true">
             {selected && <Icon name="check" />}
           </span>
@@ -443,6 +447,7 @@ export default function App({ api = desktopApi, windowApi = managerWindowApi, pa
   const [checkingAdapterId, setCheckingAdapterId] = useState<ClientId | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [themeToDelete, setThemeToDelete] = useState<ThemeFamily | null>(null);
+  const [workbenchTheme, setWorkbenchTheme] = useState<ThemeFamily | null>(null);
   const [deletingThemeId, setDeletingThemeId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -458,6 +463,21 @@ export default function App({ api = desktopApi, windowApi = managerWindowApi, pa
   const deleteDialog = useRef<HTMLElement | null>(null);
   const closeChoiceBusy = useRef(false);
   const t = useMemo(() => createTranslator(locale), [locale]);
+
+  const saveWorkbenchDraft = useCallback(async (draft: ThemeWorkbenchDraft, media: ThemeWorkbenchMedia | null) => {
+    const result = await api.saveThemeWorkbenchDraft(draft, media?.bytes ?? null);
+    if (result.status === "failed") throw new Error(`${result.code}: ${result.message}`);
+    const fresh = await api.getDashboardState();
+    setDashboard((current) => ({ ...fresh, activities: current?.activities ?? fresh.activities }));
+    setWorkbenchTheme(fresh.themes.find((theme) => theme.id === draft.base.themeId) ?? null);
+  }, [api]);
+  const restoreWorkbenchDraft = useCallback(async (themeId: string) => {
+    const result = await api.resetThemeWorkbenchDraft(themeId);
+    if (result.status === "failed") throw new Error(`${result.code}: ${result.message}`);
+    const fresh = await api.getDashboardState();
+    setDashboard((current) => ({ ...fresh, activities: current?.activities ?? fresh.activities }));
+    setWorkbenchTheme(fresh.themes.find((theme) => theme.id === themeId) ?? null);
+  }, [api]);
   droppedPathsHandler.current = (paths) => { void importDroppedTheme(paths); };
 
   const refreshRuntimeStates = useCallback(async (mayCommit: () => boolean = () => true) => {
@@ -755,7 +775,9 @@ export default function App({ api = desktopApi, windowApi = managerWindowApi, pa
       else result = await api.refreshClient(client.id);
       if (result.status === "failed") {
         const message = localizeRuntimeText(result.message || result.code, locale);
-        const showDiagnosticCode = result.code.startsWith("adapter-compile-") || result.code.startsWith("theme-compile-");
+        const showDiagnosticCode = result.code.startsWith("adapter-compile-")
+          || result.code.startsWith("adapter-presentation-")
+          || result.code.startsWith("theme-compile-");
         throw new Error(showDiagnosticCode ? `${message}（${result.code}）` : message);
       }
 
@@ -1011,6 +1033,8 @@ export default function App({ api = desktopApi, windowApi = managerWindowApi, pa
         </div>
       )}
 
+      {workbenchTheme && <ThemeWorkbench theme={workbenchTheme} locale={locale} onClose={() => setWorkbenchTheme(null)} onSaveDraft={saveWorkbenchDraft} onRestoreOriginal={restoreWorkbenchDraft} />}
+
       <div className="workspace">
         <main className="main-content">
           <section className="tool-heading">
@@ -1032,7 +1056,7 @@ export default function App({ api = desktopApi, windowApi = managerWindowApi, pa
             <div className="section-heading"><div><span className="eyebrow">{t("themes.eyebrow")}</span><h2>{t("themes.title")}</h2></div><div className="theme-heading-actions"><button className="button button--secondary button--small" type="button" disabled={importingTheme || Boolean(pending) || Boolean(deletingThemeId)} onClick={() => void importTheme()}>{importingTheme ? <span className="spinner" /> : <Icon name="download" />}{importingTheme ? t("themes.importing") : t("themes.import")}</button></div></div>
             <div className="theme-grid">
               {dashboard.themes.length === 0 && <p className="theme-empty">{t("themes.empty")}</p>}
-              {dashboard.themes.map((theme) => <ThemeCard key={theme.id} theme={theme} selected={selectedThemeId === theme.id} locale={locale} disabled={Boolean(pending) || Boolean(deletingThemeId)} t={t} onSelect={() => chooseTheme(theme.id)} onDelete={() => setThemeToDelete(theme)} />)}
+              {dashboard.themes.map((theme) => <ThemeCard key={theme.id} theme={theme} selected={selectedThemeId === theme.id} locale={locale} disabled={Boolean(pending) || Boolean(deletingThemeId)} t={t} onSelect={() => chooseTheme(theme.id)} onPreview={() => setWorkbenchTheme(theme)} onDelete={() => setThemeToDelete(theme)} />)}
             </div>
           </section>
 

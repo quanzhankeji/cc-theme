@@ -24,11 +24,11 @@ assert.equal(capability.revision, 2);
 assert.equal(capability.capabilityVersion, "2.0.0");
 assert.equal(capability.adapterId, "mac-codex");
 assert.equal(capability.adapterVersion, adapterVersion);
-assert.equal(capability.adapterReleaseRevision, 2);
+assert.equal(capability.adapterReleaseRevision, 3);
 assert.deepEqual(capability.releaseTarget, {
   os: "macos",
   arch: "arm64",
-  assetIdentity: `mac-codex-${adapterVersion}-r2-macos-arm64`,
+  assetIdentity: `mac-codex-${adapterVersion}-r3-macos-arm64`,
 });
 assert.equal(capability.availability, "available");
 assert.equal(capability.runtimeApplyAvailable, true);
@@ -39,6 +39,27 @@ assert.equal(capability.compatibility.currentEvidence.clientBuild, "5702");
 assert.equal(capability.compatibility.currentEvidence.surfaceCatalogId, "chatgpt-macos-26.715.71837");
 assert.equal(capability.compatibility.currentEvidence.surfaceCatalogVersion, 1);
 assert.equal(capability.semanticContractStatus, "blocked-pending-manager-cross-validation");
+const immersiveScene = capability.presentationProfiles["immersive-scene-v1"]?.sceneSemantics;
+assert.equal(immersiveScene?.scope, "presentation-scene");
+assert.deepEqual(Object.keys(immersiveScene?.surfaces ?? {}).sort(), [
+  "cards", "composer", "conversation", "home", "navigation", "overlays", "shell",
+]);
+assert.deepEqual(Object.keys(immersiveScene?.parameters ?? {}).sort(), [
+  "borderTreatment", "cardTreatment", "composerTreatment", "density", "navigationTreatment", "surfaceOpacity", "textureIntensity",
+]);
+assert.deepEqual(Object.keys(immersiveScene?.assetSlots ?? {}), ["scene.backdrop"]);
+for (const scope of [immersiveScene?.surfaces, immersiveScene?.parameters, immersiveScene?.assetSlots]) {
+  for (const mapping of Object.values(scope ?? {})) {
+    assert.equal(mapping.decision, "exact");
+    assert.match(mapping.consumerId, /^codex\.scene\./);
+    assert.match(mapping.diagnostic, /^scene-/);
+  }
+}
+for (const boundary of Object.values(capability.presentationBoundaries ?? {})) {
+  assert.equal(boundary.decision, "unsupported");
+  assert.equal(boundary.consumerId, null);
+  assert.match(boundary.diagnostic, /^scene-/);
+}
 assert.equal(capability.sharedCoreFieldDecisions.source, "adapter-projection.json");
 assert.equal(capability.sharedCoreFieldDecisions.singleSourceOfTruth, true);
 assert.equal(capability.localRuntimeOverrides.editableTokens.source, "theme-style-catalog.json");

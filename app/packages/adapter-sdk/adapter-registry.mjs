@@ -130,6 +130,7 @@ function normalizeCapability(raw, descriptor) {
     },
     compatibility: clone(raw.compatibility ?? {}),
     presentationProfiles: clone(raw.presentationProfiles ?? {}),
+    presentationBoundaries: clone(raw.presentationBoundaries ?? {}),
     projection: {
       module: descriptor.projectorModule,
       export: descriptor.projectorExport,

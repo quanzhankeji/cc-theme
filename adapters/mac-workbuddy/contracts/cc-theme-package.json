@@ -13,7 +13,7 @@
     "version": "5.2.6",
     "adapterId": "mac-workbuddy",
     "adapterVersion": "5.2.6",
-    "adapterReleaseRevision": 2,
+    "adapterReleaseRevision": 4,
     "adapterContract": "skin.theme",
     "targetPath": "targets/macos-workbuddy/theme.json"
   }

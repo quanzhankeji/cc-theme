@@ -66,6 +66,15 @@ const LOCAL_RUNTIME_OVERRIDE_KEYS = new Set(["baseThemeHash", "entries"]);
 const LOCAL_RUNTIME_OVERRIDE_ENTRY_KEYS = new Set(["tokenId", "baseHash", "value"]);
 const SAFE_CONTEXT_TEXT = /^[A-Za-z0-9._:+-]{1,160}$/;
 const SHA256 = /^[0-9a-f]{64}$/;
+const PRESENTATION_CONSUMER_ID = /^[A-Za-z][A-Za-z0-9.-]{2,119}$/;
+const PRESENTATION_DIAGNOSTIC = /^[a-z][a-z0-9-]{2,159}$/;
+const SCENE_SURFACES = ["shell", "navigation", "home", "conversation", "composer", "cards", "overlays"];
+const SCENE_PARAMETERS = [
+  "density", "borderTreatment", "textureIntensity", "surfaceOpacity",
+  "navigationTreatment", "composerTreatment", "cardTreatment",
+];
+const SCENE_ASSET_SLOTS = ["scene.backdrop"];
+const PRESENTATION_BOUNDARIES = ["nativeControls", "layout", "uncataloguedPortals", "fonts"];
 
 function plainObject(value, label) {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error(`${label} must be an object`);
@@ -78,6 +87,47 @@ function allowedObject(value, keys, label, optional = false) {
   const unknown = Object.keys(object).filter((key) => !keys.has(key));
   if (unknown.length) throw new Error(`${label} contains unsupported fields: ${unknown.join(", ")}`);
   return object;
+}
+
+function presentationDecision(value, label, expectedDecision) {
+  const decision = allowedObject(value, new Set(["decision", "consumerId", "diagnostic"]), label);
+  if (decision.decision !== expectedDecision || typeof decision.diagnostic !== "string" ||
+      !PRESENTATION_DIAGNOSTIC.test(decision.diagnostic)) {
+    throw new Error(`${label} has an invalid mapping decision`);
+  }
+  if (expectedDecision === "unsupported") {
+    if (decision.consumerId !== null) throw new Error(`${label}.consumerId must be null for an unsupported boundary`);
+  } else if (typeof decision.consumerId !== "string" || !PRESENTATION_CONSUMER_ID.test(decision.consumerId)) {
+    throw new Error(`${label}.consumerId must be a bounded opaque consumer id`);
+  }
+  return decision;
+}
+
+function exactPresentationScope(value, keys, label) {
+  const scope = allowedObject(value, new Set(keys), label);
+  for (const key of keys) presentationDecision(scope[key], `${label}.${key}`, "exact");
+  return scope;
+}
+
+function validatePresentationCapability(capability) {
+  const profiles = allowedObject(capability.presentationProfiles, new Set(["immersive-scene-v1"]),
+    "Mac Codex presentationProfiles");
+  const profile = allowedObject(profiles["immersive-scene-v1"],
+    new Set(["profileVersion", "geometryPolicy", "sceneSemantics"]), "Mac Codex immersive-scene-v1 capability");
+  const semantics = allowedObject(profile.sceneSemantics,
+    new Set(["scope", "surfaces", "parameters", "assetSlots"]), "Mac Codex immersive-scene-v1 sceneSemantics");
+  if (profile.profileVersion !== 1 || profile.geometryPolicy !== "scene-bounded" ||
+      semantics.scope !== "presentation-scene") {
+    throw new Error("Mac Codex immersive-scene-v1 capability has an invalid identity");
+  }
+  exactPresentationScope(semantics.surfaces, SCENE_SURFACES, "Mac Codex immersive-scene-v1 surfaces");
+  exactPresentationScope(semantics.parameters, SCENE_PARAMETERS, "Mac Codex immersive-scene-v1 parameters");
+  exactPresentationScope(semantics.assetSlots, SCENE_ASSET_SLOTS, "Mac Codex immersive-scene-v1 assetSlots");
+  const boundaries = allowedObject(capability.presentationBoundaries, new Set(PRESENTATION_BOUNDARIES),
+    "Mac Codex presentationBoundaries");
+  for (const boundary of PRESENTATION_BOUNDARIES) {
+    presentationDecision(boundaries[boundary], `Mac Codex presentationBoundaries.${boundary}`, "unsupported");
+  }
 }
 
 function managerCompileContext(value) {
@@ -247,6 +297,7 @@ export async function loadAdapterCapability(file = ADAPTER_CAPABILITY_PATH) {
       capability.compatibility?.currentEvidence?.clientVersion !== adapterVersion) {
     throw new Error("Mac Codex capability does not match the frozen Adapter release identity");
   }
+  validatePresentationCapability(capability);
   return capability;
 }
 
@@ -492,7 +543,7 @@ function neutralInvocation(value) {
     throw new Error("Adapter projector invocation has an invalid Mac Codex identity");
   }
   const identity = allowedObject(invocation.identity, new Set(["id", "name", "version"]), "Adapter projector identity");
-  const core = allowedObject(invocation.sharedCore, new Set(["tokens", "background", "accessibility"]), "Adapter projector Shared Core");
+  const core = allowedObject(invocation.sharedCore, new Set(["tokens", "background", "accessibility", "appearanceVariants"]), "Adapter projector Shared Core");
   const profiles = allowedObject(invocation.targetProfiles, new Set([ADAPTER_ID]), "Adapter projector Target Profiles");
   const assets = allowedObject(invocation.assetBindings, new Set(["background", "homeHero", "video", "atlas"]), "Adapter projector asset bindings");
   const compileContext = managerCompileContext(invocation.compileContext);
@@ -518,6 +569,30 @@ function visibleUnsupportedAccessibility(accessibility, projection) {
         severity: "warning",
       };
     });
+}
+
+function projectAppearanceVariants(value) {
+  if (value === undefined) return null;
+  const variants = allowedObject(value, new Set(["light", "dark"]), "Adapter projector Shared Core appearanceVariants");
+  const result = {};
+  for (const mode of ["light", "dark"]) {
+    const variant = allowedObject(variants[mode], new Set(["colors"]), `Adapter projector Shared Core appearanceVariants.${mode}`);
+    const colors = allowedObject(variant.colors, SEMANTIC_COLOR_KEYS,
+      `Adapter projector Shared Core appearanceVariants.${mode}.colors`);
+    if (Object.keys(colors).length !== SEMANTIC_COLOR_KEYS.size ||
+        [...SEMANTIC_COLOR_KEYS].some((key) => typeof colors[key] !== "string" || !COLOR.test(colors[key].trim()))) {
+      throw new Error(`Adapter projector Shared Core appearanceVariants.${mode}.colors must contain every valid semantic color`);
+    }
+    result[mode] = {
+      colors: { text: colors.text, muted: colors.textMuted },
+      semanticColors: Object.fromEntries(
+        Object.entries(colors)
+          .filter(([key]) => key !== "text" && key !== "textMuted")
+          .map(([key, color]) => [key, color.trim()]),
+      ),
+    };
+  }
+  return result;
 }
 
 function compileAdmission(capability, context) {
@@ -554,6 +629,7 @@ export async function projectThemeFamilyAdapter(value) {
       throw new Error(`Mac Codex capability version ${String(invocation.capabilityVersion)} is not supported`);
     }
     const tokens = allowedObject(core.tokens, new Set(["colors", "fonts", "appearance"]), "Adapter projector Shared Core tokens");
+    const appearanceVariants = projectAppearanceVariants(core.appearanceVariants);
     const background = allowedObject(core.background, V2_BACKGROUND_KEYS, "Adapter projector Shared Core background");
     const accessibility = allowedObject(core.accessibility, new Set([
       "reducedMotion", "minimumTextContrast", "minimumLargeTextContrast", "preserveSystemFocusRing", "transparencyFallback",
@@ -617,6 +693,10 @@ export async function projectThemeFamilyAdapter(value) {
     };
     const result = await executeCompileRequest(request);
     if (result.status === "success") {
+      if (appearanceVariants) {
+        result.targetTheme.appearanceVariants = appearanceVariants;
+        result.targetTheme = normalizeSkinTheme(result.targetTheme, "Compiled Mac Codex theme");
+      }
       const admission = compileAdmission(capability, compileContext);
       result.applyAllowed = admission.applyAllowed;
       result.diagnostics = [

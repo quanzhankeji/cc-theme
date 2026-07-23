@@ -334,6 +334,80 @@ async fn delete_local_theme(app: AppHandle, theme_id: String) -> OperationResult
         )
 }
 
+#[tauri::command(rename_all = "camelCase")]
+async fn save_theme_surface_opacity(theme_id: String, surface_opacity: f64) -> OperationResult {
+    tauri::async_runtime::spawn_blocking(move || {
+        match themes::save_theme_surface_opacity(&theme_id, surface_opacity) {
+            Ok(saved_opacity) => OperationResult::success(
+                "theme-local-override-saved",
+                "主内容背景透明度已保存到本地主题，将在下次应用时生效",
+                json!({ "themeId": theme_id, "surfaceOpacity": saved_opacity }),
+            ),
+            Err(code) => {
+                OperationResult::failed(code, "无法保存主内容背景透明度；原始主题包未被修改")
+            }
+        }
+    })
+    .await
+    .unwrap_or_else(|_| {
+        OperationResult::failed(
+            "theme-local-override-save-failed",
+            "保存主内容背景透明度时任务异常结束",
+        )
+    })
+}
+
+#[tauri::command(rename_all = "camelCase")]
+async fn save_theme_workbench_draft(
+    draft: themes::ThemeWorkbenchDraftInput,
+    media_bytes: Option<Vec<u8>>,
+) -> OperationResult {
+    let theme_id = draft.base.theme_id.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        match themes::save_theme_workbench_draft(draft, media_bytes) {
+            Ok(()) => OperationResult::success(
+                "theme-workbench-draft-saved",
+                "主题编辑已安全保存到本地，将在下次应用主题时生效",
+                json!({ "themeId": theme_id }),
+            ),
+            Err(code) => OperationResult::failed(
+                code,
+                "无法保存主题编辑；原始主题包和现有本地设置均未被改写",
+            ),
+        }
+    })
+    .await
+    .unwrap_or_else(|_| {
+        OperationResult::failed(
+            "theme-workbench-draft-save-failed",
+            "保存主题编辑时任务异常结束",
+        )
+    })
+}
+
+#[tauri::command(rename_all = "camelCase")]
+async fn reset_theme_workbench_draft(theme_id: String) -> OperationResult {
+    tauri::async_runtime::spawn_blocking(move || {
+        match themes::reset_theme_workbench_draft(&theme_id) {
+            Ok(removed) => OperationResult::success(
+                "theme-workbench-draft-reset",
+                "已恢复导入主题的原始设置；本地编辑副本已移除",
+                json!({ "themeId": theme_id, "removed": removed }),
+            ),
+            Err(code) => {
+                OperationResult::failed(code, "无法恢复原始主题；现有本地编辑副本未被改写")
+            }
+        }
+    })
+    .await
+    .unwrap_or_else(|_| {
+        OperationResult::failed(
+            "theme-workbench-draft-reset-failed",
+            "恢复原始主题时任务异常结束",
+        )
+    })
+}
+
 pub fn run() {
     tauri::Builder::default()
         .register_uri_scheme_protocol("cc-theme-preview", |_context, request| {
@@ -431,6 +505,9 @@ pub fn run() {
             check_adapter_updates,
             download_latest_adapter,
             delete_local_theme,
+            save_theme_surface_opacity,
+            save_theme_workbench_draft,
+            reset_theme_workbench_draft,
             set_manager_locale,
             minimize_to_menu_bar,
             quit_manager

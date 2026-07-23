@@ -200,7 +200,7 @@
           "properties": {
             "density": { "const": "comfortable" }, "borderTreatment": { "const": "etched" },
             "textureIntensity": { "type": "number", "minimum": 0, "maximum": 1 },
-            "surfaceOpacity": { "type": "number", "minimum": 0.4, "maximum": 0.88 },
+            "surfaceOpacity": { "type": "number", "minimum": 0, "maximum": 1 },
             "navigationTreatment": { "const": "framed" }, "composerTreatment": { "const": "anchored" }, "cardTreatment": { "const": "elevated" }
           }
         },

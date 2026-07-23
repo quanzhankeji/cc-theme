@@ -85,14 +85,17 @@ html.workbuddy-skin #workbuddy-skin-background-video[data-playback-state="disabl
 /* Adapter-owned immersive scene recipe: every selector is a versioned
    WorkBuddy Surface Role and does not replace native controls or focus. */
 html.workbuddy-skin[data-workbuddy-skin-presentation="immersive-scene-v1"] [data-workbuddy-skin-role="shell"] {
-  background: linear-gradient(90deg, rgba(9, 8, 9, .83), rgba(14, 11, 10, .44) 57%, rgba(13, 10, 9, .15)) !important;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--wbs-main-scrim-start) var(--cc-theme-scene-content-opacity), transparent),
+    color-mix(in srgb, var(--wbs-main-scrim-mid) var(--cc-theme-scene-content-opacity), transparent) 57%,
+    color-mix(in srgb, var(--wbs-main-scrim-end) var(--cc-theme-scene-content-opacity), transparent)) !important;
 }
 
 html.workbuddy-skin:not([data-workbuddy-skin-palette="system"]):not([data-workbuddy-skin-video-state="disabled"])[data-workbuddy-skin-presentation="immersive-scene-v1"] :is(
   [data-workbuddy-skin-role="sidebar"],
   [data-workbuddy-skin-role="topbar"]
 ) {
-  background: color-mix(in srgb, var(--wbs-surface-raised) 94%, #090707) !important;
+  background: color-mix(in srgb, var(--wbs-surface-raised) 94%, var(--wbs-surface-base)) !important;
   border-color: color-mix(in srgb, #c8a55a 32%, transparent) !important;
   box-shadow: var(--wbs-shadow-sidebar) !important;
 }
@@ -104,7 +107,17 @@ html.workbuddy-skin[data-workbuddy-skin-presentation="immersive-scene-v1"] :is(
   [data-workbuddy-skin-role="page-expert"],
   [data-workbuddy-skin-role="page-automation"]
 ) {
-  background: linear-gradient(90deg, rgba(10, 9, 10, .52), rgba(16, 13, 11, .22)) !important;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--wbs-main-scrim-start) var(--cc-theme-scene-content-opacity), transparent),
+    color-mix(in srgb, var(--wbs-main-scrim-mid) var(--cc-theme-scene-content-opacity), transparent) 57%,
+    color-mix(in srgb, var(--wbs-main-scrim-end) var(--cc-theme-scene-content-opacity), transparent)) !important;
+}
+
+html.workbuddy-skin[data-workbuddy-skin-presentation="immersive-scene-v1"] #workbuddy-skin-background-scrim {
+  background: linear-gradient(115deg,
+    color-mix(in srgb, var(--wbs-main-scrim-start) var(--cc-theme-scene-content-opacity), transparent) 0%,
+    color-mix(in srgb, var(--wbs-main-scrim-mid) var(--cc-theme-scene-content-opacity), transparent) 54%,
+    color-mix(in srgb, var(--wbs-main-scrim-end) var(--cc-theme-scene-content-opacity), transparent) 100%) !important;
 }
 
 html.workbuddy-skin[data-workbuddy-skin-presentation="immersive-scene-v1"] :is(
@@ -1469,6 +1482,57 @@ html.workbuddy-skin #root [data-workbuddy-skin-role="sidebar-nav-row"].active
   background: transparent !important;
   color: var(--wbs-text-strong) !important;
   border-color: transparent !important;
+}
+
+/*
+ * immersive-scene-v1 is a bounded, paint-only recipe. The renderer writes
+ * these values only after the standalone normalizer has accepted the bounded
+ * profile contract; arbitrary theme CSS or geometry never reaches the host.
+ */
+html.workbuddy-skin:not([data-workbuddy-skin-palette="system"])[data-workbuddy-skin-presentation="immersive-scene-v1"][data-workbuddy-skin-scene-density="comfortable"] #root
+  [data-workbuddy-skin-role="home-heading"] {
+  letter-spacing: var(--cc-theme-scene-density-tracking, normal) !important;
+}
+
+html.workbuddy-skin:not([data-workbuddy-skin-palette="system"]):not([data-workbuddy-skin-video-state="disabled"])[data-workbuddy-skin-presentation="immersive-scene-v1"][data-workbuddy-skin-scene-border-treatment="etched"][data-workbuddy-skin-scene-navigation-treatment="framed"] #root :is(
+  [data-workbuddy-skin-role="sidebar-nav-row"],
+  [data-workbuddy-skin-role="sidebar-nav-action"]
+) {
+  outline: 1px solid var(--cc-theme-scene-navigation-frame, transparent);
+  outline-offset: -1px;
+}
+
+html.workbuddy-skin:not([data-workbuddy-skin-palette="system"])[data-workbuddy-skin-presentation="immersive-scene-v1"][data-workbuddy-skin-scene-border-treatment="etched"][data-workbuddy-skin-scene-composer-treatment="anchored"] #root
+  [data-workbuddy-skin-role="composer"] {
+  background-color: var(--cc-theme-scene-surface-layer, var(--wbs-composer)) !important;
+  background-image: var(--cc-theme-scene-composer-anchor, none) !important;
+  border-color: var(--cc-theme-scene-etched-line, var(--wbs-border)) !important;
+}
+
+html.workbuddy-skin:not([data-workbuddy-skin-palette="system"])[data-workbuddy-skin-presentation="immersive-scene-v1"][data-workbuddy-skin-scene-border-treatment="etched"][data-workbuddy-skin-scene-card-treatment="elevated"] #root :is(
+  [data-workbuddy-skin-role="quick-action"],
+  [data-workbuddy-skin-role="project-card"],
+  [data-workbuddy-skin-role="project-template-card"],
+  [data-workbuddy-skin-role="expert-scene-card"],
+  [data-workbuddy-skin-role="expert-card"],
+  [data-workbuddy-skin-role="automation-template-card"],
+  [data-workbuddy-skin-role="artifact-card"]
+) {
+  background-color: var(--cc-theme-scene-surface-layer, var(--wbs-surface-raised)) !important;
+  background-image: var(--cc-theme-scene-card-elevation, none) !important;
+  border-color: var(--cc-theme-scene-etched-line, var(--wbs-border-subtle)) !important;
+}
+
+html.workbuddy-skin:not([data-workbuddy-skin-palette="system"]):not([data-workbuddy-skin-video-state="disabled"])[data-workbuddy-skin-presentation="immersive-scene-v1"][data-workbuddy-skin-scene-border-treatment="etched"] #root :is(
+  [data-workbuddy-skin-role="overlay-popover"],
+  [data-workbuddy-skin-role="overlay-account"],
+  [data-workbuddy-skin-role="overlay-search-modal"],
+  [data-workbuddy-skin-role="overlay-settings-modal"],
+  [data-workbuddy-skin-role="overlay-create-modal"],
+  [data-workbuddy-skin-role="overlay-listbox"]
+) {
+  background-color: var(--cc-theme-scene-surface-layer, var(--wbs-surface-elevated)) !important;
+  border-color: var(--cc-theme-scene-etched-line, var(--wbs-border)) !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

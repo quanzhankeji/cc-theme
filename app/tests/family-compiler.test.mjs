@@ -38,6 +38,26 @@ test("the unified sample matches Adapter-owned target golden artifacts", async (
   }
 });
 
+test("a high-fidelity family carries closed light and dark palettes through every registered Adapter", async () => {
+  const source = JSON.parse(await readFile(
+    path.join(managerRoot, "..", "themes", "gothic-void-crusade", "unified-theme.json"),
+    "utf8",
+  ));
+  const result = await compileThemeFamily(source, context);
+
+  for (const adapterId of source.targets) {
+    const variants = result.themes[adapterId].appearanceVariants;
+    assert.ok(variants, `${adapterId} should retain high-fidelity appearance variants`);
+    assert.equal(variants.light.colors.text, "#241C15", `${adapterId}: light text`);
+    assert.equal(variants.dark.colors.text, "#F3EAD7", `${adapterId}: dark text`);
+    assert.equal(variants.light.semanticColors.surfaceBase, "#F7F0E1", `${adapterId}: light canvas`);
+    assert.equal(variants.dark.semanticColors.surfaceBase, "#0D0D0E", `${adapterId}: dark canvas`);
+  }
+  // Each projector normalizes before returning its compiled target theme.  The
+  // compile result additionally carries its bounded runtime bookkeeping, so
+  // it must not be fed back into a raw skin-theme normalizer here.
+});
+
 test("Manager uses one neutral registered projector invocation without host request builders", async () => {
   const compiler = await readFile(path.join(runtimeRoot, "theme-core/compiler.mjs"), "utf8");
   for (const forbidden of ["REQUEST_BUILDERS", "buildCodexInvocation", "buildLegacyInvocation"]) {
@@ -93,7 +113,7 @@ test("Doubao projects structural consumers while keeping native controls and rip
   Object.assign(source.sharedCore.tokens.colors, {
     surfaceCode: "#111111",
     textStrong: "#FFFFFF",
-    actionHover: "#777777",
+    actionHover: "#767676",
     actionPressed: "#555555",
     success: "#00AA00",
     warning: "#AA8800",

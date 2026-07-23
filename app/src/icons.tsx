@@ -9,6 +9,7 @@ export type IconName =
   | "launch"
   | "moon"
   | "pause"
+  | "preview"
   | "refresh"
   | "restore"
   | "sparkle"
@@ -25,6 +26,7 @@ const paths: Record<IconName, React.ReactNode> = {
   launch: <><path d="M14 5h5v5M19 5l-8 8" /><path d="M18 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5" /></>,
   moon: <><path d="M20.2 15.4A8.5 8.5 0 0 1 8.6 3.8 8.5 8.5 0 1 0 20.2 15.4Z" /></>,
   pause: <><path d="M9 5v14M15 5v14" /></>,
+  preview: <><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" /><circle cx="12" cy="12" r="2.5" /></>,
   refresh: <><path d="M20 11a8 8 0 0 0-14.9-3M4 4v5h5M4 13a8 8 0 0 0 14.9 3M20 20v-5h-5" /></>,
   restore: <><path d="M4 8v5h5M5.3 16a8 8 0 1 0 .2-8.3L4 9" /></>,
   sparkle: <><path d="m12 3 1.1 3.2L16 8l-2.9 1.8L12 13l-1.1-3.2L8 8l2.9-1.8L12 3ZM5.5 14l.7 2.3L8.5 17l-2.3.7L5.5 20l-.7-2.3-2.3-.7 2.3-.7.7-2.3ZM18.5 13l.7 2.3 2.3.7-2.3.7-.7 2.3-.7-2.3-2.3-.7 2.3-.7.7-2.3Z" /></>,

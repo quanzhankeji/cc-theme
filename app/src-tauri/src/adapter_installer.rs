@@ -152,6 +152,43 @@ pub fn active_adapter_root(adapter_id: &str) -> Option<PathBuf> {
     active_adapter_root_from(&crate::registry::manager_adapter_library_root(), adapter_id)
 }
 
+/// A locally installed Engine normally takes precedence over the bundled
+/// fallback.  A freshly installed Manager may, however, contain a newer
+/// verified Engine than an older local pointer left by a previous build.  In
+/// that case prefer the signed bundle without mutating the local store; the
+/// older local package remains available as a rollback source.
+pub fn active_adapter_is_not_older_than(adapter_id: &str, bundled_root: &Path) -> bool {
+    let Some(active_root) = active_adapter_root(adapter_id) else {
+        return false;
+    };
+    let Some(active) = release_identity_from(&active_root) else {
+        return false;
+    };
+    let Some(bundled) = release_identity_from(bundled_root) else {
+        return false;
+    };
+    release_identity_at_least(&active, &bundled)
+}
+
+fn release_identity_from(root: &Path) -> Option<(semver::Version, u64)> {
+    let release = read_small_json(&root.join("contracts/adapter-release-manifest.json")).ok()?;
+    let version = release.get("adapterVersion")?.as_str()?;
+    let revision = release.get("adapterReleaseRevision")?.as_u64()?;
+    if !valid_semver(version) || revision == 0 {
+        return None;
+    }
+    semver::Version::parse(version)
+        .ok()
+        .map(|version| (version, revision))
+}
+
+fn release_identity_at_least(
+    active: &(semver::Version, u64),
+    bundled: &(semver::Version, u64),
+) -> bool {
+    active.0 > bundled.0 || (active.0 == bundled.0 && active.1 >= bundled.1)
+}
+
 fn active_adapter_root_from(library_root: &Path, adapter_id: &str) -> Option<PathBuf> {
     if !matches!(adapter_id, "mac-codex" | "mac-doubao" | "mac-workbuddy") {
         return None;
@@ -1527,6 +1564,24 @@ mod tests {
                 .unwrap()
         );
         fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn release_precedence_never_selects_a_stale_local_engine_over_a_newer_bundle() {
+        let release =
+            |version: &str, revision| (semver::Version::parse(version).unwrap(), revision);
+        assert!(!release_identity_at_least(
+            &release("26.715.71837", 1),
+            &release("26.715.71837", 3),
+        ));
+        assert!(release_identity_at_least(
+            &release("26.715.71837", 3),
+            &release("26.715.71837", 3),
+        ));
+        assert!(release_identity_at_least(
+            &release("26.715.71838", 1),
+            &release("26.715.71837", 99),
+        ));
     }
 
     #[test]
