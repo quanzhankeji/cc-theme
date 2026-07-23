@@ -12,28 +12,33 @@ import { verifyAdapterPackage } from "../scripts/adapter-package.mjs";
 
 const execute = promisify(execFile);
 const expectedIdentities = new Map([
-  ["mac-codex", "mac-codex-26.715.71837-r2-macos-arm64"],
-  ["mac-doubao", "mac-doubao-2.19.9-r2-macos-arm64"],
-  ["mac-workbuddy", "mac-workbuddy-5.2.6-r2-macos-arm64"],
+  ["mac-codex", "mac-codex-26.715.71837-r3-macos-arm64"],
+  ["mac-doubao", "mac-doubao-2.19.9-r4-macos-arm64"],
+  ["mac-workbuddy", "mac-workbuddy-5.2.6-r4-macos-arm64"],
+]);
+const expectedRevisions = new Map([
+  ["mac-codex", 3],
+  ["mac-doubao", 4],
+  ["mac-workbuddy", 4],
 ]);
 const expectedPublishedPackages = new Map([
   ["mac-codex", {
-    bytes: 1_083_380,
-    sha256: "d30ab16038a11ae5a55d40772953e0198cf15ec9b2c9bc1816026d965a7d54b4",
-    manifestSha256: "13dcf5e6dd13104881a1e30fd94cebd69e7bbc7fc07634c1d3837797003fc925",
-    minimumManagerVersion: "0.2.1",
+    bytes: 1_098_823,
+    sha256: "6dd7938810b1b7f5f3ee7ff2b800f1b1df917ee0466e11eda8ab50bb7332cd34",
+    manifestSha256: "63c7e190e137dfcb1405e080a34c08fd62ecbf3c7a4b6ad408718e2cb6b2a1ea",
+    minimumManagerVersion: "0.2.2",
   }],
   ["mac-doubao", {
-    bytes: 161_537,
-    sha256: "9fd79e213e2627333bb111c5e087d1cab259a953424af27729be88a112b9d277",
-    manifestSha256: "76aa7d37fae88a243ec44762b9140d11c457dc9d9ee2d62bed997b0166df4895",
-    minimumManagerVersion: "0.2.1",
+    bytes: 187_920,
+    sha256: "6eea72b489fedaef453b7e67b710706827b8e6be94b650a2e3dce67387613b8a",
+    manifestSha256: "a14ee11246c2e1c31e24970a4f2d75a37241a3c121cbdd971faba8e3caa3ed38",
+    minimumManagerVersion: "0.2.2",
   }],
   ["mac-workbuddy", {
-    bytes: 736_560,
-    sha256: "abe6bdbca0a0a2714c289b012db1f2df6cc7cd943e7ee2a65d48de003010c4b9",
-    manifestSha256: "55903b3136157e0d136cfe3dd3368e5c3886257ba500f0c8ecf10bab7d58fa05",
-    minimumManagerVersion: "0.2.1",
+    bytes: 763_027,
+    sha256: "32437f3c59579c080567a5325f08d16da1e776187db59aa89337bdcb51ee90b0",
+    manifestSha256: "a6a3cfa25345c6df8a5d1756fb8ee830e704ffb7d6f63d1df3adc325527a4d98",
+    minimumManagerVersion: "0.2.2",
   }],
 ]);
 
@@ -68,7 +73,7 @@ test("one distribution build produces three verified qualified Mac packages and 
     assert.equal(verified.ok, true);
     assert.equal(verified.manifest.adapterId, packageRecord.adapterId);
     assert.equal(verified.manifest.assetIdentity, expectedIdentities.get(packageRecord.adapterId));
-    assert.equal(verified.manifest.adapterReleaseRevision, 2);
+    assert.equal(verified.manifest.adapterReleaseRevision, expectedRevisions.get(packageRecord.adapterId));
     assert.equal(verified.manifest.contracts.minimumManagerVersion, published.minimumManagerVersion);
     const extracted = path.join(outputDirectory, `extracted-${packageRecord.adapterId}`);
     await fs.mkdir(extracted);
@@ -90,7 +95,7 @@ test("one distribution build produces three verified qualified Mac packages and 
     assert.equal(adapter.releases[0].packages[0].downloadUrl, undefined);
   }
   assert.equal(result.catalog.adapters[0].current.adapterVersion, "26.715.71837");
-  assert.equal(result.catalog.adapters[0].releases[0].contracts.minimumManagerVersion, "0.2.1");
+  assert.equal(result.catalog.adapters[0].releases[0].contracts.minimumManagerVersion, "0.2.2");
 
   await assert.rejects(
     buildAdapterDistribution({ outputDirectory, architecture: "arm64" }),

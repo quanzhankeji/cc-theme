@@ -17,12 +17,12 @@ try {
   assert.deepEqual(identity, {
     adapterId: "mac-workbuddy",
     adapterVersion: "5.2.6",
-    adapterReleaseRevision: 2,
+    adapterReleaseRevision: 4,
     platform: "macos",
     architecture: "arm64",
-    assetIdentity: "mac-workbuddy-5.2.6-r2-macos-arm64",
-    sourceArchive: "mac-workbuddy-5.2.6-r2-macos-arm64.zip",
-    clientArchive: "cc-theme-mac-workbuddy-5.2.6-r2-macos-arm64.zip",
+    assetIdentity: "mac-workbuddy-5.2.6-r4-macos-arm64",
+    sourceArchive: "mac-workbuddy-5.2.6-r4-macos-arm64.zip",
+    clientArchive: "cc-theme-mac-workbuddy-5.2.6-r4-macos-arm64.zip",
   });
 
   const project = JSON.parse(await fs.readFile(path.join(root, "PROJECT_MANIFEST.json"), "utf8"));
@@ -54,7 +54,7 @@ try {
   assert.equal(crypto.createHash("sha256").update(await fs.readFile(archive)).digest("hex"), firstHash,
     "a repeated unpublished-development source build was not deterministic");
 
-  console.log("PASS: Adapter version follows WorkBuddy ShortVersion and unpublished r2 rebuilds deterministically until first publication.");
+  console.log("PASS: Adapter version follows WorkBuddy ShortVersion and unpublished r4 builds deterministically until first publication.");
 } finally {
   await fs.rm(temporary, { recursive: true, force: true });
 }

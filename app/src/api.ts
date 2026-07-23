@@ -10,6 +10,7 @@ import type {
   DiagnosticReport,
   OperationResult,
 } from "./types";
+import type { ThemeWorkbenchDraft } from "./theme-workbench";
 
 const DEMO_LATENCY_MS = 260;
 
@@ -124,6 +125,33 @@ export const desktopApi = {
       code: "theme-deleted",
       message: "本地主题及其关联数据已删除",
       details: { removedEntries: 1 },
+    }));
+  },
+
+  saveThemeSurfaceOpacity(themeId: string, surfaceOpacity: number): Promise<OperationResult<{ themeId: string; surfaceOpacity: number }>> {
+    return call("save_theme_surface_opacity", { themeId, surfaceOpacity }, () => ({
+      status: "success",
+      code: "theme-local-override-saved",
+      message: "主内容背景透明度已保存到本地主题",
+      details: { themeId, surfaceOpacity },
+    }));
+  },
+
+  saveThemeWorkbenchDraft(draft: ThemeWorkbenchDraft, mediaBytes: Uint8Array | null): Promise<OperationResult<{ themeId: string }>> {
+    return call("save_theme_workbench_draft", { draft, mediaBytes }, () => ({
+      status: "success",
+      code: "theme-workbench-draft-saved",
+      message: "主题编辑已安全保存到本地，将在下次应用主题时生效",
+      details: { themeId: draft.base.themeId },
+    }));
+  },
+
+  resetThemeWorkbenchDraft(themeId: string): Promise<OperationResult<{ themeId: string; removed: boolean }>> {
+    return call("reset_theme_workbench_draft", { themeId }, () => ({
+      status: "success",
+      code: "theme-workbench-draft-reset",
+      message: "已恢复导入主题的原始设置；本地编辑副本已移除",
+      details: { themeId, removed: true },
     }));
   },
 

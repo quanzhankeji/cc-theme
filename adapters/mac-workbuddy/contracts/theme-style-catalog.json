@@ -4,7 +4,7 @@
   "catalogVersion": 2,
   "adapterId": "mac-workbuddy",
   "adapterVersion": "5.2.6",
-  "adapterReleaseRevision": 2,
+  "adapterReleaseRevision": 4,
   "catalogId": "mac-workbuddy-theme",
   "geometryPolicy": "native",
   "description": "Paint-only bindings consumed by the fixed WorkBuddy UI interpreter. DOM geometry remains host-owned.",

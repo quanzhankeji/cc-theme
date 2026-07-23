@@ -17,8 +17,9 @@ use crate::{
     process::{run_with_timeout, ProcessError},
     registry::{self, ClientDefinition},
     themes::{
-        cached_compiled_theme, seed_compiled_theme_into_library, valid_theme_id,
-        CompiledThemeCacheKey,
+        cached_compiled_theme, effective_theme_source, local_theme_override_media,
+        seed_compiled_theme_into_library, stage_effective_theme_assets, valid_theme_id,
+        CompiledThemeCacheKey, LocalThemeOverrideMedia,
     },
 };
 
@@ -121,12 +122,12 @@ pub fn compile_and_seed_theme(
     let theme_root = trusted_directory(&theme_root, "中央主题库")?;
     let family = trusted_direct_child(&theme_root, theme_id, "Theme Family")?;
     verify_family_manifest(&family, theme_id)?;
-    let source = family.join("unified-theme.json");
-    if !source.exists() {
+    if !family.join("unified-theme.json").exists() {
         return Ok(None);
     }
-    trusted_json_file(&source, "Unified Theme")?;
+    let (effective_source, effective_source_bytes) = effective_theme_source(&family, theme_id)?;
     let assets = trusted_direct_child(&family, "assets", "Theme Family assets")?;
+    let local_media = local_theme_override_media(theme_id)?;
 
     let compiler_root = compiler_root()?;
     let cli = compiler_root.join("cli.mjs");
@@ -145,11 +146,13 @@ pub fn compile_and_seed_theme(
         definition.id.as_str(),
         theme_id,
         &family,
+        &effective_source_bytes,
         &compile_context,
         &adapter_root,
         &compiler_root,
         &adapter_sdk_root,
         capability_registry.as_deref(),
+        local_media.as_ref(),
     )?;
     if let Some(cached) = cached_compiled_theme(definition, &cache_key) {
         return Ok(Some(cached));
@@ -158,6 +161,8 @@ pub fn compile_and_seed_theme(
     let workspace = CompileWorkspace::create()?;
     let context_file = workspace.root.join("compile-context.json");
     write_private_json(&context_file, &compile_context)?;
+    let source_file = workspace.root.join("unified-theme.json");
+    write_private_json(&source_file, &effective_source)?;
     let output_root = workspace.root.join("output");
     fs::create_dir(&output_root).map_err(|_| "无法创建编译输出目录".to_string())?;
     set_private_directory(&output_root)?;
@@ -165,7 +170,7 @@ pub fn compile_and_seed_theme(
     let mut command = Command::new(node);
     command
         .arg(cli)
-        .arg(&source)
+        .arg(&source_file)
         .arg(&context_file)
         .arg(&output_root)
         .arg(definition.id.as_str())
@@ -198,20 +203,35 @@ pub fn compile_and_seed_theme(
     let target_directory = target_theme
         .parent()
         .ok_or_else(|| "Adapter 编译结果目录无效".to_string())?;
-    seed_compiled_theme_into_library(definition, target_directory, &assets, theme_id, &cache_key)
-        .map(Some)
-        .map_err(Into::into)
+    let effective_assets = if local_media.is_some() {
+        let staged_assets = workspace.root.join("assets");
+        stage_effective_theme_assets(&assets, &staged_assets, local_media.as_ref())?;
+        staged_assets
+    } else {
+        assets
+    };
+    seed_compiled_theme_into_library(
+        definition,
+        target_directory,
+        &effective_assets,
+        theme_id,
+        &cache_key,
+    )
+    .map(Some)
+    .map_err(Into::into)
 }
 
 fn compile_cache_key_from(
     adapter_id: &str,
     theme_id: &str,
     family: &Path,
+    effective_source: &[u8],
     compile_context: &Value,
     adapter_root: &Path,
     compiler_root: &Path,
     adapter_sdk_root: &Path,
     capability_registry: Option<&Path>,
+    local_media: Option<&LocalThemeOverrideMedia>,
 ) -> Result<CompiledThemeCacheKey, String> {
     let mut digest = Sha256::new();
     digest.update(b"cc-theme-compiled-target-cache-v1\0");
@@ -220,6 +240,21 @@ fn compile_cache_key_from(
     digest.update(theme_id.as_bytes());
     digest.update(b"\0family\0");
     update_digest_with_file(&mut digest, &family.join("family.json"), 2 * 1024 * 1024)?;
+    if effective_source.len() > 2 * 1024 * 1024 {
+        return Err("主题本地覆盖后的源文件超过安全限制".to_string());
+    }
+    digest.update(b"\0effective-source\0");
+    digest.update((effective_source.len() as u64).to_le_bytes());
+    digest.update(effective_source);
+    if let Some(media) = local_media {
+        digest.update(b"\0local-background\0");
+        digest.update(media.file_name.as_bytes());
+        digest.update(b"\0");
+        digest.update(media.content_type.as_bytes());
+        digest.update(b"\0");
+        digest.update(media.bytes.to_le_bytes());
+        digest.update(media.sha256.as_bytes());
+    }
     digest.update(b"\0context\0");
     digest.update(
         serde_json::to_vec(compile_context)
@@ -343,6 +378,31 @@ fn classify_compiler_failure(
                 "adapterId": adapter_id,
                 "reasonCode": "adapter-compile-context-incompatible",
                 "unsupportedFields": unsupported_fields
+            }),
+        };
+    }
+    if lower.contains("contrast")
+        && (lower.contains("minimumtextcontrast") || lower.contains("minimumlargetextcontrast"))
+    {
+        return ThemeCompileFailure {
+            code: "theme-compile-accessibility-contrast".to_string(),
+            message: "主题颜色对比度未达到声明的无障碍标准，请调整文字或按钮颜色后重试".to_string(),
+            details: json!({
+                "stage": "theme-validation",
+                "adapterId": adapter_id,
+                "reasonCode": "theme-compile-accessibility-contrast"
+            }),
+        };
+    }
+    if lower.contains("presentation-mapping-incomplete") {
+        return ThemeCompileFailure {
+            code: "adapter-presentation-mapping-incomplete".to_string(),
+            message: "Adapter 的主题映射尚不完整，请更新对应解释器后重试".to_string(),
+            details: json!({
+                "stage": "adapter-projector",
+                "adapterId": adapter_id,
+                "reasonCode": "adapter-presentation-mapping-incomplete",
+                "mappingScope": "presentation"
             }),
         };
     }
@@ -885,6 +945,43 @@ mod tests {
     }
 
     #[test]
+    fn incomplete_presentation_mapping_returns_a_bounded_adapter_diagnostic() {
+        let stderr = br#"untrusted prefix /Users/private/theme TOKEN=secret
+{"ok":false,"error":"mac-doubao.presentation.parameters.textureIntensity: presentation-mapping-incomplete: does not provide an exact immersive-scene-v1 parameter consumer for textureIntensity"}
+"#;
+        let failure = classify_compiler_failure("mac-doubao", b"", stderr);
+        assert_eq!(failure.code, "adapter-presentation-mapping-incomplete");
+        assert_eq!(
+            failure.message,
+            "Adapter 的主题映射尚不完整，请更新对应解释器后重试"
+        );
+        assert_eq!(
+            failure.details["reasonCode"],
+            "adapter-presentation-mapping-incomplete"
+        );
+        let public = serde_json::to_string(&failure.details).unwrap();
+        assert!(public.len() < 512);
+        assert!(!public.contains("/Users/private"));
+        assert!(!public.contains("TOKEN=secret"));
+    }
+
+    #[test]
+    fn contrast_failure_is_not_misreported_as_an_adapter_error() {
+        let stderr = br#"untrusted prefix /Users/private/theme TOKEN=secret
+{"ok":false,"error":"theme.sharedCore.tokens.colors.actionForeground/action: contrast 4.09:1 is below declared minimumTextContrast 4.5:1"}
+"#;
+        let failure = classify_compiler_failure("mac-workbuddy", b"", stderr);
+        assert_eq!(failure.code, "theme-compile-accessibility-contrast");
+        assert_eq!(
+            failure.message,
+            "主题颜色对比度未达到声明的无障碍标准，请调整文字或按钮颜色后重试"
+        );
+        let public = serde_json::to_string(&failure.details).unwrap();
+        assert!(!public.contains("/Users/private"));
+        assert!(!public.contains("TOKEN=secret"));
+    }
+
+    #[test]
     fn hardened_runtime_jit_failure_is_not_misreported_as_an_adapter_error() {
         let stderr = br#"
 # Fatal process out of memory: Failed to reserve virtual memory for CodeRange
@@ -1071,22 +1168,26 @@ private stack frame /Users/example/theme TOKEN=secret
             "mac-workbuddy",
             "fixture",
             &family,
+            br#"{\"id\":\"fixture\",\"surfaceOpacity\":0.72}"#,
             &first_context,
             &adapter,
             &compiler,
             &sdk,
             Some(&registry),
+            None,
         )
         .unwrap();
         let repeated = compile_cache_key_from(
             "mac-workbuddy",
             "fixture",
             &family,
+            br#"{\"id\":\"fixture\",\"surfaceOpacity\":0.72}"#,
             &first_context,
             &adapter,
             &compiler,
             &sdk,
             Some(&registry),
+            None,
         )
         .unwrap();
         assert_eq!(first, repeated);
@@ -1095,11 +1196,13 @@ private stack frame /Users/example/theme TOKEN=secret
             "mac-workbuddy",
             "fixture",
             &family,
+            br#"{\"id\":\"fixture\",\"surfaceOpacity\":0.72}"#,
             &json!({"adapters":{"mac-workbuddy":{"probeStatus":"failed"}}}),
             &adapter,
             &compiler,
             &sdk,
             Some(&registry),
+            None,
         )
         .unwrap();
         assert_ne!(first.fingerprint, context_changed.fingerprint);
@@ -1109,14 +1212,31 @@ private stack frame /Users/example/theme TOKEN=secret
             "mac-workbuddy",
             "fixture",
             &family,
+            br#"{\"id\":\"fixture\",\"surfaceOpacity\":0.72}"#,
             &first_context,
             &adapter,
             &compiler,
             &sdk,
             Some(&registry),
+            None,
         )
         .unwrap();
         assert_ne!(first.fingerprint, engine_changed.fingerprint);
+
+        let local_opacity_changed = compile_cache_key_from(
+            "mac-workbuddy",
+            "fixture",
+            &family,
+            br#"{\"id\":\"fixture\",\"surfaceOpacity\":0.84}"#,
+            &first_context,
+            &adapter,
+            &compiler,
+            &sdk,
+            Some(&registry),
+            None,
+        )
+        .unwrap();
+        assert_ne!(first.fingerprint, local_opacity_changed.fingerprint);
         fs::remove_dir_all(root).unwrap();
     }
 }

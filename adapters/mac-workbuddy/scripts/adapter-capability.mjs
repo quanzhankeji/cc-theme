@@ -15,7 +15,7 @@ export const ADAPTER_CAPABILITY_KIND = "cc-theme.adapter-capability";
 export const TARGET_PROFILE_KIND = "cc-theme.target-profile";
 export const ADAPTER_ID = "mac-workbuddy";
 export const ADAPTER_VERSION = "5.2.6";
-export const ADAPTER_RELEASE_REVISION = 2;
+export const ADAPTER_RELEASE_REVISION = 4;
 export const ADAPTER_PLATFORM = "macos";
 export const ADAPTER_ARCHITECTURE = "arm64";
 
@@ -35,7 +35,7 @@ export function validateAdapterCapability(value, label = "WorkBuddy adapter capa
   const capability = exactKeys(value, [
     "kind", "schemaVersion", "capabilityVersion", "adapterId", "adapterVersion",
     "adapterReleaseRevision", "platform", "architecture", "available", "runtimeApplyAvailable",
-    "catalogs", "compatibility", "sharedCore", "targetProfile", "presentationProfiles", "localRuntimeOverrides", "paletteStrategy",
+    "catalogs", "compatibility", "sharedCore", "targetProfile", "presentationProfiles", "presentationBoundaries", "localRuntimeOverrides", "paletteStrategy",
     "transactionSeam", "migration",
   ], label);
   if (capability.kind !== ADAPTER_CAPABILITY_KIND || capability.schemaVersion !== 1 ||
@@ -119,11 +119,32 @@ export function validateAdapterCapability(value, label = "WorkBuddy adapter capa
     profileIds.add(field.id);
   }
   const presentationProfiles = exactKeys(capability.presentationProfiles, ["immersive-scene-v1"], `${label}.presentationProfiles`);
-  const immersive = exactKeys(presentationProfiles["immersive-scene-v1"], ["profileVersion", "geometryPolicy", "surfaces"], `${label}.presentationProfiles.immersive-scene-v1`);
-  const sceneSurfaces = exactKeys(immersive.surfaces, ["shell", "navigation", "home", "conversation", "composer", "cards", "overlays"], `${label}.presentationProfiles.immersive-scene-v1.surfaces`);
-  if (immersive.profileVersion !== 1 || immersive.geometryPolicy !== "scene-bounded" ||
-      Object.values(sceneSurfaces).some((value) => value !== "exact")) {
+  const immersive = exactKeys(presentationProfiles["immersive-scene-v1"], ["profileVersion", "geometryPolicy", "sceneSemantics"], `${label}.presentationProfiles.immersive-scene-v1`);
+  const sceneSemantics = exactKeys(immersive.sceneSemantics, ["scope", "surfaces", "parameters", "assetSlots"], `${label}.presentationProfiles.immersive-scene-v1.sceneSemantics`);
+  const exactSceneDecisions = (value, keys, scope) => {
+    const decisions = exactKeys(value, keys, `${label}.presentationProfiles.immersive-scene-v1.sceneSemantics.${scope}`);
+    for (const [name, declaration] of Object.entries(decisions)) {
+      const entry = exactKeys(declaration, ["decision", "consumerId", "diagnostic"], `${label}.presentationProfiles.immersive-scene-v1.sceneSemantics.${scope}.${name}`);
+      if (entry.decision !== "exact" || typeof entry.consumerId !== "string" ||
+          !/^workbuddy\.presentation\.(?:surface|parameter|asset)\.[a-z0-9.-]{1,120}$/.test(entry.consumerId) ||
+          typeof entry.diagnostic !== "string" || !/^[a-z][a-z0-9-]{0,79}$/.test(entry.diagnostic)) {
+        throw new Error(`${label} requires exact immersive scene semantics for ${scope}.${name}`);
+      }
+    }
+    return decisions;
+  };
+  exactSceneDecisions(sceneSemantics.surfaces, ["shell", "navigation", "home", "conversation", "composer", "cards", "overlays"], "surfaces");
+  exactSceneDecisions(sceneSemantics.parameters, ["density", "borderTreatment", "textureIntensity", "surfaceOpacity", "navigationTreatment", "composerTreatment", "cardTreatment"], "parameters");
+  exactSceneDecisions(sceneSemantics.assetSlots, ["scene.backdrop"], "assetSlots");
+  if (immersive.profileVersion !== 1 || immersive.geometryPolicy !== "scene-bounded" || sceneSemantics.scope !== "presentation-scene") {
     throw new Error(`${label} has an invalid immersive scene capability declaration`);
+  }
+  const presentationBoundaries = exactKeys(capability.presentationBoundaries, ["nativeControls", "layout", "uncataloguedPortals", "fonts"], `${label}.presentationBoundaries`);
+  for (const [scope, declaration] of Object.entries(presentationBoundaries)) {
+    const boundary = exactKeys(declaration, ["decision", "consumerId", "diagnostic"], `${label}.presentationBoundaries.${scope}`);
+    if (boundary.decision !== "unsupported" || boundary.consumerId !== null || typeof boundary.diagnostic !== "string" || !/^[a-z][a-z0-9-]{0,79}$/.test(boundary.diagnostic)) {
+      throw new Error(`${label} must keep ${scope} outside the immersive exact scope`);
+    }
   }
   const localRuntimeOverrides = exactKeys(capability.localRuntimeOverrides, [
     "kind", "schema", "schemaVersion", "catalog", "catalogVersion", "editableTokens", "rebase", "incompatible",

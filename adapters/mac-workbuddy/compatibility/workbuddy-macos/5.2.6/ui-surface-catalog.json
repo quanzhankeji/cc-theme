@@ -3,7 +3,7 @@
   "catalogVersion": 2,
   "adapter": "mac-workbuddy",
   "adapterVersion": "5.2.6",
-  "adapterReleaseRevision": 2,
+  "adapterReleaseRevision": 4,
   "capturedAt": "2026-07-18",
   "capture": {
     "mode": "read-only native UI traversal plus CDP computed-style audit",

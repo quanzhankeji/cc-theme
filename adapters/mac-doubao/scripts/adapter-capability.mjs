@@ -26,6 +26,16 @@ const COLOR_KEYS = new Set([
 const REQUIRED_COLORS = ["surfaceBase", "text", "textMuted", "action", "actionForeground", "focusRing"];
 const COLOR_PATTERN = /^(?:#[0-9a-f]{6}|rgba?\([0-9., %]+\))$/i;
 const HASH_PATTERN = /^[0-9a-f]{64}$/;
+const PRESENTATION_MAPPING_DECISIONS = new Set(["exact", "approximate", "unsupported"]);
+const PRESENTATION_CONSUMER_ID = /^[A-Za-z][A-Za-z0-9.-]{2,119}$/;
+const PRESENTATION_DIAGNOSTIC = /^[a-z][a-z0-9-]{2,159}$/;
+const SCENE_SURFACES = ["shell", "navigation", "home", "conversation", "composer", "cards", "overlays"];
+const SCENE_PARAMETERS = [
+  "density", "borderTreatment", "textureIntensity", "surfaceOpacity",
+  "navigationTreatment", "composerTreatment", "cardTreatment",
+];
+const SCENE_ASSET_SLOTS = ["scene.backdrop"];
+const PRESENTATION_BOUNDARIES = ["nativeControls", "layout", "uncataloguedPortals", "fonts"];
 
 const plainObject = (value) => value && typeof value === "object" && !Array.isArray(value) ? value : null;
 
@@ -40,6 +50,77 @@ function objectWithKeys(value, keys, label) {
 function requireKeys(value, keys, label) {
   const missing = keys.filter((key) => !Object.hasOwn(value, key));
   if (missing.length) throw new Error(`${label} requires fields: ${missing.join(", ")}`);
+}
+
+function validatePresentationDecision(value, label) {
+  const decision = objectWithKeys(value, new Set(["decision", "consumerId", "diagnostic"]), label);
+  requireKeys(decision, ["decision", "consumerId", "diagnostic"], label);
+  if (!PRESENTATION_MAPPING_DECISIONS.has(decision.decision)) {
+    throw new Error(`${label}.decision is invalid`);
+  }
+  if (typeof decision.diagnostic !== "string" || !PRESENTATION_DIAGNOSTIC.test(decision.diagnostic)) {
+    throw new Error(`${label}.diagnostic is invalid`);
+  }
+  if (decision.decision === "unsupported") {
+    if (decision.consumerId !== null) throw new Error(`${label}.consumerId must be null when unsupported`);
+  } else if (typeof decision.consumerId !== "string" || !PRESENTATION_CONSUMER_ID.test(decision.consumerId)) {
+    throw new Error(`${label}.consumerId is invalid`);
+  }
+  return structuredClone(decision);
+}
+
+function validatePresentationScope(value, keys, label) {
+  const scope = objectWithKeys(value, new Set(keys), label);
+  requireKeys(scope, keys, label);
+  return Object.fromEntries(keys.map((key) => [key, validatePresentationDecision(scope[key], `${label}.${key}`)]));
+}
+
+/**
+ * Validates the self-contained portion of the published capability that
+ * describes immersive-scene-v1. It intentionally accepts only semantic
+ * consumer identifiers: no selectors, CSS, layout coordinates, or commands
+ * can appear in the capability advertisement.
+ */
+export function validatePresentationCapabilityMetadata(raw) {
+  const capability = plainObject(raw);
+  if (!capability) throw new Error("Adapter capability must be an object");
+  const profiles = objectWithKeys(capability.presentationProfiles, new Set(["immersive-scene-v1"]), "Adapter presentationProfiles");
+  requireKeys(profiles, ["immersive-scene-v1"], "Adapter presentationProfiles");
+  const profile = objectWithKeys(profiles["immersive-scene-v1"], new Set([
+    "profileVersion", "geometryPolicy", "sceneSemantics",
+  ]), "immersive-scene-v1 capability");
+  requireKeys(profile, ["profileVersion", "geometryPolicy", "sceneSemantics"], "immersive-scene-v1 capability");
+  if (profile.profileVersion !== 1 || profile.geometryPolicy !== "scene-bounded") {
+    throw new Error("immersive-scene-v1 capability has an invalid profile identity");
+  }
+  const semantics = objectWithKeys(profile.sceneSemantics, new Set([
+    "scope", "surfaces", "parameters", "assetSlots",
+  ]), "immersive-scene-v1 sceneSemantics");
+  requireKeys(semantics, ["scope", "surfaces", "parameters", "assetSlots"], "immersive-scene-v1 sceneSemantics");
+  if (semantics.scope !== "presentation-scene") {
+    throw new Error("immersive-scene-v1 sceneSemantics.scope is invalid");
+  }
+  const boundaries = validatePresentationScope(
+    capability.presentationBoundaries,
+    PRESENTATION_BOUNDARIES,
+    "Adapter presentationBoundaries",
+  );
+  for (const [boundary, value] of Object.entries(boundaries)) {
+    if (value.decision !== "unsupported" || value.consumerId !== null) {
+      throw new Error(`Adapter presentationBoundaries.${boundary} must be unsupported`);
+    }
+  }
+  return {
+    profileVersion: profile.profileVersion,
+    geometryPolicy: profile.geometryPolicy,
+    sceneSemantics: {
+      scope: semantics.scope,
+      surfaces: validatePresentationScope(semantics.surfaces, SCENE_SURFACES, "immersive-scene-v1 sceneSemantics.surfaces"),
+      parameters: validatePresentationScope(semantics.parameters, SCENE_PARAMETERS, "immersive-scene-v1 sceneSemantics.parameters"),
+      assetSlots: validatePresentationScope(semantics.assetSlots, SCENE_ASSET_SLOTS, "immersive-scene-v1 sceneSemantics.assetSlots"),
+    },
+    presentationBoundaries: boundaries,
+  };
 }
 
 function optionalText(value, maximum, label) {
@@ -98,7 +179,7 @@ function validateInvocation(value) {
       typeof identity.version !== "string" || !/^\d+\.\d+\.\d+(?:-[A-Za-z0-9.-]+)?$/.test(identity.version)) {
     throw new Error("Adapter identity is invalid");
   }
-  const core = objectWithKeys(invocation.sharedCore, new Set(["tokens", "background", "accessibility"]), "Adapter Shared Core");
+  const core = objectWithKeys(invocation.sharedCore, new Set(["tokens", "background", "accessibility", "appearanceVariants"]), "Adapter Shared Core");
   requireKeys(core, ["tokens", "background", "accessibility"], "Adapter Shared Core");
   const profiles = objectWithKeys(invocation.targetProfiles, new Set([ADAPTER_ID]), "Adapter Target Profiles");
   requireKeys(profiles, [ADAPTER_ID], "Adapter Target Profiles");
@@ -144,6 +225,19 @@ function validateColors(value) {
     if (typeof entry !== "string" || entry.length > 48 || !COLOR_PATTERN.test(entry)) throw new Error(`Shared Core colors.${key} is invalid`);
   }
   return colors;
+}
+
+function validateAppearanceVariants(value) {
+  if (value === undefined) return null;
+  const variants = objectWithKeys(value, new Set(["light", "dark"]), "Shared Core appearanceVariants");
+  for (const mode of ["light", "dark"]) {
+    const variant = objectWithKeys(variants[mode], new Set(["colors"]), `Shared Core appearanceVariants.${mode}`);
+    const colors = validateColors(variant.colors);
+    if (Object.keys(colors).length !== COLOR_KEYS.size) {
+      throw new Error(`Shared Core appearanceVariants.${mode}.colors must declare every semantic color`);
+    }
+  }
+  return variants;
 }
 
 function validateFonts(value) {
@@ -222,6 +316,20 @@ function projectColors(colors, diagnostics, paletteStrategy) {
     ));
   }
   return semanticColors;
+}
+
+function projectAppearanceVariant(colors) {
+  const semanticColors = {};
+  for (const key of [
+    "surfaceBase", "surfaceRaised", "action", "actionForeground", "focusRing",
+    "sidebarSurface", "headerSurface", "mainScrimStart", "mainScrimMid", "mainScrimEnd",
+  ]) {
+    semanticColors[key] = colors[key];
+  }
+  return {
+    colors: { text: colors.text, muted: colors.textMuted },
+    semanticColors,
+  };
 }
 
 function projectFonts(fonts, diagnostics) {
@@ -375,6 +483,7 @@ export async function projectThemeFamilyAdapter(value) {
   const tokens = objectWithKeys(core.tokens, new Set(["colors", "fonts", "appearance"]), "Shared Core tokens");
   requireKeys(tokens, ["colors", "fonts"], "Shared Core tokens");
   const colors = validateColors(tokens.colors);
+  const appearanceVariants = validateAppearanceVariants(core.appearanceVariants);
   const fonts = validateFonts(tokens.fonts);
   const appearance = validateAppearance(tokens.appearance ?? {});
   const accessibility = validateAccessibility(core.accessibility);
@@ -397,6 +506,12 @@ export async function projectThemeFamilyAdapter(value) {
     ...(background.backgroundVideo ? { backgroundVideo: background.backgroundVideo } : {}),
     colors: { text: colors.text, muted: colors.textMuted },
     semanticColors,
+    ...(appearanceVariants ? {
+      appearanceVariants: {
+        light: projectAppearanceVariant(appearanceVariants.light.colors),
+        dark: projectAppearanceVariant(appearanceVariants.dark.colors),
+      },
+    } : {}),
     ...(Object.keys(targetFonts).length ? { fonts: targetFonts } : {}),
     ...(Object.keys(targetAppearance).length ? { appearance: targetAppearance } : {}),
   };

@@ -4,7 +4,7 @@
   "capabilityVersion": 1,
   "adapterId": "mac-workbuddy",
   "adapterVersion": "5.2.6",
-  "adapterReleaseRevision": 2,
+  "adapterReleaseRevision": 4,
   "platform": "macos",
   "architecture": "arm64",
   "available": true,
@@ -110,16 +110,37 @@
     "immersive-scene-v1": {
       "profileVersion": 1,
       "geometryPolicy": "scene-bounded",
-      "surfaces": {
-        "shell": "exact",
-        "navigation": "exact",
-        "home": "exact",
-        "conversation": "exact",
-        "composer": "exact",
-        "cards": "exact",
-        "overlays": "exact"
+      "sceneSemantics": {
+        "scope": "presentation-scene",
+        "surfaces": {
+          "shell": { "decision": "exact", "consumerId": "workbuddy.presentation.surface.shell.paint", "diagnostic": "immersive-scene-shell-exact" },
+          "navigation": { "decision": "exact", "consumerId": "workbuddy.presentation.surface.navigation.paint", "diagnostic": "immersive-scene-navigation-exact" },
+          "home": { "decision": "exact", "consumerId": "workbuddy.presentation.surface.home.paint", "diagnostic": "immersive-scene-home-exact" },
+          "conversation": { "decision": "exact", "consumerId": "workbuddy.presentation.surface.conversation.paint", "diagnostic": "immersive-scene-conversation-exact" },
+          "composer": { "decision": "exact", "consumerId": "workbuddy.presentation.surface.composer.paint", "diagnostic": "immersive-scene-composer-exact" },
+          "cards": { "decision": "exact", "consumerId": "workbuddy.presentation.surface.cards.paint", "diagnostic": "immersive-scene-cards-exact" },
+          "overlays": { "decision": "exact", "consumerId": "workbuddy.presentation.surface.overlays.paint", "diagnostic": "immersive-scene-overlays-exact" }
+        },
+        "parameters": {
+          "density": { "decision": "exact", "consumerId": "workbuddy.presentation.parameter.density.heading-tracking", "diagnostic": "immersive-scene-density-exact" },
+          "borderTreatment": { "decision": "exact", "consumerId": "workbuddy.presentation.parameter.border-treatment.etched-frame", "diagnostic": "immersive-scene-border-treatment-exact" },
+          "textureIntensity": { "decision": "exact", "consumerId": "workbuddy.presentation.parameter.texture-intensity.card-elevation", "diagnostic": "immersive-scene-texture-intensity-exact" },
+          "surfaceOpacity": { "decision": "exact", "consumerId": "workbuddy.presentation.parameter.surface-opacity.scene-layer", "diagnostic": "immersive-scene-surface-opacity-exact" },
+          "navigationTreatment": { "decision": "exact", "consumerId": "workbuddy.presentation.parameter.navigation-treatment.framed-nav", "diagnostic": "immersive-scene-navigation-treatment-exact" },
+          "composerTreatment": { "decision": "exact", "consumerId": "workbuddy.presentation.parameter.composer-treatment.anchored-composer", "diagnostic": "immersive-scene-composer-treatment-exact" },
+          "cardTreatment": { "decision": "exact", "consumerId": "workbuddy.presentation.parameter.card-treatment.elevated-cards", "diagnostic": "immersive-scene-card-treatment-exact" }
+        },
+        "assetSlots": {
+          "scene.backdrop": { "decision": "exact", "consumerId": "workbuddy.presentation.asset.backdrop.runtime-background", "diagnostic": "immersive-scene-backdrop-exact" }
+        }
       }
     }
+  },
+  "presentationBoundaries": {
+    "nativeControls": { "decision": "unsupported", "consumerId": null, "diagnostic": "native-controls-host-owned" },
+    "layout": { "decision": "unsupported", "consumerId": null, "diagnostic": "native-layout-preserved" },
+    "uncataloguedPortals": { "decision": "unsupported", "consumerId": null, "diagnostic": "uncatalogued-portal-unsupported" },
+    "fonts": { "decision": "unsupported", "consumerId": null, "diagnostic": "presentation-font-override-unsupported" }
   },
   "localRuntimeOverrides": {
     "kind": "theme.runtime-settings",

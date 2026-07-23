@@ -1,9 +1,9 @@
 {
   "kind": "cc-theme.adapter-capability",
-  "revision": 4,
+  "revision": 5,
   "adapterId": "mac-doubao",
   "adapterVersion": "2.19.9",
-  "adapterReleaseRevision": 2,
+  "adapterReleaseRevision": 4,
   "displayName": "Mac Doubao",
   "availability": "available",
   "capabilityVersion": "1.3.0",
@@ -103,15 +103,52 @@
     "immersive-scene-v1": {
       "profileVersion": 1,
       "geometryPolicy": "scene-bounded",
-      "surfaces": {
-        "shell": "exact",
-        "navigation": "exact",
-        "home": "exact",
-        "conversation": "exact",
-        "composer": "exact",
-        "cards": "exact",
-        "overlays": "exact"
+      "sceneSemantics": {
+        "scope": "presentation-scene",
+        "surfaces": {
+          "shell": { "decision": "exact", "consumerId": "doubao.scene.shell", "diagnostic": "scene-surface-shell-exact" },
+          "navigation": { "decision": "exact", "consumerId": "doubao.scene.navigation-frame", "diagnostic": "scene-surface-navigation-exact" },
+          "home": { "decision": "exact", "consumerId": "doubao.scene.home-frame", "diagnostic": "scene-surface-home-exact" },
+          "conversation": { "decision": "exact", "consumerId": "doubao.scene.conversation-frame", "diagnostic": "scene-surface-conversation-exact" },
+          "composer": { "decision": "exact", "consumerId": "doubao.scene.composer-frame", "diagnostic": "scene-surface-composer-exact" },
+          "cards": { "decision": "exact", "consumerId": "doubao.scene.card-frame", "diagnostic": "scene-surface-cards-exact" },
+          "overlays": { "decision": "exact", "consumerId": "doubao.scene.overlay-frame", "diagnostic": "scene-surface-overlays-exact" }
+        },
+        "parameters": {
+          "density": { "decision": "exact", "consumerId": "doubao.scene.density-inset", "diagnostic": "scene-parameter-density-exact" },
+          "borderTreatment": { "decision": "exact", "consumerId": "doubao.scene.etched-highlight", "diagnostic": "scene-parameter-border-treatment-exact" },
+          "textureIntensity": { "decision": "exact", "consumerId": "doubao.scene.texture-line", "diagnostic": "scene-parameter-texture-intensity-exact" },
+          "surfaceOpacity": { "decision": "exact", "consumerId": "doubao.scene.panel-opacity", "diagnostic": "scene-parameter-surface-opacity-exact" },
+          "navigationTreatment": { "decision": "exact", "consumerId": "doubao.scene.navigation-frame", "diagnostic": "scene-parameter-navigation-treatment-exact" },
+          "composerTreatment": { "decision": "exact", "consumerId": "doubao.scene.composer-frame", "diagnostic": "scene-parameter-composer-treatment-exact" },
+          "cardTreatment": { "decision": "exact", "consumerId": "doubao.scene.card-frame", "diagnostic": "scene-parameter-card-treatment-exact" }
+        },
+        "assetSlots": {
+          "scene.backdrop": { "decision": "exact", "consumerId": "doubao.scene.background", "diagnostic": "scene-asset-backdrop-exact" }
+        }
       }
+    }
+  },
+  "presentationBoundaries": {
+    "nativeControls": {
+      "decision": "unsupported",
+      "consumerId": null,
+      "diagnostic": "scene-native-controls-host-owned"
+    },
+    "layout": {
+      "decision": "unsupported",
+      "consumerId": null,
+      "diagnostic": "scene-layout-host-owned"
+    },
+    "uncataloguedPortals": {
+      "decision": "unsupported",
+      "consumerId": null,
+      "diagnostic": "scene-uncatalogued-portals-unsupported"
+    },
+    "fonts": {
+      "decision": "unsupported",
+      "consumerId": null,
+      "diagnostic": "scene-fonts-host-owned"
     }
   },
   "localRuntimeOverrides": {

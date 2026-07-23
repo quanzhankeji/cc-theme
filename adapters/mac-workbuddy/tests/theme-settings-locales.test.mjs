@@ -18,7 +18,7 @@ const [locales, renderer, css, styleCatalog] = await Promise.all([
 assert.equal(locales.kind, "theme.settings-locales");
 assert.equal(locales.adapter, "mac-workbuddy");
 assert.equal(locales.adapterVersion, locales.host.version);
-assert.equal(locales.adapterReleaseRevision, 2);
+assert.equal(locales.adapterReleaseRevision, 4);
 assert.deepEqual(locales.locales, ["zh-CN", "en-US"]);
 assert.equal(locales.defaultLocale, "zh-CN");
 assert.equal(locales.host.application, "WorkBuddy");

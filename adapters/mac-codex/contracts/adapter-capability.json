@@ -3,11 +3,11 @@
   "revision": 2,
   "adapterId": "mac-codex",
   "adapterVersion": "26.715.71837",
-  "adapterReleaseRevision": 2,
+  "adapterReleaseRevision": 3,
   "releaseTarget": {
     "os": "macos",
     "arch": "arm64",
-    "assetIdentity": "mac-codex-26.715.71837-r2-macos-arm64"
+    "assetIdentity": "mac-codex-26.715.71837-r3-macos-arm64"
   },
   "displayName": "Mac Codex",
   "availability": "available",
@@ -69,16 +69,37 @@
     "immersive-scene-v1": {
       "profileVersion": 1,
       "geometryPolicy": "scene-bounded",
-      "surfaces": {
-        "shell": "exact",
-        "navigation": "exact",
-        "home": "exact",
-        "conversation": "exact",
-        "composer": "exact",
-        "cards": "exact",
-        "overlays": "exact"
+      "sceneSemantics": {
+        "scope": "presentation-scene",
+        "surfaces": {
+          "shell": { "decision": "exact", "consumerId": "codex.scene.shell.root", "diagnostic": "scene-surface-shell-exact" },
+          "navigation": { "decision": "exact", "consumerId": "codex.scene.navigation.sidebar", "diagnostic": "scene-surface-navigation-exact" },
+          "home": { "decision": "exact", "consumerId": "codex.scene.home.role-frame", "diagnostic": "scene-surface-home-exact" },
+          "conversation": { "decision": "exact", "consumerId": "codex.scene.conversation.main-frame", "diagnostic": "scene-surface-conversation-exact" },
+          "composer": { "decision": "exact", "consumerId": "codex.scene.composer.role-frame", "diagnostic": "scene-surface-composer-exact" },
+          "cards": { "decision": "exact", "consumerId": "codex.scene.cards.suggestion-frame", "diagnostic": "scene-surface-cards-exact" },
+          "overlays": { "decision": "exact", "consumerId": "codex.scene.overlays.role-frame", "diagnostic": "scene-surface-overlays-exact" }
+        },
+        "parameters": {
+          "density": { "decision": "exact", "consumerId": "codex.scene.density.inset", "diagnostic": "scene-parameter-density-exact" },
+          "borderTreatment": { "decision": "exact", "consumerId": "codex.scene.border.etched-frame", "diagnostic": "scene-parameter-border-treatment-exact" },
+          "textureIntensity": { "decision": "exact", "consumerId": "codex.scene.texture.main-canvas", "diagnostic": "scene-parameter-texture-intensity-exact" },
+          "surfaceOpacity": { "decision": "exact", "consumerId": "codex.scene.opacity.panel-layer", "diagnostic": "scene-parameter-surface-opacity-exact" },
+          "navigationTreatment": { "decision": "exact", "consumerId": "codex.scene.navigation.framed-sidebar", "diagnostic": "scene-parameter-navigation-treatment-exact" },
+          "composerTreatment": { "decision": "exact", "consumerId": "codex.scene.composer.anchored-frame", "diagnostic": "scene-parameter-composer-treatment-exact" },
+          "cardTreatment": { "decision": "exact", "consumerId": "codex.scene.cards.elevated-frame", "diagnostic": "scene-parameter-card-treatment-exact" }
+        },
+        "assetSlots": {
+          "scene.backdrop": { "decision": "exact", "consumerId": "codex.scene.backdrop.active-art", "diagnostic": "scene-asset-backdrop-exact" }
+        }
       }
     }
+  },
+  "presentationBoundaries": {
+    "nativeControls": { "decision": "unsupported", "consumerId": null, "diagnostic": "scene-native-controls-host-owned" },
+    "layout": { "decision": "unsupported", "consumerId": null, "diagnostic": "scene-layout-host-owned" },
+    "uncataloguedPortals": { "decision": "unsupported", "consumerId": null, "diagnostic": "scene-uncatalogued-portals-unsupported" },
+    "fonts": { "decision": "unsupported", "consumerId": null, "diagnostic": "scene-fonts-host-owned" }
   },
   "security": {
     "forbiddenPayloads": ["css", "javascript", "html", "shader", "selector", "command", "url", "absolute-path", "path-traversal", "host-version-fact"],

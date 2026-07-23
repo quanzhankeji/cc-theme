@@ -1,7 +1,7 @@
 {
   "kind": "cc-theme.manager-runtime-profile",
   "schemaVersion": 1,
-  "managerVersion": "0.2.1",
+  "managerVersion": "0.2.2",
   "profile": "transition-baseline",
   "adapters": [
     {

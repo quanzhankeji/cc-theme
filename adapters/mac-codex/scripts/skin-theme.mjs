@@ -13,7 +13,7 @@ export const MAC_CODEX_TARGET_PATH = "targets/macos/theme.json";
 const TOP_LEVEL_KEYS = new Set([
   "kind", "id", "name", "brandSubtitle", "tagline", "projectPrefix", "projectLabel",
   "statusText", "quote", "image", "homeHeroImage", "backgroundVideo", "interactiveBackground", "pet", "colors",
-  "semanticColors", "fonts", "art", "appearance", "presentation",
+  "semanticColors", "appearanceVariants", "fonts", "art", "appearance", "presentation",
 ]);
 const COLOR_KEYS = new Set(["background", "panel", "panelAlt", "accent", "accentAlt", "secondary", "highlight", "text", "muted", "line"]);
 const SEMANTIC_COLOR_KEYS = new Set([
@@ -36,6 +36,13 @@ const DIRECTIONAL_BACKGROUND_KEYS = new Set([
   "idleFrame", "origin", "scrimOpacity",
 ]);
 const IMMERSIVE_SCENE_SURFACES = new Set(["shell", "navigation", "home", "conversation", "composer", "cards", "overlays"]);
+const IMMERSIVE_SCENE_PARAMETERS = new Set([
+  "density", "borderTreatment", "textureIntensity", "surfaceOpacity",
+  "navigationTreatment", "composerTreatment", "cardTreatment",
+]);
+const IMMERSIVE_SCENE_ASSET_SLOTS = new Set(["scene.backdrop"]);
+const IMMERSIVE_SCENE_FALLBACK_POLICY = new Set(["unsupportedSurface", "reducedMotion"]);
+const SAFE_LOCAL_SCENE_IMAGE = /^(?!.*[:/\\])[^\u0000-\u001f]+\.(?:png|jpe?g|webp)$/i;
 
 // Target packages are standalone Adapter releases. The Shared Core validates the
 // full declaration before projection; this local gate only accepts that fixed,
@@ -51,6 +58,23 @@ function normalizePresentation(value, label) {
       presentation.surfaces.some((surface) => !IMMERSIVE_SCENE_SURFACES.has(surface)) ||
       !plainObject(presentation.parameters) || !plainObject(presentation.assetSlots) || !plainObject(presentation.fallbackPolicy)) {
     throw new Error(`${label} must use the validated immersive-scene-v1 envelope`);
+  }
+  const parameters = presentation.parameters;
+  const assetSlots = presentation.assetSlots;
+  const fallbackPolicy = presentation.fallbackPolicy;
+  if (Object.keys(parameters).some((key) => !IMMERSIVE_SCENE_PARAMETERS.has(key)) ||
+      [...IMMERSIVE_SCENE_PARAMETERS].some((key) => !Object.hasOwn(parameters, key)) ||
+      parameters.density !== "comfortable" || parameters.borderTreatment !== "etched" ||
+      parameters.navigationTreatment !== "framed" || parameters.composerTreatment !== "anchored" ||
+      parameters.cardTreatment !== "elevated" || !Number.isFinite(parameters.textureIntensity) ||
+      parameters.textureIntensity < 0 || parameters.textureIntensity > 1 ||
+      !Number.isFinite(parameters.surfaceOpacity) || parameters.surfaceOpacity < 0 || parameters.surfaceOpacity > 1 ||
+      Object.keys(assetSlots).some((key) => !IMMERSIVE_SCENE_ASSET_SLOTS.has(key)) ||
+      !Object.hasOwn(assetSlots, "scene.backdrop") || typeof assetSlots["scene.backdrop"] !== "string" ||
+      !SAFE_LOCAL_SCENE_IMAGE.test(assetSlots["scene.backdrop"]) ||
+      Object.keys(fallbackPolicy).some((key) => !IMMERSIVE_SCENE_FALLBACK_POLICY.has(key)) ||
+      fallbackPolicy.unsupportedSurface !== "block" || fallbackPolicy.reducedMotion !== "static") {
+    throw new Error(`${label} must use only bounded immersive-scene-v1 values`);
   }
   return structuredClone(presentation);
 }
@@ -383,6 +407,9 @@ export function normalizeSkinTheme(value, label = "Theme config") {
   const backgroundVideo = optionalMediaName(raw.backgroundVideo, "backgroundVideo", label);
   const interactiveBackground = normalizeInteractiveBackground(raw.interactiveBackground, backgroundVideo, label);
   const presentation = raw.presentation === undefined ? null : normalizePresentation(raw.presentation, `${label} presentation`);
+  if (presentation && presentation.assetSlots["scene.backdrop"] !== raw.image) {
+    throw new Error(`${label} presentation.scene.backdrop must bind the active theme image`);
+  }
   const configuredVideoPosterMode = rawAppearance.backgroundVideoPosterMode;
   if (configuredVideoPosterMode !== undefined && !["none", "image"].includes(configuredVideoPosterMode)) {
     throw new Error(`${label} appearance.backgroundVideoPosterMode must be "none" or "image"`);
@@ -406,6 +433,13 @@ export function normalizeSkinTheme(value, label = "Theme config") {
   const newTaskLayout = configuredNewTaskLayout ?? (homeHeroImage ? "banner" : "cards");
   const rawColors = plainObject(raw.colors) ?? {};
   const rawSemanticColors = plainObject(raw.semanticColors) ?? {};
+  const rawAppearanceVariants = assertAllowedObject(
+    raw.appearanceVariants,
+    new Set(["light", "dark"]),
+    "appearanceVariants",
+    label,
+    true,
+  );
   const rawFonts = plainObject(raw.fonts) ?? {};
   const explicitColorKeys = Object.keys(rawColors).filter((key) => [
     "background", "panel", "panelAlt", "accent", "accentAlt", "secondary",
@@ -425,6 +459,24 @@ export function normalizeSkinTheme(value, label = "Theme config") {
     light: resolvedPalette(rawColors, rawSemanticColors, "light"),
     dark: resolvedPalette(rawColors, rawSemanticColors, "dark"),
   };
+  const appearanceVariants = rawAppearanceVariants === null ? null : Object.fromEntries(
+    ["light", "dark"].map((mode) => {
+      const variant = assertAllowedObject(rawAppearanceVariants[mode], new Set(["colors", "semanticColors"]),
+        `appearanceVariants.${mode}`, label, false);
+      const variantColors = assertAllowedObject(variant.colors, COLOR_KEYS, `appearanceVariants.${mode}.colors`, label, false);
+      const variantSemantic = assertAllowedObject(variant.semanticColors, SEMANTIC_COLOR_KEYS,
+        `appearanceVariants.${mode}.semanticColors`, label, false);
+      if (variantColors.text === undefined || variantColors.muted === undefined) {
+        throw new Error(`${label} appearanceVariants.${mode}.colors requires text and muted`);
+      }
+      for (const [key, value] of Object.entries(variantColors)) variantColors[key] = color(value, "");
+      for (const [key, value] of Object.entries(variantSemantic)) variantSemantic[key] = color(value, "");
+      if (Object.values(variantColors).some((value) => !value) || Object.values(variantSemantic).some((value) => !value)) {
+        throw new Error(`${label} appearanceVariants.${mode} contains an invalid color`);
+      }
+      return [mode, { colors: variantColors, semanticColors: variantSemantic }];
+    }),
+  );
 
   return {
     kind: SKIN_THEME_KIND,
@@ -452,6 +504,7 @@ export function normalizeSkinTheme(value, label = "Theme config") {
     shellMode,
     explicitColorKeys,
     explicitSemanticColorKeys,
+    ...(appearanceVariants ? { appearanceVariants } : {}),
     resolvedPalettes,
     colors: {
       ...resolvedPalettes.dark.colors,

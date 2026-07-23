@@ -107,6 +107,36 @@ test("renderer payload carries only structural theme paint and leaves host contr
   assert.equal(payload.variables["--cc-doubao-font-code"], undefined);
 });
 
+test("a dual-appearance scene exports bounded light and dark palette variables", async (t) => {
+  const directory = await fixture();
+  t.after(() => fs.rm(directory, { recursive: true, force: true }));
+  const themePath = path.join(directory, "theme.json");
+  const theme = JSON.parse(await fs.readFile(themePath, "utf8"));
+  const semantic = (surface, text) => ({
+    surfaceBase: surface,
+    surfaceRaised: surface,
+    action: "#795021",
+    actionForeground: "#FFFFFF",
+    focusRing: "#795021",
+    sidebarSurface: surface,
+    headerSurface: surface,
+    mainScrimStart: surface,
+    mainScrimMid: surface,
+    mainScrimEnd: surface,
+  });
+  theme.appearanceVariants = {
+    light: { colors: { text: "#241C15", muted: "#6F5F4B" }, semanticColors: semantic("#F7F0E1") },
+    dark: { colors: { text: "#F3EAD7", muted: "#B5A386" }, semanticColors: semantic("#0D0D0E") },
+  };
+  await fs.writeFile(themePath, JSON.stringify(theme));
+
+  const payload = await loadRuntimePayload(directory);
+  assert.equal(payload.variables["--cc-doubao-light-theme-text"], "#241C15");
+  assert.equal(payload.variables["--cc-doubao-dark-theme-text"], "#F3EAD7");
+  assert.equal(payload.variables["--cc-doubao-light-theme-surface-base"], "#F7F0E1");
+  assert.equal(payload.variables["--cc-doubao-dark-theme-surface-base"], "#0D0D0E");
+});
+
 test("unsupported status tokens cannot enter a normalized Doubao runtime payload", async (t) => {
   const directory = await fixture();
   t.after(() => fs.rm(directory, { recursive: true, force: true }));
@@ -167,4 +197,81 @@ test("dormant control colors do not reject a host-owned native control palette",
   const payload = await loadRuntimePayload(directory);
   assert.equal(payload.variables["--cc-doubao-action"], undefined);
   assert.equal(payload.variables["--cc-doubao-action-foreground"], undefined);
+});
+
+test("immersive-scene payload consumes only its bounded text and numeric scene parameters", async (t) => {
+  const directory = await fixture();
+  t.after(() => fs.rm(directory, { recursive: true, force: true }));
+  const themePath = path.join(directory, "theme.json");
+  const theme = JSON.parse(await fs.readFile(themePath, "utf8"));
+  theme.presentation = {
+    profileId: "immersive-scene-v1",
+    profileVersion: 1,
+    strictness: "exact-required",
+    geometryPolicy: "scene-bounded",
+    surfaces: ["shell", "navigation", "home", "conversation", "composer", "cards", "overlays"],
+    parameters: {
+      density: "comfortable",
+      borderTreatment: "etched",
+      textureIntensity: 0.36,
+      surfaceOpacity: 0.72,
+      navigationTreatment: "framed",
+      composerTreatment: "anchored",
+      cardTreatment: "elevated",
+    },
+    assetSlots: { "scene.backdrop": "background.webp" },
+    fallbackPolicy: { unsupportedSurface: "block", reducedMotion: "static" },
+  };
+  await fs.writeFile(themePath, JSON.stringify(theme));
+
+  const payload = await loadRuntimePayload(directory);
+
+  assert.equal(payload.presentationProfile, "immersive-scene-v1");
+  assert.equal(payload.variables["--cc-doubao-theme-text"], "#E9EEF7");
+  assert.equal(payload.variables["--cc-doubao-theme-muted"], "#AAB5C5");
+  assert.equal(payload.variables["--cc-doubao-scene-panel-opacity"], "72%");
+  assert.equal(payload.variables["--cc-doubao-scene-texture-opacity"], "16%");
+  assert.equal(payload.variables["--cc-doubao-scene-density-inset"], "1px");
+  assert.equal(payload.variables["--cc-doubao-scene-etched-highlight-opacity"], "5%");
+  assert.equal(payload.variables["--cc-doubao-action"], undefined);
+  assert.equal(payload.variables["--cc-doubao-font-ui"], undefined);
+});
+
+test("immersive-scene rejects unknown or unsafe presentation values before payload construction", async (t) => {
+  const directory = await fixture();
+  t.after(() => fs.rm(directory, { recursive: true, force: true }));
+  const themePath = path.join(directory, "theme.json");
+  const theme = JSON.parse(await fs.readFile(themePath, "utf8"));
+  theme.presentation = {
+    profileId: "immersive-scene-v1",
+    profileVersion: 1,
+    strictness: "exact-required",
+    geometryPolicy: "scene-bounded",
+    surfaces: ["shell", "navigation", "home", "conversation", "composer", "cards", "overlays"],
+    parameters: {
+      density: "comfortable",
+      borderTreatment: "etched",
+      textureIntensity: 0.36,
+      surfaceOpacity: 0.72,
+      navigationTreatment: "framed",
+      composerTreatment: "anchored",
+      cardTreatment: "elevated",
+    },
+    assetSlots: { "scene.backdrop": "background.webp" },
+    fallbackPolicy: { unsupportedSurface: "block", reducedMotion: "static" },
+  };
+
+  theme.presentation.parameters.css = "body { display: none }";
+  await fs.writeFile(themePath, JSON.stringify(theme));
+  await assert.rejects(() => loadRuntimePayload(directory), /presentation parameters/i);
+
+  delete theme.presentation.parameters.css;
+  theme.presentation.assetSlots["scene.backdrop"] = "../outside.png";
+  await fs.writeFile(themePath, JSON.stringify(theme));
+  await assert.rejects(() => loadRuntimePayload(directory), /assetSlots\.scene\.backdrop/i);
+
+  theme.presentation.assetSlots["scene.backdrop"] = "background.webp";
+  theme.presentation.parameters.density = "spacious";
+  await fs.writeFile(themePath, JSON.stringify(theme));
+  await assert.rejects(() => loadRuntimePayload(directory), /validated immersive-scene-v1 values/i);
 });

@@ -3,13 +3,13 @@
   "revision": 1,
   "adapterId": "mac-codex",
   "adapterVersion": "26.715.71837",
-  "adapterReleaseRevision": 2,
+  "adapterReleaseRevision": 3,
   "os": "macos",
   "arch": "arm64",
-  "assetIdentity": "mac-codex-26.715.71837-r2-macos-arm64",
+  "assetIdentity": "mac-codex-26.715.71837-r3-macos-arm64",
   "artifacts": {
-    "source": "mac-codex-26.715.71837-r2-macos-arm64.zip",
-    "client": "cc-theme-mac-codex-26.715.71837-r2-macos-arm64.zip"
+    "source": "mac-codex-26.715.71837-r3-macos-arm64.zip",
+    "client": "cc-theme-mac-codex-26.715.71837-r3-macos-arm64.zip"
   },
   "entries": [
     "LICENSE",

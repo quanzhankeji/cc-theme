@@ -52,7 +52,7 @@ const DIRECTIONAL_KEYS = new Set([
 ]);
 const TOP_LEVEL_KEYS = new Set([
   "kind", "id", "name", "image", "backgroundVideo", "interactiveBackground",
-  "colors", "semanticColors", "fonts", "appearance", "presentation",
+  "colors", "semanticColors", "appearanceVariants", "fonts", "appearance", "presentation",
 ]);
 const COLOR_KEYS = new Set([
   "background", "panel", "panelAlt", "accent", "accentAlt", "secondary", "highlight", "text", "muted", "line",
@@ -70,9 +70,17 @@ const APPEARANCE_KEYS = new Set([
   "backgroundScrimOpacity", "backdropBlurPx", "backdropSaturation", "radiusScale",
 ]);
 const IMMERSIVE_SCENE_SURFACES = new Set(["shell", "navigation", "home", "conversation", "composer", "cards", "overlays"]);
+const IMMERSIVE_SCENE_PARAMETER_KEYS = new Set([
+  "density", "borderTreatment", "textureIntensity", "surfaceOpacity",
+  "navigationTreatment", "composerTreatment", "cardTreatment",
+]);
+const IMMERSIVE_SCENE_ASSET_SLOT_KEYS = new Set(["scene.backdrop"]);
+const IMMERSIVE_SCENE_FALLBACK_KEYS = new Set(["unsupportedSurface", "reducedMotion"]);
+const SAFE_LOCAL_SCENE_IMAGE = /^(?!.*[:/\\])[^\u0000-\u001f]+\.(?:png|jpe?g|webp)$/i;
 
 // Adapter releases are standalone. Shared Core owns detailed validation before
-// projection; this release-local gate admits only the fixed inert envelope.
+// projection; this release-local gate repeats the closed profile boundary so a
+// standalone Engine cannot turn profile data into a host-specific payload.
 function normalizePresentation(value, label) {
   const presentation = plainObject(value);
   const allowed = new Set(["profileId", "profileVersion", "strictness", "geometryPolicy", "surfaces", "parameters", "assetSlots", "fallbackPolicy"]);
@@ -85,6 +93,36 @@ function normalizePresentation(value, label) {
       !plainObject(presentation.parameters) || !plainObject(presentation.assetSlots) || !plainObject(presentation.fallbackPolicy)) {
     throw new Error(`${label} must use the validated immersive-scene-v1 envelope`);
   }
+  const parameters = presentation.parameters;
+  const assetSlots = presentation.assetSlots;
+  const fallbackPolicy = presentation.fallbackPolicy;
+  rejectUnsupportedKeys(parameters, IMMERSIVE_SCENE_PARAMETER_KEYS, `${label}.parameters`);
+  rejectUnsupportedKeys(assetSlots, IMMERSIVE_SCENE_ASSET_SLOT_KEYS, `${label}.assetSlots`);
+  rejectUnsupportedKeys(fallbackPolicy, IMMERSIVE_SCENE_FALLBACK_KEYS, `${label}.fallbackPolicy`);
+  for (const [group, required] of [
+    ["parameters", IMMERSIVE_SCENE_PARAMETER_KEYS],
+    ["assetSlots", IMMERSIVE_SCENE_ASSET_SLOT_KEYS],
+    ["fallbackPolicy", IMMERSIVE_SCENE_FALLBACK_KEYS],
+  ]) {
+    const missing = [...required].filter((key) => !Object.hasOwn(presentation[group], key));
+    if (missing.length) throw new Error(`${label}.${group} is missing required fields: ${missing.join(", ")}`);
+  }
+  if (parameters.density !== "comfortable") throw new Error(`${label}.parameters.density must be comfortable`);
+  if (parameters.borderTreatment !== "etched") throw new Error(`${label}.parameters.borderTreatment must be etched`);
+  if (!Number.isFinite(parameters.textureIntensity) || parameters.textureIntensity < 0 || parameters.textureIntensity > 1) {
+    throw new Error(`${label}.parameters.textureIntensity must be a number from 0 to 1`);
+  }
+  if (!Number.isFinite(parameters.surfaceOpacity) || parameters.surfaceOpacity < 0 || parameters.surfaceOpacity > 1) {
+    throw new Error(`${label}.parameters.surfaceOpacity must be a number from 0 to 1`);
+  }
+  if (parameters.navigationTreatment !== "framed") throw new Error(`${label}.parameters.navigationTreatment must be framed`);
+  if (parameters.composerTreatment !== "anchored") throw new Error(`${label}.parameters.composerTreatment must be anchored`);
+  if (parameters.cardTreatment !== "elevated") throw new Error(`${label}.parameters.cardTreatment must be elevated`);
+  if (typeof assetSlots["scene.backdrop"] !== "string" || !SAFE_LOCAL_SCENE_IMAGE.test(assetSlots["scene.backdrop"])) {
+    throw new Error(`${label}.assetSlots.scene.backdrop must be a safe local image filename`);
+  }
+  if (fallbackPolicy.unsupportedSurface !== "block") throw new Error(`${label}.fallbackPolicy.unsupportedSurface must be block`);
+  if (fallbackPolicy.reducedMotion !== "static") throw new Error(`${label}.fallbackPolicy.reducedMotion must be static`);
   return structuredClone(presentation);
 }
 
@@ -236,6 +274,9 @@ export function normalizeSkinTheme(value, label = "Theme config") {
   const backgroundVideo = optionalMediaName(raw.backgroundVideo, "backgroundVideo", label);
   const interactiveBackground = normalizeInteractiveBackground(raw.interactiveBackground, backgroundVideo, label);
   const presentation = raw.presentation === undefined ? null : normalizePresentation(raw.presentation, `${label} presentation`);
+  if (presentation && presentation.assetSlots["scene.backdrop"] !== raw.image) {
+    throw new Error(`${label} presentation.scene.backdrop must bind the theme image`);
+  }
   const backgroundVideoPosterMode = appearance.backgroundVideoPosterMode ?? "image";
   if (!["none", "image"].includes(backgroundVideoPosterMode)) {
     throw new Error(`${label} appearance.backgroundVideoPosterMode must be none or image`);
@@ -244,7 +285,7 @@ export function normalizeSkinTheme(value, label = "Theme config") {
     throw new Error(`${label} appearance.backgroundVideoPosterMode requires backgroundVideo`);
   }
 
-  return {
+  const normalized = {
     kind: SKIN_THEME_KIND,
     adapter: MAC_WORKBUDDY_ADAPTER_ID,
     id: raw.id,
@@ -325,4 +366,38 @@ export function normalizeSkinTheme(value, label = "Theme config") {
       backgroundScrimOpacity: boundedNumber(appearance.backgroundScrimOpacity, 1, 0, 1),
     },
   };
+  if (raw.appearanceVariants !== undefined) {
+    const variants = plainObject(raw.appearanceVariants);
+    if (!variants || Object.keys(variants).some((key) => key !== "light" && key !== "dark")) {
+      throw new Error(`${label} appearanceVariants must contain only light and dark`);
+    }
+    normalized.appearanceVariants = {};
+    for (const mode of ["light", "dark"]) {
+      const variant = plainObject(variants[mode]);
+      if (!variant || Object.keys(variant).some((key) => key !== "colors" && key !== "semanticColors") ||
+          !plainObject(variant.colors) || !plainObject(variant.semanticColors)) {
+        throw new Error(`${label} appearanceVariants.${mode} must contain colors and semanticColors`);
+      }
+      const palette = normalizeSkinTheme({
+        kind: SKIN_THEME_KIND,
+        id: raw.id,
+        name: raw.name,
+        image: raw.image,
+        // A palette variant contains paint only, but the outer validated
+        // theme still owns the media contract. Preserve the bounded video
+        // presence so a legitimate poster policy is not misread as a
+        // dangling appearance field while normalizing the variant.
+        backgroundVideo: raw.backgroundVideo,
+        colors: variant.colors,
+        semanticColors: variant.semanticColors,
+        fonts: raw.fonts,
+        appearance: raw.appearance,
+      }, `${label} appearanceVariants.${mode}`);
+      normalized.appearanceVariants[mode] = {
+        colors: palette.colors,
+        semanticColors: palette.semanticColors,
+      };
+    }
+  }
+  return normalized;
 }

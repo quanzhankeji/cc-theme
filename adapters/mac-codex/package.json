@@ -4,10 +4,10 @@
   "ccThemeAdapter": {
     "adapterId": "mac-codex",
     "adapterVersion": "26.715.71837",
-    "adapterReleaseRevision": 2,
+    "adapterReleaseRevision": 3,
     "os": "macos",
     "arch": "arm64",
-    "assetIdentity": "mac-codex-26.715.71837-r2-macos-arm64"
+    "assetIdentity": "mac-codex-26.715.71837-r3-macos-arm64"
   },
   "description": "A reversible always-latest macOS Theme Adapter for Codex Desktop backgrounds and local style authoring.",
   "keywords": [

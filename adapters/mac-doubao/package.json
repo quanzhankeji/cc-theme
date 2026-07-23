@@ -4,10 +4,10 @@
   "ccThemeAdapter": {
     "adapterId": "mac-doubao",
     "adapterVersion": "2.19.9",
-    "adapterReleaseRevision": 2,
+    "adapterReleaseRevision": 4,
     "platform": "macos",
     "architecture": "arm64",
-    "assetIdentity": "mac-doubao-2.19.9-r2-macos-arm64"
+    "assetIdentity": "mac-doubao-2.19.9-r4-macos-arm64"
   },
   "private": true,
   "type": "module",

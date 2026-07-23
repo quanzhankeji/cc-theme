@@ -23,8 +23,8 @@ test("staged runtime uses only registered macOS Adapter Engines and stable packa
   assert.ok(manifest.entries.some(({ path: file }) => file === "theme-core/compiler.mjs"));
   assert.ok(manifest.entries.some(({ path: file }) => file === "adapter-sdk/adapter-registry.mjs"));
   assert.equal(manifest.schemaVersion, 2);
-  assert.equal(manifest.managerVersion, "0.2.1");
-  assert.ok(["source-build", "transition-baseline"].includes(manifest.profile));
+  assert.equal(manifest.managerVersion, "0.2.2");
+  assert.ok(["source-build", "transition-baseline", "release-bundled-latest"].includes(manifest.profile));
   assert.ok(manifest.entries.some(({ path: file }) => file === "runtime-attestation.json"));
   assert.ok(manifest.entries.some(({ path: file }) => file === "adapters/mac-workbuddy/scripts/workbuddy-theme-projection.mjs"));
   assert.ok(manifest.entries.some(({ path: file }) => file === "adapters/mac-doubao/scripts/adapter-capability.mjs"));
@@ -116,6 +116,10 @@ test("formal transition builds keep the transition profile across the Tauri befo
   assert.equal(
     packageDocument.scripts["tauri:build:transition"],
     "npm run prepare:runtime && CC_THEME_RUNTIME_PROFILE=transition-baseline tauri build",
+  );
+  assert.equal(
+    packageDocument.scripts["tauri:build:release"],
+    "npm run prepare:runtime && CC_THEME_RUNTIME_PROFILE=release-bundled-latest tauri build",
   );
   assert.match(packageDocument.scripts["tauri:build"], /tauri build/);
   assert.match(config.build.beforeBuildCommand, /npm run prepare:resources/);

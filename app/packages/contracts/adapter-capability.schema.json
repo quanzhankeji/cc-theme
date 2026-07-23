@@ -34,28 +34,11 @@
     "presentationProfiles": {
       "type": "object",
       "additionalProperties": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["profileVersion", "geometryPolicy", "surfaces"],
-        "properties": {
-          "profileVersion": { "type": "integer", "minimum": 1 },
-          "geometryPolicy": { "enum": ["scene-bounded"] },
-          "surfaces": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": ["shell", "navigation", "home", "conversation", "composer", "cards", "overlays"],
-            "properties": {
-              "shell": { "enum": ["exact", "approximated", "unsupported"] },
-              "navigation": { "enum": ["exact", "approximated", "unsupported"] },
-              "home": { "enum": ["exact", "approximated", "unsupported"] },
-              "conversation": { "enum": ["exact", "approximated", "unsupported"] },
-              "composer": { "enum": ["exact", "approximated", "unsupported"] },
-              "cards": { "enum": ["exact", "approximated", "unsupported"] },
-              "overlays": { "enum": ["exact", "approximated", "unsupported"] }
-            }
-          }
-        }
+        "$ref": "#/$defs/presentationProfile"
       }
+    },
+    "presentationBoundaries": {
+      "$ref": "#/$defs/presentationBoundaries"
     },
     "localRuntimeOverrides": {
       "type": "object",
@@ -84,6 +67,103 @@
     "raw": { "type": "object" }
   },
   "$defs": {
-    "adapterId": { "enum": ["mac-codex", "mac-doubao", "mac-workbuddy"] }
+    "adapterId": { "enum": ["mac-codex", "mac-doubao", "mac-workbuddy"] },
+    "mappingDecision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision", "consumerId", "diagnostic"],
+      "properties": {
+        "decision": { "enum": ["exact", "approximate", "unsupported"] },
+        "consumerId": { "type": ["string", "null"], "maxLength": 120, "pattern": "^[A-Za-z][A-Za-z0-9.-]{2,119}$" },
+        "diagnostic": { "type": "string", "minLength": 3, "maxLength": 160, "pattern": "^[a-z][a-z0-9-]{2,159}$" }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "decision": { "const": "exact" },
+            "consumerId": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9.-]{2,119}$" }
+          }
+        },
+        {
+          "properties": {
+            "decision": { "const": "approximate" },
+            "consumerId": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9.-]{2,119}$" }
+          }
+        },
+        {
+          "properties": {
+            "decision": { "const": "unsupported" },
+            "consumerId": { "type": "null" }
+          }
+        }
+      ]
+    },
+    "presentationProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profileVersion", "geometryPolicy", "sceneSemantics"],
+      "properties": {
+        "profileVersion": { "const": 1 },
+        "geometryPolicy": { "const": "scene-bounded" },
+        "sceneSemantics": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["scope", "surfaces", "parameters", "assetSlots"],
+          "properties": {
+            "scope": { "const": "presentation-scene" },
+            "surfaces": { "$ref": "#/$defs/sceneSurfaceMappings" },
+            "parameters": { "$ref": "#/$defs/sceneParameterMappings" },
+            "assetSlots": { "$ref": "#/$defs/sceneAssetSlotMappings" }
+          }
+        }
+      }
+    },
+    "sceneSurfaceMappings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["shell", "navigation", "home", "conversation", "composer", "cards", "overlays"],
+      "properties": {
+        "shell": { "$ref": "#/$defs/mappingDecision" },
+        "navigation": { "$ref": "#/$defs/mappingDecision" },
+        "home": { "$ref": "#/$defs/mappingDecision" },
+        "conversation": { "$ref": "#/$defs/mappingDecision" },
+        "composer": { "$ref": "#/$defs/mappingDecision" },
+        "cards": { "$ref": "#/$defs/mappingDecision" },
+        "overlays": { "$ref": "#/$defs/mappingDecision" }
+      }
+    },
+    "sceneParameterMappings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["density", "borderTreatment", "textureIntensity", "surfaceOpacity", "navigationTreatment", "composerTreatment", "cardTreatment"],
+      "properties": {
+        "density": { "$ref": "#/$defs/mappingDecision" },
+        "borderTreatment": { "$ref": "#/$defs/mappingDecision" },
+        "textureIntensity": { "$ref": "#/$defs/mappingDecision" },
+        "surfaceOpacity": { "$ref": "#/$defs/mappingDecision" },
+        "navigationTreatment": { "$ref": "#/$defs/mappingDecision" },
+        "composerTreatment": { "$ref": "#/$defs/mappingDecision" },
+        "cardTreatment": { "$ref": "#/$defs/mappingDecision" }
+      }
+    },
+    "sceneAssetSlotMappings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scene.backdrop"],
+      "properties": {
+        "scene.backdrop": { "$ref": "#/$defs/mappingDecision" }
+      }
+    },
+    "presentationBoundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nativeControls", "layout", "uncataloguedPortals", "fonts"],
+      "properties": {
+        "nativeControls": { "$ref": "#/$defs/mappingDecision" },
+        "layout": { "$ref": "#/$defs/mappingDecision" },
+        "uncataloguedPortals": { "$ref": "#/$defs/mappingDecision" },
+        "fonts": { "$ref": "#/$defs/mappingDecision" }
+      }
+    }
   }
 }

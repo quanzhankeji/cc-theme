@@ -8,5 +8,5 @@
   "interactiveBackground": { "intensity": 0.35, "quality": "auto", "radiusPx": 24, "scrimOpacity": 0.16, "type": "ripple" },
   "kind": "skin.theme",
   "name": "Neutral Fixture",
-  "semanticColors": { "action": "#6699FF", "actionForeground": "#FFFFFF", "focusRing": "#8EB1FF", "surfaceBase": "#10151F", "surfaceRaised": "rgba(24, 31, 44, 0.86)" }
+  "semanticColors": { "action": "#2F7D57", "actionForeground": "#FFFFFF", "focusRing": "#8EB1FF", "surfaceBase": "#10151F", "surfaceRaised": "rgba(24, 31, 44, 0.86)" }
 }

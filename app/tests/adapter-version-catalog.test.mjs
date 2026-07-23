@@ -192,11 +192,11 @@ test("catalog Schema closes every public object and keeps identity, OS, architec
 test("local generation publishes the qualified CodeX source and rejects a separate experimental fixture", async () => {
   const tracked = JSON.parse(await readFile(registryPath, "utf8"));
   assert.equal(tracked.adapters[0].current.adapterVersion, "26.715.71837");
-  assert.equal(tracked.adapters[0].releases[0].contracts.minimumManagerVersion, "0.2.1");
+  assert.equal(tracked.adapters[0].releases[0].contracts.minimumManagerVersion, "0.2.2");
 
   const generated = await generateAdapterVersionCatalog({ workspaceRoot });
   assert.equal(generated.adapters[0].current.adapterVersion, "26.715.71837");
-  assert.equal(generated.adapters[0].releases[0].contracts.minimumManagerVersion, "0.2.1");
+  assert.equal(generated.adapters[0].releases[0].contracts.minimumManagerVersion, "0.2.2");
   await assert.doesNotReject(
     runCli(["--workspace", workspaceRoot, "--output", registryPath, "--check"]),
   );

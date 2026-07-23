@@ -63,6 +63,9 @@ function makeApi(overrides: Partial<DesktopApi> = {}): DesktopApi {
       },
     })),
     deleteLocalTheme: vi.fn(() => Promise.resolve({ status: "success" as const, code: "theme-deleted", message: "本地主题及其关联数据已删除", details: { removedEntries: 3 } })),
+    saveThemeSurfaceOpacity: vi.fn((themeId, surfaceOpacity) => Promise.resolve({ status: "success" as const, code: "theme-local-override-saved", message: "主内容背景透明度已保存到本地主题", details: { themeId, surfaceOpacity } })),
+    saveThemeWorkbenchDraft: vi.fn((draft) => Promise.resolve({ status: "success" as const, code: "theme-workbench-draft-saved", message: "主题编辑已安全保存到本地", details: { themeId: draft.base.themeId } })),
+    resetThemeWorkbenchDraft: vi.fn((themeId) => Promise.resolve({ status: "success" as const, code: "theme-workbench-draft-reset", message: "已恢复导入主题的原始设置", details: { themeId, removed: true } })),
     runDiagnostics: vi.fn(() => Promise.resolve({ status: "success" as const, code: "ok", message: "诊断完成", details: structuredClone(DEMO_DIAGNOSTICS) })),
     ...overrides,
   };
@@ -275,6 +278,27 @@ describe("CC Theme desktop dashboard", () => {
     expect(await screen.findByRole("button", { name: "Example Theme" })).toHaveTextContent("Example Theme");
     expect(screen.queryByText("中文主题说明")).not.toBeInTheDocument();
     expect(screen.queryByText("English theme description")).not.toBeInTheDocument();
+  });
+
+  it("为 presentation 合同失败显示精确的主题导入诊断", async () => {
+    const api = makeApi({
+      importThemePackage: vi.fn(() => Promise.resolve({
+        status: "failed" as const,
+        code: "theme-package-presentation-invalid",
+        message: "主题 presentation 合同无效",
+      })),
+    });
+    const packagePicker: ThemePackagePicker = {
+      chooseThemePackage: vi.fn(() => Promise.resolve("/Users/example/GothicVoidCrusade.cctheme")),
+    };
+    const user = userEvent.setup();
+    render(<App api={api} packagePicker={packagePicker} />);
+
+    await screen.findByRole("heading", { name: "主题与应用" });
+    await user.click(screen.getByRole("button", { name: "导入本地主题" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("主题的沉浸式展示档案不符合支持的安全规范");
+    expect(screen.queryByText("主题包未通过安全校验，格式不正确，或同名主题已经安装")).not.toBeInTheDocument();
   });
 
   it("主题封面发生一次瞬时加载错误时重试，连续失败后才回退占位图", async () => {
@@ -700,6 +724,34 @@ describe("CC Theme desktop dashboard", () => {
     expect(alert).not.toHaveTextContent("detectedClientBuild");
   });
 
+  it("Adapter 场景映射不完整时显示可行动的说明和稳定诊断码", async () => {
+    const dashboard = cloneDemoDashboard();
+    dashboard.clients.find((client) => client.id === "mac-workbuddy")!.runState = "stopped";
+    const api = makeApi({
+      getDashboardState: vi.fn(() => Promise.resolve(dashboard)),
+      applyTheme: vi.fn(() => Promise.resolve({
+        status: "failed" as const,
+        code: "adapter-presentation-mapping-incomplete",
+        message: "Adapter 的主题映射尚不完整，请更新对应解释器后重试",
+        details: {
+          stage: "adapter-projector",
+          adapterId: "mac-workbuddy",
+          mappingScope: "presentation",
+        },
+      })),
+    });
+    const user = userEvent.setup();
+    render(<App api={api} />);
+
+    await user.click(await screen.findByRole("button", { name: /纸月 Paper Moon/ }));
+    await user.click(within(screen.getByTestId("client-mac-workbuddy")).getByRole("button", { name: "注入主题并启动 WorkBuddy" }));
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("Adapter 的主题映射尚不完整，请更新对应解释器后重试");
+    expect(alert).toHaveTextContent("adapter-presentation-mapping-incomplete");
+    expect(alert).not.toHaveTextContent("mappingScope");
+  });
+
   it("动态渲染后端新增的第五个 unavailable capability，并以能力声明阻断操作", async () => {
     const dashboard = cloneDemoDashboard();
     dashboard.capabilities.push({
@@ -985,5 +1037,26 @@ describe("CC Theme desktop dashboard", () => {
     expect(apply).toBeDisabled();
     expect(apply).toHaveTextContent("当前版本尚未验证");
     expect(api.applyTheme).not.toHaveBeenCalled();
+  });
+
+  it("主题卡片的眼睛入口直接打开工作台，不改变当前选择或运行时主题", async () => {
+    const dashboard = cloneDemoDashboard();
+    const api = makeApi({ getDashboardState: vi.fn(() => Promise.resolve(dashboard)) });
+    const user = userEvent.setup();
+    render(<App api={api} />);
+
+    const card = await screen.findByTestId("theme-paper-moon");
+    const selection = card.querySelector<HTMLButtonElement>(".theme-card__select");
+    expect(selection).toHaveAttribute("aria-pressed", "false");
+    const preview = within(card).getByRole("button", { name: "预览和编辑主题" });
+    expect(preview).toHaveAttribute("title", "预览和编辑主题");
+
+    await user.click(preview);
+
+    expect(await screen.findByRole("region", { name: "主题工作台" })).toHaveTextContent("纸月 Paper Moon");
+    expect(selection).toHaveAttribute("aria-pressed", "false");
+    expect(api.applyTheme).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "返回" }));
+    expect(screen.queryByRole("region", { name: "主题工作台" })).not.toBeInTheDocument();
   });
 });

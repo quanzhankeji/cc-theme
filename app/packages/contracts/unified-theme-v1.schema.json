@@ -19,7 +19,8 @@
       "properties": {
         "tokens": { "$ref": "#/$defs/tokens" },
         "background": { "$ref": "#/$defs/background" },
-        "accessibility": { "$ref": "#/$defs/accessibility" }
+        "accessibility": { "$ref": "#/$defs/accessibility" },
+        "appearanceVariants": { "$ref": "#/$defs/appearanceVariants" }
       }
     },
     "presentation": { "$ref": "#/$defs/immersiveScenePresentation" },
@@ -92,6 +93,35 @@
         "mainScrimMid": { "$ref": "#/$defs/color" },
         "mainScrimEnd": { "$ref": "#/$defs/color" },
         "composerSurface": { "$ref": "#/$defs/color" }
+      }
+    },
+    "completeSemanticColors": {
+      "allOf": [
+        { "$ref": "#/$defs/semanticColors" },
+        {
+          "required": [
+            "surfaceBase", "surfaceRaised", "surfaceElevated", "surfaceCode", "text", "textStrong", "textMuted",
+            "placeholder", "borderSubtle", "borderDefault", "borderStrong", "action", "actionHover", "actionPressed",
+            "actionForeground", "hoverSurface", "pressedSurface", "selectedSurface", "selectedHoverSurface", "focusRing",
+            "link", "danger", "success", "warning", "sidebarSurface", "headerSurface", "mainScrimStart", "mainScrimMid",
+            "mainScrimEnd", "composerSurface"
+          ]
+        }
+      ]
+    },
+    "appearanceVariant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["colors"],
+      "properties": { "colors": { "$ref": "#/$defs/completeSemanticColors" } }
+    },
+    "appearanceVariants": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["light", "dark"],
+      "properties": {
+        "light": { "$ref": "#/$defs/appearanceVariant" },
+        "dark": { "$ref": "#/$defs/appearanceVariant" }
       }
     },
     "fonts": {
@@ -231,7 +261,7 @@
             "density": { "const": "comfortable" },
             "borderTreatment": { "const": "etched" },
             "textureIntensity": { "type": "number", "minimum": 0, "maximum": 1 },
-            "surfaceOpacity": { "type": "number", "minimum": 0.4, "maximum": 0.88 },
+            "surfaceOpacity": { "type": "number", "minimum": 0, "maximum": 1 },
             "navigationTreatment": { "const": "framed" },
             "composerTreatment": { "const": "anchored" },
             "cardTreatment": { "const": "elevated" }

@@ -268,6 +268,9 @@
     "--skin-name", "--skin-tagline", "--skin-project-prefix",
     "--skin-project-label", "--skin-active-art",
     "--skin-native-canvas", "--skin-native-sidebar",
+    "--scene-gold", "--scene-line", "--scene-panel", "--scene-raised", "--scene-texture-tint",
+    "--scene-surface-opacity", "--scene-density-inset", "--scene-border-width",
+    "--scene-navigation-frame-width", "--scene-composer-frame-width", "--scene-card-frame-width",
     ...NATIVE_THEME_VARIABLES,
   ];
   window[DISABLED_KEY] = false;
@@ -903,9 +906,14 @@
   });
 
   const applyTheme = (root, shell) => {
-    const colors = THEME.colors || {};
-    const explicit = new Set(Array.isArray(THEME.explicitColorKeys) ? THEME.explicitColorKeys : []);
-    const explicitSemantic = new Set(Array.isArray(THEME.explicitSemanticColorKeys) ? THEME.explicitSemanticColorKeys : []);
+    const appearanceVariant = THEME.appearanceVariants?.[shell] || null;
+    const colors = appearanceVariant?.colors || THEME.colors || {};
+    const explicit = new Set(appearanceVariant
+      ? Object.keys(appearanceVariant.colors || {})
+      : (Array.isArray(THEME.explicitColorKeys) ? THEME.explicitColorKeys : []));
+    const explicitSemantic = new Set(appearanceVariant
+      ? Object.keys(appearanceVariant.semanticColors || {})
+      : (Array.isArray(THEME.explicitSemanticColorKeys) ? THEME.explicitSemanticColorKeys : []));
     const adaptive = makeAdaptivePalette(artAnalysis?.accentRgb, shell);
     const paletteMode = ART.paletteMode === "media" || (ART.paletteMode === undefined && ART.adaptivePalette === true)
       ? "media" : "system";
@@ -951,7 +959,7 @@
     };
 
     if (BRIDGE_ENABLED) {
-      const semantic = THEME.semanticColors || {};
+      const semantic = appearanceVariant?.semanticColors || THEME.semanticColors || {};
       const systemSemantic = resolvedPalette.semanticColors || {};
       const adaptiveSemantic = adaptiveEnabled ? {
         surfaceBase: variables["--skin-panel"],
@@ -1222,6 +1230,30 @@
         "--vscode-simpleFindWidget-sashBorder": "var(--skin-border-default)",
         "--oai-wb-surface-primary": "var(--skin-surface-raised)",
       });
+
+      // The immersive recipe is Adapter-owned, while these values come only
+      // from the closed Shared Core presentation envelope. Keep the values in
+      // CSS custom properties so an owned role can consume every declared
+      // semantic parameter without exposing host selectors to a Theme Package.
+      if (PRESENTATION_PROFILE === "immersive-scene-v1") {
+        const scene = THEME.presentation?.parameters || {};
+        const texture = Math.round(Math.min(1, Math.max(0, Number(scene.textureIntensity) || 0)) * 30);
+        const requestedOpacity = Number(scene.surfaceOpacity);
+        const opacity = Math.round(Math.min(1, Math.max(0, Number.isFinite(requestedOpacity) ? requestedOpacity : .72)) * 100);
+        Object.assign(variables, {
+          "--scene-gold": "var(--skin-action)",
+          "--scene-line": "color-mix(in srgb, var(--scene-gold) 34%, transparent)",
+          "--scene-panel": "color-mix(in srgb, var(--skin-panel) var(--scene-surface-opacity), transparent)",
+          "--scene-raised": "color-mix(in srgb, var(--skin-panel-2) var(--scene-surface-opacity), transparent)",
+          "--scene-texture-tint": `color-mix(in srgb, var(--scene-gold) ${texture}%, transparent)`,
+          "--scene-surface-opacity": `${opacity}%`,
+          "--scene-density-inset": scene.density === "comfortable" ? "12px" : "0px",
+          "--scene-border-width": scene.borderTreatment === "etched" ? "1px" : "0px",
+          "--scene-navigation-frame-width": scene.navigationTreatment === "framed" ? "1px" : "0px",
+          "--scene-composer-frame-width": scene.composerTreatment === "anchored" ? "1px" : "0px",
+          "--scene-card-frame-width": scene.cardTreatment === "elevated" ? "1px" : "0px",
+        });
+      }
     }
 
     for (const [name, value] of Object.entries(variables)) {

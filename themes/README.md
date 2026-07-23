@@ -23,6 +23,15 @@ assets/<allowlisted-media>
 included in a theme package. The public theme resource format is the single
 first version (`schemaVersion: 1`).
 
+Every new public theme must declare `sharedCore.appearanceVariants` as a
+closed `light` and `dark` pair. Each side supplies the complete semantic color
+set; the Manager validates both palettes independently and the Adapter chooses
+only the palette matching the host's effective appearance. The base palette
+remains a safe fallback for an older installed package, but it is not a
+replacement for a public theme's two deliberate art directions. This field is
+declarative color data only — it cannot carry CSS, selectors, scripts,
+geometry, or host paths.
+
 Build a local theme package:
 
 ```sh

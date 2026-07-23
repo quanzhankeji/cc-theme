@@ -20,7 +20,7 @@ export function validateThemeStyleCatalog(value, runtimeRoles, label = "Theme St
   const catalog = plainObject(value);
   if (!catalog || catalog.kind !== STYLE_CATALOG_KIND || catalog.schemaVersion !== 1 ||
       catalog.catalogVersion !== 2 || catalog.adapterId !== "mac-workbuddy" ||
-      catalog.adapterVersion !== "5.2.6" || catalog.adapterReleaseRevision !== 2 ||
+      catalog.adapterVersion !== "5.2.6" || catalog.adapterReleaseRevision !== 4 ||
       catalog.catalogId !== "mac-workbuddy-theme") {
     throw new Error(`${label} has an invalid identity`);
   }
