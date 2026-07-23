@@ -16,7 +16,7 @@
           "adapterReleaseRevision": 3,
           "assetIdentity": "mac-codex-26.715.71837-r3-macos-arm64",
           "contracts": {
-            "minimumManagerVersion": "0.2.1",
+            "minimumManagerVersion": "0.2.2",
             "capabilityVersion": "2.0.0",
             "unifiedThemeSchemaVersion": 1,
             "adapterPackageSchemaVersion": 1
@@ -37,7 +37,7 @@
           "adapterReleaseRevision": 4,
           "assetIdentity": "mac-doubao-2.19.9-r4-macos-arm64",
           "contracts": {
-            "minimumManagerVersion": "0.2.1",
+            "minimumManagerVersion": "0.2.2",
             "capabilityVersion": "1.3.0",
             "unifiedThemeSchemaVersion": 1,
             "adapterPackageSchemaVersion": 1
@@ -58,7 +58,7 @@
           "adapterReleaseRevision": 4,
           "assetIdentity": "mac-workbuddy-5.2.6-r4-macos-arm64",
           "contracts": {
-            "minimumManagerVersion": "0.2.1",
+            "minimumManagerVersion": "0.2.2",
             "capabilityVersion": "1.0.0",
             "unifiedThemeSchemaVersion": 1,
             "adapterPackageSchemaVersion": 1

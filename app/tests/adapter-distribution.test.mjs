@@ -24,21 +24,21 @@ const expectedRevisions = new Map([
 const expectedPublishedPackages = new Map([
   ["mac-codex", {
     bytes: 1_098_823,
-    sha256: "e9e473059cf15847d59101d2e20b633f20406523180e90d42282e6a3f95b34d0",
-    manifestSha256: "b78a6bc7c0db07eb3b060e0dd508441c799a203bfe9ed84c025ad1f02f9692c1",
-    minimumManagerVersion: "0.2.1",
+    sha256: "6dd7938810b1b7f5f3ee7ff2b800f1b1df917ee0466e11eda8ab50bb7332cd34",
+    manifestSha256: "63c7e190e137dfcb1405e080a34c08fd62ecbf3c7a4b6ad408718e2cb6b2a1ea",
+    minimumManagerVersion: "0.2.2",
   }],
   ["mac-doubao", {
     bytes: 187_920,
-    sha256: "28a6cb24db0b3ec60583973b62163dca90a27cb37c87ec43d77b5c6ed486cda0",
-    manifestSha256: "fbb052ef3cfb99625a6586a09d715f87488d8acd027c23da631961bb127cd394",
-    minimumManagerVersion: "0.2.1",
+    sha256: "6eea72b489fedaef453b7e67b710706827b8e6be94b650a2e3dce67387613b8a",
+    manifestSha256: "a14ee11246c2e1c31e24970a4f2d75a37241a3c121cbdd971faba8e3caa3ed38",
+    minimumManagerVersion: "0.2.2",
   }],
   ["mac-workbuddy", {
     bytes: 763_027,
-    sha256: "90961b9a921e0af4b88cbcbc8e904ab807869ef649c6fd44d9b51cdb4819396c",
-    manifestSha256: "e0a26b7a95ec0460d8f8aa241cc404689630118528d29111707899a9658ef586",
-    minimumManagerVersion: "0.2.1",
+    sha256: "32437f3c59579c080567a5325f08d16da1e776187db59aa89337bdcb51ee90b0",
+    manifestSha256: "a6a3cfa25345c6df8a5d1756fb8ee830e704ffb7d6f63d1df3adc325527a4d98",
+    minimumManagerVersion: "0.2.2",
   }],
 ]);
 
@@ -95,7 +95,7 @@ test("one distribution build produces three verified qualified Mac packages and 
     assert.equal(adapter.releases[0].packages[0].downloadUrl, undefined);
   }
   assert.equal(result.catalog.adapters[0].current.adapterVersion, "26.715.71837");
-  assert.equal(result.catalog.adapters[0].releases[0].contracts.minimumManagerVersion, "0.2.1");
+  assert.equal(result.catalog.adapters[0].releases[0].contracts.minimumManagerVersion, "0.2.2");
 
   await assert.rejects(
     buildAdapterDistribution({ outputDirectory, architecture: "arm64" }),

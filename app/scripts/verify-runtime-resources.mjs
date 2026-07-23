@@ -92,17 +92,21 @@ export async function verifyRuntimeResources(resourceRoot, baselineFile, manager
   const rootStat = await fs.lstat(root);
   if (!rootStat.isDirectory() || rootStat.isSymbolicLink()) fail("resource root must be a non-symlink directory");
   const [baseline, attestation, manifest] = await Promise.all([
-    readJson(path.resolve(baselineFile), "transition baseline"),
+    readJson(path.resolve(baselineFile), "runtime baseline"),
     readJson(path.join(root, "runtime-attestation.json"), "runtime attestation"),
     readJson(path.join(root, "artifact-manifest.json"), "artifact manifest"),
   ]);
-  exactKeys(baseline, ["kind", "schemaVersion", "managerVersion", "profile", "adapters"], "transition baseline");
-  if (baseline.managerVersion !== managerVersion || baseline.profile !== "transition-baseline") fail("transition baseline does not match the requested Manager");
-  if (JSON.stringify(attestation) !== JSON.stringify(expectedAttestation(baseline))) fail("runtime attestation differs from the exact transition baseline");
+  exactKeys(baseline, ["kind", "schemaVersion", "managerVersion", "profile", "adapters"], "runtime baseline");
+  if (
+    baseline.kind !== "cc-theme.manager-runtime-profile" || baseline.schemaVersion !== 1 ||
+    typeof baseline.profile !== "string" || baseline.profile === "source-build" ||
+    baseline.managerVersion !== managerVersion
+  ) fail("runtime baseline does not match the requested Manager");
+  if (JSON.stringify(attestation) !== JSON.stringify(expectedAttestation(baseline))) fail("runtime attestation differs from the exact runtime baseline");
   exactKeys(manifest, ["kind", "schemaVersion", "managerVersion", "profile", "attestationSha256", "entries"], "artifact manifest");
   if (
     manifest.kind !== "cc-theme.manager-runtime-resources" || manifest.schemaVersion !== 2 ||
-    manifest.managerVersion !== managerVersion || manifest.profile !== "transition-baseline"
+    manifest.managerVersion !== managerVersion || manifest.profile !== baseline.profile
   ) fail("artifact manifest identity is invalid");
   const attestationSha256 = await sha256File(path.join(root, "runtime-attestation.json"));
   if (manifest.attestationSha256 !== attestationSha256) fail("artifact manifest does not bind the runtime attestation");
@@ -125,7 +129,7 @@ export async function verifyRuntimeResources(resourceRoot, baselineFile, manager
   }
   const adapterEntries = await fs.readdir(path.join(root, "adapters"), { withFileTypes: true });
   if (JSON.stringify(adapterEntries.map(({ name }) => name).sort()) !== JSON.stringify([...EXPECTED_ADAPTER_IDS])) {
-    fail("packaged runtime does not contain exactly the three transition Adapters");
+    fail("packaged runtime does not contain exactly the three official Adapters");
   }
   for (const entry of adapterEntries) {
     if (!entry.isDirectory() || entry.isSymbolicLink()) fail(`Adapter runtime is not a regular directory: ${entry.name}`);
@@ -148,7 +152,7 @@ export async function verifyRuntimeResources(resourceRoot, baselineFile, manager
     if (
       release.adapterId !== expected.adapterId || release.adapterVersion !== expected.adapterVersion ||
       release.adapterReleaseRevision !== expected.adapterReleaseRevision || release.assetIdentity !== expected.assetIdentity
-    ) fail(`${expected.adapterId} staged Engine identity differs from the transition baseline`);
+    ) fail(`${expected.adapterId} staged Engine identity differs from the runtime baseline`);
   }
   return { managerVersion, profile: manifest.profile, attestationSha256, entries: manifest.entries.length };
 }

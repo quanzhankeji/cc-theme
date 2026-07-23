@@ -20,7 +20,7 @@ on:
         required: true
         type: string
       runtime_manifest_sha256:
-        description: SHA-256 of the transition runtime artifact-manifest.json embedded in the DMG
+        description: SHA-256 of the release-bundled-latest runtime artifact-manifest.json embedded in the DMG
         required: true
         type: string
 
@@ -89,6 +89,8 @@ jobs:
           npm run build:manager
           npm --prefix app run adapter:catalog:check
           npm --prefix app run prepare:runtime
+          npm --prefix app run prepare:release-resources
+          npm --prefix app run verify:release-resources
           cargo test --manifest-path app/src-tauri/Cargo.toml
           cargo fmt --manifest-path app/src-tauri/Cargo.toml --check
 
@@ -140,7 +142,7 @@ jobs:
           RESOURCES="$APP/Contents/Resources"
           [[ "$(shasum -a 256 "$RESOURCES/artifact-manifest.json" | awk '{print $1}')" == "$RUNTIME_MANIFEST_SHA256" ]]
           node app/scripts/verify-runtime-resources.mjs \
-            "$RESOURCES" app/config/transition-baseline.json "$VERSION"
+            "$RESOURCES" app/config/release-baseline.json "$VERSION"
           hdiutil detach "$MOUNT_POINT"
           trap - EXIT
 
@@ -161,8 +163,8 @@ jobs:
             echo "- Commit: \`$(git rev-parse HEAD)\`"
             echo "- Apple notarization: \`$NOTARIZATION_ID\`"
             echo "- DMG SHA-256: \`$DMG_SHA256\`"
-            echo "- Transition runtime manifest SHA-256: \`$RUNTIME_MANIFEST_SHA256\`"
-            echo "- Bundled profile: transition-baseline (CodeX 26.715.31925-r1; Doubao 2.19.9-r1; WorkBuddy 5.2.6-r1)"
+            echo "- Release runtime manifest SHA-256: \`$RUNTIME_MANIFEST_SHA256\`"
+            echo "- Bundled profile: \`release-bundled-latest\` (verified against the exact signed Adapter Release assets)"
             echo "- Product assets: one notarized and stapled DMG only"
             echo
             echo "The Release remains a draft for a maintainer to publish after reviewing this run."

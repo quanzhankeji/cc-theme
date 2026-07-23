@@ -17,7 +17,10 @@ const RUNTIME_PACKAGE_FILES = Object.freeze({
   "adapter-sdk": ["adapter-registry.mjs", "workspace-root.mjs", "package.json"],
   "theme-core": ["cli.mjs", "compiler.mjs", "presentation.mjs", "runtime-overrides.mjs", "package.json"],
 });
-const TRANSITION_PROFILE = "transition-baseline";
+const BASELINE_PROFILES = Object.freeze({
+  "transition-baseline": "transition-baseline.json",
+  "release-bundled-latest": "release-baseline.json",
+});
 
 function contained(root, candidate, label) {
   const relative = path.relative(root, candidate);
@@ -108,34 +111,34 @@ async function buildReleaseEngine(workspaceRoot, destination, descriptor) {
   await execute(process.execPath, [builder, destination], { cwd: path.dirname(builder), maxBuffer: 8 * 1024 * 1024 });
 }
 
-function validateTransitionBaseline(value, managerVersion) {
-  exactKeys(value, ["kind", "schemaVersion", "managerVersion", "profile", "adapters"], "transition baseline");
-  if (value.kind !== "cc-theme.manager-runtime-profile" || value.schemaVersion !== 1) throw new Error("Transition baseline kind or schemaVersion is invalid");
-  if (value.managerVersion !== managerVersion || value.profile !== TRANSITION_PROFILE) throw new Error("Transition baseline Manager identity is invalid");
-  if (!Array.isArray(value.adapters) || value.adapters.length !== 3) throw new Error("Transition baseline must contain exactly three Adapters");
+function validateRuntimeBaseline(value, managerVersion, profile) {
+  exactKeys(value, ["kind", "schemaVersion", "managerVersion", "profile", "adapters"], "runtime baseline");
+  if (value.kind !== "cc-theme.manager-runtime-profile" || value.schemaVersion !== 1) throw new Error("Runtime baseline kind or schemaVersion is invalid");
+  if (value.managerVersion !== managerVersion || value.profile !== profile) throw new Error("Runtime baseline Manager identity is invalid");
+  if (!Array.isArray(value.adapters) || value.adapters.length !== 3) throw new Error("Runtime baseline must contain exactly three Adapters");
   const expectedIds = ["mac-codex", "mac-doubao", "mac-workbuddy"];
   if (JSON.stringify(value.adapters.map(({ adapterId }) => adapterId)) !== JSON.stringify(expectedIds)) {
-    throw new Error("Transition baseline Adapter IDs or order are invalid");
+    throw new Error("Runtime baseline Adapter IDs or order are invalid");
   }
   for (const adapter of value.adapters) {
-    exactKeys(adapter, ["adapterId", "adapterVersion", "adapterReleaseRevision", "assetIdentity", "source"], `${adapter.adapterId} transition Adapter`);
-    exactKeys(adapter.source, ["kind", "capabilityVersion", "releaseTag", "downloadUrl", "bytes", "archiveSha256", "manifestSha256"], `${adapter.adapterId} transition source`);
-    if (adapter.source.kind !== "github-release-asset") throw new Error(`${adapter.adapterId} transition source kind is invalid`);
+    exactKeys(adapter, ["adapterId", "adapterVersion", "adapterReleaseRevision", "assetIdentity", "source"], `${adapter.adapterId} runtime Adapter`);
+    exactKeys(adapter.source, ["kind", "capabilityVersion", "releaseTag", "downloadUrl", "bytes", "archiveSha256", "manifestSha256"], `${adapter.adapterId} runtime source`);
+    if (adapter.source.kind !== "github-release-asset") throw new Error(`${adapter.adapterId} runtime source kind is invalid`);
     if (!/^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/.test(adapter.source.capabilityVersion)) {
-      throw new Error(`${adapter.adapterId} transition capabilityVersion is invalid`);
+      throw new Error(`${adapter.adapterId} runtime capabilityVersion is invalid`);
     }
     const expectedIdentity = `${adapter.adapterId}-${adapter.adapterVersion}-r${adapter.adapterReleaseRevision}-macos-arm64`;
-    if (adapter.assetIdentity !== expectedIdentity) throw new Error(`${adapter.adapterId} transition asset identity is invalid`);
+    if (adapter.assetIdentity !== expectedIdentity) throw new Error(`${adapter.adapterId} runtime asset identity is invalid`);
     const url = new URL(adapter.source.downloadUrl);
     const expectedPath = `/quanzhankeji/cc-theme/releases/download/${adapter.source.releaseTag}/${adapter.assetIdentity}.ccadapter`;
     if (url.protocol !== "https:" || url.hostname !== "github.com" || url.pathname !== expectedPath || url.search || url.hash || url.username || url.password) {
-      throw new Error(`${adapter.adapterId} transition URL is not an exact official Release asset`);
+      throw new Error(`${adapter.adapterId} runtime URL is not an exact official Release asset`);
     }
     if (!Number.isSafeInteger(adapter.source.bytes) || adapter.source.bytes < 1 || adapter.source.bytes > 64 * 1024 * 1024) {
-      throw new Error(`${adapter.adapterId} transition byte length is invalid`);
+      throw new Error(`${adapter.adapterId} runtime byte length is invalid`);
     }
     if (!/^[0-9a-f]{64}$/.test(adapter.source.archiveSha256) || !/^[0-9a-f]{64}$/.test(adapter.source.manifestSha256)) {
-      throw new Error(`${adapter.adapterId} transition digest is invalid`);
+      throw new Error(`${adapter.adapterId} runtime digest is invalid`);
     }
   }
   return value;
@@ -167,8 +170,8 @@ export async function downloadTransitionPackage(cacheRoot, descriptor, managerVe
     try {
       await download(descriptor.source.downloadUrl, temporary);
       const stat = await fs.lstat(temporary);
-      if (!stat.isFile() || stat.isSymbolicLink() || stat.size !== descriptor.source.bytes) throw new Error(`${descriptor.adapterId} downloaded byte length differs from the transition baseline`);
-      if (await sha256File(temporary) !== descriptor.source.archiveSha256) throw new Error(`${descriptor.adapterId} downloaded archive SHA-256 differs from the transition baseline`);
+      if (!stat.isFile() || stat.isSymbolicLink() || stat.size !== descriptor.source.bytes) throw new Error(`${descriptor.adapterId} downloaded byte length differs from the runtime baseline`);
+      if (await sha256File(temporary) !== descriptor.source.archiveSha256) throw new Error(`${descriptor.adapterId} downloaded archive SHA-256 differs from the runtime baseline`);
       await fs.rename(temporary, archive);
     } finally {
       await fs.rm(temporary, { force: true });
@@ -186,13 +189,13 @@ export async function downloadTransitionPackage(cacheRoot, descriptor, managerVe
     },
   });
   if (verified.bytes !== descriptor.source.bytes || verified.manifestSha256 !== descriptor.source.manifestSha256) {
-    throw new Error(`${descriptor.adapterId} verified package provenance differs from the transition baseline`);
+    throw new Error(`${descriptor.adapterId} verified package provenance differs from the runtime baseline`);
   }
   if (
     verified.manifest.adapterVersion !== descriptor.adapterVersion ||
     verified.manifest.adapterReleaseRevision !== descriptor.adapterReleaseRevision ||
     verified.manifest.assetIdentity !== descriptor.assetIdentity
-  ) throw new Error(`${descriptor.adapterId} verified package identity differs from the transition baseline`);
+  ) throw new Error(`${descriptor.adapterId} verified package identity differs from the runtime baseline`);
   return { archive, verified };
 }
 
@@ -253,13 +256,15 @@ export async function prepareRuntimeResources({ profile = process.env.CC_THEME_R
   await cleanTransientRuntimeResources(layout.managerRoot);
   const config = await readJson(path.join(layout.managerRoot, "config", "adapter-engines.json"));
   const managerPackage = await readJson(path.join(layout.managerRoot, "package.json"));
-  const transition = profile === TRANSITION_PROFILE
-    ? validateTransitionBaseline(
-      await readJson(path.join(layout.managerRoot, "config", "transition-baseline.json")),
+  const baselineFile = BASELINE_PROFILES[profile];
+  const baseline = baselineFile
+    ? validateRuntimeBaseline(
+      await readJson(path.join(layout.managerRoot, "config", baselineFile)),
       managerPackage.version,
+      profile,
     )
     : undefined;
-  if (!transition && profile !== "source-build") throw new Error(`Unknown runtime profile: ${profile}`);
+  if (!baseline && profile !== "source-build") throw new Error(`Unknown runtime profile: ${profile}`);
   const registryFile = path.join(layout.registryRoot, "adapter-capabilities.json");
   const sourceRegistry = await readJson(registryFile);
   if (config.kind !== "cc-theme.manager-adapter-engine-sources" || config.schemaVersion !== 1 || !Array.isArray(config.adapters)) {
@@ -302,11 +307,11 @@ export async function prepareRuntimeResources({ profile = process.env.CC_THEME_R
   const attestedAdapters = [];
   for (const descriptor of config.adapters) {
     const destination = path.join(stageRoot, "adapters", descriptor.bundleDirectory);
-    if (transition) {
-      const baseline = transition.adapters.find(({ adapterId }) => adapterId === descriptor.adapterId);
+    if (baseline) {
+      const releaseDescriptor = baseline.adapters.find(({ adapterId }) => adapterId === descriptor.adapterId);
       const { archive, verified } = await downloadTransitionPackage(
-        path.join(layout.managerRoot, ".runtime-cache", "transition-baseline"),
-        baseline,
+        path.join(layout.managerRoot, ".runtime-cache", profile),
+        releaseDescriptor,
         managerPackage.version,
       );
       await extractVerifiedPackage(destination, archive);
@@ -315,7 +320,7 @@ export async function prepareRuntimeResources({ profile = process.env.CC_THEME_R
         adapterVersion: verified.manifest.adapterVersion,
         adapterReleaseRevision: verified.manifest.adapterReleaseRevision,
         assetIdentity: verified.manifest.assetIdentity,
-        source: baseline.source,
+        source: releaseDescriptor.source,
       });
     } else {
       if (descriptor.source.kind === "release-archive") await extractReleaseArchive(layout.workspaceRoot, destination, descriptor);

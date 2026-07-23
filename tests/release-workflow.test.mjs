@@ -26,13 +26,17 @@ test("application release versions remain aligned", async () => {
   const cargo = await read("app/src-tauri/Cargo.toml");
   const registry = JSON.parse(await read("app/registry/adapter-versions.json"));
 
-  assert.equal(workspace.version, "0.2.1");
+  assert.equal(workspace.version, "0.2.2");
   assert.equal(manager.version, workspace.version);
   assert.equal(tauri.version, workspace.version);
   assert.match(cargo, new RegExp(`^version = "${workspace.version.replaceAll(".", "\\.")}"$`, "m"));
   assert.equal(
     manager.scripts["tauri:build:transition"],
     "npm run prepare:runtime && CC_THEME_RUNTIME_PROFILE=transition-baseline tauri build",
+  );
+  assert.equal(
+    manager.scripts["tauri:build:release"],
+    "npm run prepare:runtime && CC_THEME_RUNTIME_PROFILE=release-bundled-latest tauri build",
   );
   for (const adapter of registry.adapters) {
     for (const release of adapter.releases) {
@@ -67,9 +71,9 @@ test("formal Release workflow is manual, tag-pinned, non-overwriting, and exact"
   assert.match(workflow, /codesign --verify --deep --strict/);
   assert.match(workflow, /TeamIdentifier/);
   assert.match(workflow, /verify-runtime-resources\.mjs/);
-  assert.match(workflow, /transition-baseline\.json/);
+  assert.match(workflow, /release-baseline\.json/);
   assert.match(workflow, /shasum -a 256 "\$RESOURCES\/artifact-manifest\.json"/);
-  assert.match(workflow, /CodeX 26\.715\.31925-r1; Doubao 2\.19\.9-r1; WorkBuddy 5\.2\.6-r1/);
+  assert.match(workflow, /release-bundled-latest/);
   assert.match(workflow, /wc -l < "\$FINAL_FILE"/);
   assert.doesNotMatch(workflow, /--clobber/);
   assert.doesNotMatch(workflow, /\bmapfile\b/);

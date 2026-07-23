@@ -40,7 +40,7 @@ test("the unified sample matches Adapter-owned target golden artifacts", async (
 
 test("a high-fidelity family carries closed light and dark palettes through every registered Adapter", async () => {
   const source = JSON.parse(await readFile(
-    path.join(managerRoot, "..", "themes", "gothic-void-crusade", "unified-theme.json"),
+    path.join(managerRoot, "..", "themes", "example", "unified-theme.json"),
     "utf8",
   ));
   const result = await compileThemeFamily(source, context);
@@ -48,10 +48,10 @@ test("a high-fidelity family carries closed light and dark palettes through ever
   for (const adapterId of source.targets) {
     const variants = result.themes[adapterId].appearanceVariants;
     assert.ok(variants, `${adapterId} should retain high-fidelity appearance variants`);
-    assert.equal(variants.light.colors.text, "#241C15", `${adapterId}: light text`);
-    assert.equal(variants.dark.colors.text, "#F3EAD7", `${adapterId}: dark text`);
-    assert.equal(variants.light.semanticColors.surfaceBase, "#F7F0E1", `${adapterId}: light canvas`);
-    assert.equal(variants.dark.semanticColors.surfaceBase, "#0D0D0E", `${adapterId}: dark canvas`);
+    assert.equal(variants.light.colors.text, "#203041", `${adapterId}: light text`);
+    assert.equal(variants.dark.colors.text, "#E9EEF7", `${adapterId}: dark text`);
+    assert.equal(variants.light.semanticColors.surfaceBase, "#F4F7FA", `${adapterId}: light canvas`);
+    assert.equal(variants.dark.semanticColors.surfaceBase, "#10151F", `${adapterId}: dark canvas`);
   }
   // Each projector normalizes before returning its compiled target theme.  The
   // compile result additionally carries its bounded runtime bookkeeping, so

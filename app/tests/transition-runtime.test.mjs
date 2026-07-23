@@ -61,6 +61,27 @@ test("transition baseline carries the retired bundled CodeX identity without con
   assert.doesNotMatch(source, /find\(\(\{ assetIdentity \}\) => assetIdentity === descriptor\.assetIdentity\)/);
 });
 
+test("release baseline binds the current three Adapter identities to immutable Release assets", async () => {
+  const [baseline, registry, source] = await Promise.all([
+    fs.readFile(path.join(managerRoot, "config", "release-baseline.json"), "utf8").then(JSON.parse),
+    fs.readFile(path.join(managerRoot, "registry", "adapter-versions.json"), "utf8").then(JSON.parse),
+    fs.readFile(path.join(managerRoot, "scripts", "prepare-runtime-resources.mjs"), "utf8"),
+  ]);
+  assert.equal(baseline.managerVersion, "0.2.2");
+  assert.equal(baseline.profile, "release-bundled-latest");
+  assert.equal(source.includes('"release-bundled-latest": "release-baseline.json"'), true);
+  assert.deepEqual(
+    baseline.adapters.map(({ assetIdentity }) => assetIdentity),
+    registry.adapters.map(({ releases }) => releases[0].assetIdentity),
+  );
+  for (const adapter of baseline.adapters) {
+    assert.equal(adapter.source.releaseTag, "cc-theme-v0.2.2-adapters.1");
+    assert.match(adapter.source.downloadUrl, new RegExp(`/${adapter.assetIdentity.replaceAll(".", "\\.")}\\.ccadapter$`));
+    assert.match(adapter.source.archiveSha256, /^[0-9a-f]{64}$/);
+    assert.match(adapter.source.manifestSha256, /^[0-9a-f]{64}$/);
+  }
+});
+
 test("a corrupt transition cache is replaced, while a verified cache is reused without downloading", async (t) => {
   const { root, built, descriptor } = await fixture(t);
   const cache = path.join(root, "cache");
@@ -72,10 +93,10 @@ test("a corrupt transition cache is replaced, while a verified cache is reused w
     downloads += 1;
     await fs.copyFile(built.archivePath, destination);
   };
-  const first = await downloadTransitionPackage(cache, descriptor, "0.2.1", { download });
+  const first = await downloadTransitionPackage(cache, descriptor, "0.2.2", { download });
   assert.equal(first.verified.sha256, built.sha256);
   assert.equal(downloads, 1);
-  const second = await downloadTransitionPackage(cache, descriptor, "0.2.1", {
+  const second = await downloadTransitionPackage(cache, descriptor, "0.2.2", {
     download: async () => assert.fail("a verified cache must not redownload"),
   });
   assert.equal(second.verified.manifestSha256, built.manifestSha256);
@@ -88,14 +109,14 @@ test("transition download fails closed on archive and top-level manifest digest 
     downloadTransitionPackage(path.join(root, "archive-drift"), {
       ...descriptor,
       source: { ...descriptor.source, archiveSha256: "0".repeat(64) },
-    }, "0.2.1", { download }),
+    }, "0.2.2", { download }),
     /downloaded archive SHA-256 differs/,
   );
   await assert.rejects(
     downloadTransitionPackage(path.join(root, "manifest-drift"), {
       ...descriptor,
       source: { ...descriptor.source, manifestSha256: "0".repeat(64) },
-    }, "0.2.1", { download }),
+    }, "0.2.2", { download }),
     /verified package provenance differs/,
   );
 });
