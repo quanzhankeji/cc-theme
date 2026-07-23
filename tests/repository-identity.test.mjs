@@ -8,6 +8,11 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const extension = ".cctheme";
 const mimeType = "application/vnd.cc-theme.theme+zip";
 const officialWebsite = "https://cc-theme.app";
+const officialGuideUrls = [
+  "https://cc-theme.app/en/chatgpt-desktop/themes",
+  "https://cc-theme.app/en/guides/fix-unreadable-codex-dark-mode",
+  "https://cc-theme.app/en/guides/safe-image-background-codex-mac",
+];
 const allowedReadmeHosts = new Set(["cc-theme.app", "docs.github.com", "github.com"]);
 
 async function json(relative) {
@@ -129,17 +134,21 @@ test("repository metadata points to the new repository and controlled official w
     assert.equal(metadata.bugs.url, "https://github.com/quanzhankeji/cc-theme/issues", relative);
   }
   const readmes = [
-    ["README.md", `Official website: [cc-theme.app](${officialWebsite})`],
-    ["README.zh-CN.md", `官方网站：[cc-theme.app](${officialWebsite})`],
+    ["README.md", `Official website: [cc-theme.app](${officialWebsite})`, [officialWebsite, ...officialGuideUrls]],
+    ["README.zh-CN.md", `官方网站：[cc-theme.app](${officialWebsite})`, [officialWebsite]],
   ];
-  for (const [relative, expectedWebsiteLine] of readmes) {
+  for (const [relative, expectedWebsiteLine, expectedOfficialUrls] of readmes) {
     const readme = await fs.readFile(path.join(root, relative), "utf8");
     assert.match(readme, /github\.com\/quanzhankeji\/cc-theme/);
     assert.match(readme, /`\.cctheme`/);
     const websiteClaims = readme.split(/\r?\n/).filter((line) => /\bwebsite\b|官方网站|官网/i.test(line));
     assert.deepEqual(websiteClaims, [expectedWebsiteLine], `${relative}: official website claim`);
     assert.equal(readme.split(expectedWebsiteLine).length - 1, 1, `${relative}: official website count`);
-    assert.doesNotMatch(readme.replace(expectedWebsiteLine, ""), /cc-theme\.app/i, `${relative}: unbound official domain`);
+    const readmeWithoutApprovedOfficialReferences = expectedOfficialUrls.slice(1).reduce(
+      (content, url) => content.replaceAll(url, ""),
+      readme.replace(expectedWebsiteLine, ""),
+    );
+    assert.doesNotMatch(readmeWithoutApprovedOfficialReferences, /cc-theme\.app/i, `${relative}: unbound official domain`);
 
     const absoluteUrls = [...readme.matchAll(/https?:\/\/[^\s<>()\]]+/g)].map(([url]) => url);
     const officialUrls = [];
@@ -150,7 +159,7 @@ test("repository metadata points to the new repository and controlled official w
       if (url.hostname === "cc-theme.app") {
         officialUrls.push(value);
         assert.equal(url.origin, officialWebsite, `${relative}: official website origin`);
-        assert.equal(url.pathname, "/", `${relative}: official website path`);
+        assert.equal(expectedOfficialUrls.includes(value), true, `${relative}: unapproved official website URL ${value}`);
         assert.equal(url.username, "", `${relative}: official website username`);
         assert.equal(url.password, "", `${relative}: official website password`);
         assert.equal(url.port, "", `${relative}: official website port`);
@@ -158,7 +167,7 @@ test("repository metadata points to the new repository and controlled official w
         assert.equal(url.hash, "", `${relative}: official website fragment`);
       }
     }
-    assert.deepEqual(officialUrls, [officialWebsite], `${relative}: canonical HTTPS website URL`);
+    assert.deepEqual(officialUrls, expectedOfficialUrls, `${relative}: canonical HTTPS website URLs`);
     assert.doesNotMatch(readme, /Web Studio|online editor|在线编辑器/i);
   }
 });
